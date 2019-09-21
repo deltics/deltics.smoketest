@@ -1,11 +1,11 @@
 {
-    id: "deltics.continuity",
-    summary: "A lightweight unit testing framework for ALL versions of Delphi with support for custom results writers to emit test results in whatever format is required.  XUni2 2.x format is supported OOB.",
+    id: "deltics.smoketest",
+    summary: "A lightweight and efficient unit testing framework for Delphi versions 7 thru 10.3 (excl. 8 and 2005) with support for custom results writers to emit test results in whatever format is required.  XUni2 2.x format is supported OOB.",
     tags: ["deltics", "delphi", "unit testing"],
     language: "pascal",
     compiler: "delphi",
     platform: "windows",
-    versions: "[1 .. 10.3], !8, !2005",
+    versions: "[7 .. 10.3], !8, !2005",
     copyright: "\u00A92019 Jolyon Direnko-Smith",
     language: "en",
     content: "source",
@@ -14,13 +14,14 @@
     ],
     source: {
         files: [    
-            "src\\Continuity.pas",
-            "src\\ContinuityTest.pas",
-            "src\\ContinuityTestResult.pas",
-            "src\\ContinuityTestRun.pas",
-            "src\\ContinuityTypeInfo.pas",
-            "src\\ContinuityResultsWriter.pas",
-            "src\\ContinuityResultWriterXUnit2.pas"
+            "src\\Deltics.Smoketest.inc",
+            "src\\Deltics.Smoketest.pas",
+            "src\\Deltics.Smoketest.ResultsWriter.pas",
+            "src\\Deltics.Smoketest.ResultsWriter.XUnit2.pas",
+            "src\\Deltics.Smoketest.Test.pas",
+            "src\\Deltics.Smoketest.TestResult.pas",
+            "src\\Deltics.Smoketest.TestRun.pas",
+            "src\\Deltics.Smoketest.Utils.pas"
         ]
     }
 }
