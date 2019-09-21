@@ -4,7 +4,7 @@
 interface
 
   uses
-    Deltics.Continuity;
+    Deltics.Smoketest;
 
   type
     TCoreFunctionality = class(TTest)

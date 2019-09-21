@@ -1,13 +1,13 @@
 
-{$i Deltics.Continuity.inc}
+{$i Deltics.Smoketest.inc}
 
-  unit Deltics.Continuity.ResultsWriter;
+  unit Deltics.Smoketest.ResultsWriter;
 
 interface
 
   uses
-    Deltics.Continuity.TestResult,
-    Deltics.Continuity.TestRun;
+    Deltics.Smoketest.TestResult,
+    Deltics.Smoketest.TestRun;
 
 
   type
@@ -23,14 +23,14 @@ interface
   //  of writer classes to only have to reference the ContinuityResultsWriter
   //  unit in their writer implementation units.
   type
-    TTestResult = Deltics.Continuity.TestResult.TTestResult;
-    TTestRun    = Deltics.Continuity.TestRun.TTestRun;
+    TTestResult = Deltics.Smoketest.TestResult.TTestResult;
+    TTestRun    = Deltics.Smoketest.TestRun.TTestRun;
 
   const
-    rsPass  = Deltics.Continuity.TestResult.rsPass;
-    rsFail  = Deltics.Continuity.TestResult.rsFail;
-    rsSkip  = Deltics.Continuity.TestResult.rsSkip;
-    rsError = Deltics.Continuity.TestResult.rsError;
+    rsPass  = Deltics.Smoketest.TestResult.rsPass;
+    rsFail  = Deltics.Smoketest.TestResult.rsFail;
+    rsSkip  = Deltics.Smoketest.TestResult.rsSkip;
+    rsError = Deltics.Smoketest.TestResult.rsError;
 
 
 

@@ -1,7 +1,7 @@
 
-{$i Deltics.Continuity.inc}
+{$i Deltics.Smoketest.inc}
 
-  unit Deltics.Continuity.Test;
+  unit Deltics.Smoketest.Test;
 
 interface
 
@@ -33,8 +33,8 @@ implementation
   uses
     SysUtils,
     TypInfo,
-    Deltics.Continuity.TestRun,
-    Deltics.Continuity.Utils;
+    Deltics.Smoketest.TestRun,
+    Deltics.Smoketest.Utils;
 
 
   type
@@ -110,5 +110,5 @@ implementation
 
 
 initialization
-  TestRun := TTestRunHelper(Deltics.Continuity.TestRun.TestRun);
+  TestRun := TTestRunHelper(Deltics.Smoketest.TestRun.TestRun);
 end.

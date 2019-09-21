@@ -1,7 +1,7 @@
 
-{$i Deltics.Continuity.inc}
+{$i Deltics.Smoketest.inc}
 
-  unit Deltics.Continuity.Utils;
+  unit Deltics.Smoketest.Utils;
 
 interface
 

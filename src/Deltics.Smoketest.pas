@@ -1,16 +1,16 @@
 
-{$i Deltics.Continuity.inc}
+{$i Deltics.Smoketest.inc}
 
-  unit Deltics.Continuity;
+  unit Deltics.Smoketest;
 
 interface
 
   uses
-    Deltics.Continuity.Test,
-    Deltics.Continuity.TestRun;
+    Deltics.Smoketest.Test,
+    Deltics.Smoketest.TestRun;
 
   type
-    TTest = Deltics.Continuity.Test.TTest;
+    TTest = Deltics.Smoketest.Test.TTest;
 
   const
     DELPHI_VERSION = {$ifdef VER80}  '1' {$endif}
@@ -55,7 +55,7 @@ implementation
 
   function TestRun: TTestRun;
   begin
-    result := Deltics.Continuity.TestRun.TestRun;
+    result := Deltics.Smoketest.TestRun.TestRun;
   end;
 
 

@@ -1,12 +1,12 @@
 
-{$i Deltics.Continuity.inc}
+{$i Deltics.Smoketest.inc}
 
-  unit Deltics.Continuity.ResultsWriter.XUnit2;
+  unit Deltics.Smoketest.ResultsWriter.XUnit2;
 
 interface
 
   uses
-    Deltics.Continuity.ResultsWriter;
+    Deltics.Smoketest.ResultsWriter;
 
 
   type
@@ -52,7 +52,7 @@ implementation
       DecodeDate(aTestRun.StartTime, y, m, d);
       DecodeTime(aTestRun.StartTime, h, n, s, z);
 
-      output.Add(Format('  <assembly name="%s" test-framework="Continuity" environment="%s" '
+      output.Add(Format('  <assembly name="%s" test-framework="Smoketest" environment="%s" '
                         + 'run-date="%d-%.2d-%.2d" run-time="%.2d:%.2d:%.2d" '
                         + 'time="%d" '
                         + 'total="%d" passed="%d" failed="%d" skipped="%d" errors="%d">',

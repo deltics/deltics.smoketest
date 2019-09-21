@@ -1,15 +1,15 @@
 
-{$i Deltics.Continuity.inc}
+{$i Deltics.Smoketest.inc}
 
-  unit Deltics.Continuity.TestRun;
+  unit Deltics.Smoketest.TestRun;
 
 interface
 
   uses
     Classes,
     SysUtils,
-    Deltics.Continuity.Test,
-    Deltics.Continuity.TestResult;
+    Deltics.Smoketest.Test,
+    Deltics.Smoketest.TestResult;
 
 
   type
@@ -109,8 +109,8 @@ interface
 implementation
 
   uses
-    Deltics.Continuity,
-    Deltics.Continuity.ResultsWriter;
+    Deltics.Smoketest,
+    Deltics.Smoketest.ResultsWriter;
 
 
   type
