@@ -17,7 +17,8 @@ interface
     protected
       procedure AbortTestRun;
       function Assert(const aTest: String; const aResult: Boolean; const aReason: String = ''): Boolean;
-      function AssertException(const aExceptionClass: TClass; const aMessage: String = ''; const aTestName: String = ''): Boolean;
+      function AssertBaseException(const aExceptionBaseClass: TClass; const aTestName: String = ''): Boolean;
+      function AssertException(const aExceptionClass: TClass; const aTestName: String = ''): Boolean;
     public
       procedure GetTestMethods(var aList: TStringList);
     end;
@@ -65,11 +66,9 @@ implementation
 
 
   function TTest.AssertException(const aExceptionClass: TClass;
-                                 const aMessage: String;
                                  const aTestName: String): Boolean;
   var
-    exceptionObject: TObject;
-    e: Exception;
+    e: TObject;
     testName: String;
   begin
     result := FALSE;
@@ -77,38 +76,47 @@ implementation
     testName := aTestName;
 
     if testName = '' then
-    begin
       testName := 'Raised ' + aExceptionClass.ClassName;
-      if aMessage <> '' then
-        testName := testName + ' [' + aMessage + ']';
-    end;
 
-    exceptionObject := ExceptObject;
-    if NOT Assigned(exceptionObject) then
+    e := ExceptObject;
+    if NOT Assigned(e) then
     begin
       TestRun.TestFailed(testName, 'No exception raised');
       EXIT;
     end;
 
-    e := NIL;
-
-    if exceptionObject is Exception then
-      e := Exception(exceptionObject);
-
-    if ExceptObject.ClassType <> aExceptionClass then
-    begin
-      if Assigned(e) then
-        TestRun.TestFailed(testName, 'Unexpected exception: ' + ExceptObject.ClassName + ' [' + e.Message + ']')
-      else
-        TestRun.TestFailed(testName, 'Unexpected exception: ' + ExceptObject.ClassName);
-    end
-    else if Assigned(e) and NOT SameText(e.Message, aMessage) then
-      TestRun.TestFailed(testName, e.ClassName + ' raised but with unexpected message [' + e.Message + ']')
+    result := (e.ClassType = aExceptionClass);
+    if result then
+      TestRun.TestPassed(testName)
     else
+      TestRun.TestFailed(testName, 'Unexpected exception: ' + e.ClassName);
+  end;
+
+
+  function TTest.AssertBaseException(const aExceptionBaseClass: TClass;
+                                     const aTestName: String): Boolean;
+  var
+    e: TObject;
+    testName: String;
+  begin
+    result   := FALSE;
+    testName := aTestName;
+
+    if testName = '' then
+      testName := 'Raised ' + aExceptionBaseClass.ClassName;
+
+    e := ExceptObject;
+    if NOT Assigned(e) then
     begin
-      TestRun.TestPassed(testName);
-      result := TRUE;
+      TestRun.TestFailed(testName, 'No exception raised');
+      EXIT;
     end;
+
+    result := (e is aExceptionBaseClass);
+    if result then
+      TestRun.TestPassed(testName)
+    else
+      TestRun.TestFailed(testName, 'Unexpected exception: ' + e.ClassName);
   end;
 
 

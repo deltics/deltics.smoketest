@@ -54,30 +54,29 @@ implementation
   procedure TCoreFunctionality.TestExceptionHandling;
   begin
     try
-      raise Exception.Create('This exception was deliberately raised');
+      raise EDivByZero.Create('This exception was deliberately raised');
     except
-      AssertException(Exception, 'This exception was deliberately raised');
+      AssertException(EDivByZero);
+    end;
+
+    try
+      raise EDivByZero.Create('EDivByZero is an Exception');
+    except
+      AssertBaseException(Exception);
     end;
 
     TestRun.ExpectingToFail;
     try
-      AssertException(Exception, 'No exception was raised');
+      raise EDivByZero.Create('Testing for a specific exception type');
+    except
+      AssertException(Exception, 'EDivByZero is a sub-class of Exception');
+    end;
+
+    TestRun.ExpectingToFail;
+    try
+      AssertException(Exception);
     except
       // NO-OP (there is no expection raised
-    end;
-
-    TestRun.ExpectingToFail;
-    try
-      raise EArgumentException.Create('The wrong exception class was deliberately raised');
-    except
-      AssertException(Exception, 'The wrong exception class was deliberately raised');
-    end;
-
-    TestRun.ExpectingToFail;
-    try
-      raise Exception.Create('This exception was deliberately raised with the wrong message');
-    except
-      AssertException(Exception, 'Exception has the wrong message');
     end;
   end;
 
