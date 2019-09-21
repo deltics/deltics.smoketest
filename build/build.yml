@@ -1,0 +1,62 @@
+trigger:
+- develop*
+- feature*
+- master
+
+resources:
+  repositories:
+    - repository: templates
+      type: github
+      name: deltics/azure-pipeline-templates
+      endpoint: GitHubTemplates
+
+pool:
+  name: 'The Den'
+
+steps:
+- template: gitversion.yml@templates
+
+- script: |
+    duget init
+    duget restore --path tests
+  displayName: 'Initialise DuGet'
+
+- template: build-all.yml
+  parameters:
+    delphiVersions: [ 7, 2006, 2007, 2009, 2010, xe, xe2, xe3, xe4, xe5, xe6, xe7, xe8, 10, 10.1, 10.2, 10.3 ]
+
+- template: build-all.yml
+  parameters:
+    delphiVersions: [ xe2, xe3, xe4, xe5, xe6, xe7, xe8, 10, 10.1, 10.2, 10.3 ]
+    platform: x64
+
+- template: test-all.yml
+  parameters:
+    delphiVersions: [ 7, 2006, 2007, 2009, 2010, xe, xe2, xe3, xe4, xe5, xe6, xe7, xe8, 10, 10.1, 10.2, 10.3 ]
+
+- template: test-all.yml
+  parameters:
+    delphiVersions: [ xe2, xe3, xe4, xe5, xe6, xe7, xe8, 10, 10.1, 10.2, 10.3 ]
+    platform: x64
+
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: XUnit
+    testResultsFiles: '*.xml'
+    searchFolder: '.results'
+    testRunTitle: Build $(gitversion)
+  condition: succeededOrFailed() # Publish any results we may have collected
+
+- powershell: duget pack --version $(gitversion)
+  displayName: Create Duget package
+
+- powershell: |
+    $feed = ''
+
+    if ("$(gitversion)" -like '*alpha*')    { $feed = '-feed alpha' }
+    elseif ("$(gitversion)" -like '*beta*') { $feed = '-feed beta' }
+
+    duget push $feed
+
+  displayName: Publish Duget package
+    

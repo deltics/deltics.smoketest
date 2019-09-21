@@ -1,0 +1,26 @@
+{
+    id: "deltics.continuity",
+    summary: "A lightweight unit testing framework for ALL versions of Delphi with support for custom results writers to emit test results in whatever format is required.  XUni2 2.x format is supported OOB.",
+    tags: ["deltics", "delphi", "unit testing"],
+    language: "pascal",
+    compiler: "delphi",
+    platform: "windows",
+    versions: "[1 .. 10.3], !8, !2005",
+    copyright: "\u00A92019 Jolyon Direnko-Smith",
+    language: "en",
+    content: "source",
+    dependencies: [
+    	"deltics.inc:1.0.0"
+    ],
+    source: {
+        files: [    
+            "src\\Continuity.pas",
+            "src\\ContinuityTest.pas",
+            "src\\ContinuityTestResult.pas",
+            "src\\ContinuityTestRun.pas",
+            "src\\ContinuityTypeInfo.pas",
+            "src\\ContinuityResultsWriter.pas",
+            "src\\ContinuityResultWriterXUnit2.pas"
+        ]
+    }
+}
