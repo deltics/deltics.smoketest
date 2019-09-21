@@ -12,13 +12,21 @@ interface
       procedure ThisTestWillFail;
       procedure ThisTestWillThrowAnException;
       procedure TestResultsAreAsExpected;
+      procedure TestExceptionHandling;
     end;
 
 
 implementation
 
   uses
-    SysUtils;
+    SysUtils,
+    Deltics.Smoketest.TestRun;
+
+  type
+    TTestRunHelper = class(TTestRun);
+
+  var
+    TestRun: TTestRunHelper;
 
 
 { TCoreFunctionality }
@@ -38,8 +46,39 @@ implementation
 
   procedure TCoreFunctionality.ThisTestWillThrowAnException;
   begin
-    TestRun.ExpectingError(Exception, 'This exception was deliberately thrown');
-    raise Exception.Create('This exception was deliberately thrown');
+    TestRun.ExpectingException(Exception, 'This exception was deliberately raised');
+    raise Exception.Create('This exception was deliberately raised');
+  end;
+
+
+  procedure TCoreFunctionality.TestExceptionHandling;
+  begin
+    try
+      raise Exception.Create('This exception was deliberately raised');
+    except
+      AssertException(Exception, 'This exception was deliberately raised');
+    end;
+
+    TestRun.ExpectingToFail;
+    try
+      AssertException(Exception, 'No exception was raised');
+    except
+      // NO-OP (there is no expection raised
+    end;
+
+    TestRun.ExpectingToFail;
+    try
+      raise EArgumentException.Create('The wrong exception class was deliberately raised');
+    except
+      AssertException(Exception, 'The wrong exception class was deliberately raised');
+    end;
+
+    TestRun.ExpectingToFail;
+    try
+      raise Exception.Create('This exception was deliberately raised with the wrong message');
+    except
+      AssertException(Exception, 'Exception has the wrong message');
+    end;
   end;
 
 
@@ -66,5 +105,6 @@ implementation
 
 
 
-
+initialization
+  TestRun := TTestRunHelper(Deltics.Smoketest.TestRun.TestRun);
 end.

@@ -17,6 +17,7 @@ interface
     protected
       procedure AbortTestRun;
       function Assert(const aTest: String; const aResult: Boolean; const aReason: String = ''): Boolean;
+      function AssertException(const aExceptionClass: TClass; const aMessage: String = ''; const aTestName: String = ''): Boolean;
     public
       procedure GetTestMethods(var aList: TStringList);
     end;
@@ -60,6 +61,54 @@ implementation
       TestRun.TestPassed(aTest)
     else
       TestRun.TestFailed(aTest, aReason);
+  end;
+
+
+  function TTest.AssertException(const aExceptionClass: TClass;
+                                 const aMessage: String;
+                                 const aTestName: String): Boolean;
+  var
+    exceptionObject: TObject;
+    e: Exception;
+    testName: String;
+  begin
+    result := FALSE;
+
+    testName := aTestName;
+
+    if testName = '' then
+    begin
+      testName := 'Raised ' + aExceptionClass.ClassName;
+      if aMessage <> '' then
+        testName := testName + ' [' + aMessage + ']';
+    end;
+
+    exceptionObject := ExceptObject;
+    if NOT Assigned(exceptionObject) then
+    begin
+      TestRun.TestFailed(testName, 'No exception raised');
+      EXIT;
+    end;
+
+    e := NIL;
+
+    if exceptionObject is Exception then
+      e := Exception(exceptionObject);
+
+    if ExceptObject.ClassType <> aExceptionClass then
+    begin
+      if Assigned(e) then
+        TestRun.TestFailed(testName, 'Unexpected exception: ' + ExceptObject.ClassName + ' [' + e.Message + ']')
+      else
+        TestRun.TestFailed(testName, 'Unexpected exception: ' + ExceptObject.ClassName);
+    end
+    else if Assigned(e) and NOT SameText(e.Message, aMessage) then
+      TestRun.TestFailed(testName, e.ClassName + ' raised but with unexpected message [' + e.Message + ']')
+    else
+    begin
+      TestRun.TestPassed(testName);
+      result := TRUE;
+    end;
   end;
 
 

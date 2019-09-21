@@ -63,6 +63,8 @@ interface
       procedure SetTestType(const aTypeName: String);
       procedure SetTestMethod(const aMethodName: String);
       procedure SetTestNamePrefix(const aPrefix: String);
+      procedure ExpectingException(const aExceptionClass: TClass; const aMessage: String);
+      procedure ExpectingToFail;
 
       procedure TestError(const aException: Exception);
       procedure TestPassed(const aTest: String);
@@ -74,8 +76,6 @@ interface
 
       function HasCmdLineOption(const aName: String; var aValue: String): Boolean; overload;
       function HasCmdLineOption(const aName: String): Boolean; overload;
-      procedure ExpectingError(const aExceptionClass: TClass; const aMessage: String);
-      procedure ExpectingToFail;
       procedure Execute(const aTest: TTestClass; const aNamePrefix: String = ''); overload;
       procedure Execute(const aTests: TTestArray; const aNamePrefix: String = ''); overload;
 
@@ -285,8 +285,8 @@ implementation
   end;
 
 
-  procedure TTestRun.ExpectingError(const aExceptionClass: TClass;
-                                    const aMessage: String);
+  procedure TTestRun.ExpectingException(const aExceptionClass: TClass;
+                                        const aMessage: String);
   begin
     fExpectedResult       := rsError;
     fExpectedErrorClass   := aExceptionClass;
