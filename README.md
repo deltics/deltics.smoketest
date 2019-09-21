@@ -34,22 +34,36 @@ The simplest possible test suite would be:
 
 Currently the mechanisms for performing tests are very basic, comprising only of an `Assert` and `AssertException` method.  An example of `Assert` appears above.  `AssertException` is used to test for expected exceptions:
 
-    procedure TMyTest.TestDivisonByZeroError;
-    var
-      a: Integer;
-    begin
-      try
-        a := SomeOperationThatIsExpectedToCauseDivisionByZero;
+```
+  procedure TMyTest.TestDivisonByZeroError;
+  var
+    a: Integer;
+  begin
+    try
+      a := SomeOperationThatIsExpectedToCauseDivisionByZero;
 
-        AssertException(EDivByZero);
-      except
-        AssertException(EDivByZero);
-      end;
+      AssertException(EDivByZero);
+    except
+      AssertException(EDivByZero);
     end;
+  end;
+```
 
-Note that `AssertException` is used _twice_ but only one of these will actually be called.  The first will be called **only** if the operation does not raise the excepted exception and will cause the test to fail.  The second will be called **only** if an exception is raised and this test will fail if the exception that is caught is not of the expected type or has a different message to that specified (an optional second parameter to the `AssertException` test.  If no message is specified then only the exception class is significant for the test).
+Note that `AssertException` is used _twice_ but only one of these will actually be called.  The first will be called **only** if the operation does not raise the excepted exception and will cause the test to fail.  The second will be called **only** if an exception is raised and this test will fail if the exception that is caught is not of the expected type.
 
-The `AssertException` test will construct a name for the test automatically based on the parameters and the context.  Alternatively an explicit test name may be provided as a third parameter.  To specify a test name where the exception message is not important to the test simply pass an empty string in the second parameter.
+Notice that `AssertException` will pass only if the caught exception matches the expected exception class exactly.  To test for any exception that derives from a given exception class, use `AssertBaseException`. e.g. in the following example, _both_ tests will pass since the exception raised will be an **EDivByZero** exception and **EDivByZero** is also a subclass of the **Exception** class:
+
+```
+  try
+    a := SomeOperationThatIsExpectedToCauseDivisionByZero;
+        
+  except
+    AssertException(EDivByZero);
+    AssertBaseException(Exception);
+  end;
+```
+
+Both `AssertException` and `AssertBaseException` will construct a name for the test automatically based on the parameters and the context.  Alternatively an explicit test name may be provided as a second parameter.
 
 
 # Getting Started - Duget Package
