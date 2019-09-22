@@ -2,15 +2,15 @@ mode: ContinuousDeployment
 increment: None
 next-version: 2.0.0
 branches:
-    master:
-      mode: ContinuousDelivery
-      regex: master
-      tag: 
-    develop:
-      regex: develop[/-]?
-      tag: beta
-      increment: Patch
-    feature:
-      regex: feature[/-]?
-      tag: alpha
-      increment: Minor
+  master:
+    mode: ContinuousDelivery
+    regex: master
+    tag: 
+  develop:
+    regex: develop[/-]?
+    tag: beta
+    increment: Patch
+  feature:
+    regex: feature[/-]?
+    tag: alpha
+    increment: Minor
