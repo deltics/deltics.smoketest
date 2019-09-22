@@ -539,6 +539,7 @@ implementation
         resultCountBeforeMethodRan := fTestsCount;
         try
           try
+            resultCountBeforeMethodRan := fTestsCount;
             method;
 
           except
