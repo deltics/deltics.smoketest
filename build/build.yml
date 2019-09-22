@@ -17,7 +17,7 @@ resources:
       endpoint: GitHubTemplates
 
 pool:
-  name: 'The Den'
+  name: $(AgentPool)
 
 steps:
 - template: gitversion.yml@templates
