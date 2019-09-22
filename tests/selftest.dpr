@@ -17,7 +17,7 @@ program selftest;
 begin
   TestRun.Environment := 'Delphi ' + Uppercase(DELPHI_VERSION);
   try
-    TestRun.Execute(TCoreFunctionality);
+    TestRun.Test(TCoreFunctionality);
 
   except
     on e: Exception do

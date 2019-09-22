@@ -76,8 +76,8 @@ interface
 
       function HasCmdLineOption(const aName: String; var aValue: String): Boolean; overload;
       function HasCmdLineOption(const aName: String): Boolean; overload;
-      procedure Execute(const aTest: TTestClass; const aNamePrefix: String = ''); overload;
-      procedure Execute(const aTests: TTestArray; const aNamePrefix: String = ''); overload;
+      procedure Test(const aTest: TTestClass; const aNamePrefix: String = ''); overload;
+      procedure Test(const aTests: TTestArray; const aNamePrefix: String = ''); overload;
 
       property Name: String read fName write set_Name;
       property Environment: String read fEnvironment write set_Environment;
@@ -491,17 +491,18 @@ implementation
   end;
 
 
-  procedure TTestRun.Execute(const aTest: TTestClass;
-                             const aNamePrefix: String);
+  procedure TTestRun.Test(const aTest: TTestClass;
+                          const aNamePrefix: String);
   var
     i: Integer;
     test: TTest;
     methods: TStringList;
     method: procedure of object;
+    resultCountBeforeMethodRan: Integer;
   begin
     if IsFinished then
     begin
-      WriteLn('WARNING: Methods in test class %s not performed as TestRun has already finished');
+      WriteLn(Format('WARNING: Methods in test class %s not performed as TestRun has already finished', [aTest.ClassName]));
       EXIT;
     end;
 
@@ -516,6 +517,9 @@ implementation
 
       test.GetTestMethods(methods);
 
+      if methods.Count = 0 then
+        WriteLn(Format('WARNING: Test class %s implements no test methods', [fTypeName]));
+
       for i := 0 to Pred(methods.Count) do
       begin
         SetTestMethod(methods[i]);
@@ -524,6 +528,7 @@ implementation
         TMethod(method).Code := test.MethodAddress(methods[i]);
         try
           try
+            resultCountBeforeMethodRan := fTestsCount;
             method;
 
           except
@@ -532,6 +537,9 @@ implementation
           end;
 
         finally
+          if fTestsCount = resultCountBeforeMethodRan then
+            WriteLn(Format('WARNING: Test method %s.%s did not perform any tests', [fTypeName, fMethodName]));
+
           SetTestMethod('');
         end;
       end;
@@ -543,13 +551,13 @@ implementation
   end;
 
 
-  procedure TTestRun.Execute(const aTests: TTestArray;
-                             const aNamePrefix: String);
+  procedure TTestRun.Test(const aTests: TTestArray;
+                          const aNamePrefix: String);
   var
     i: Integer;
   begin
     for i := 0 to High(aTests) do
-      Execute(aTests[i], aNamePrefix);
+      Test(aTests[i], aNamePrefix);
   end;
 
 
