@@ -53,6 +53,10 @@ interface
 
 implementation
 
+  uses
+    Deltics.Smoketest.ResultsWriter.XUnit2;
+    
+
   function TestRun: TTestRun;
   begin
     result := Deltics.Smoketest.TestRun.TestRun;
