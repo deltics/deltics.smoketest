@@ -219,6 +219,12 @@ implementation
     if fEnvironment = '' then
       fEnvironment := 'Test';
 
+    WriteLn(':> ' + CmdLine);
+    WriteLn('Smoketest test run: Name=' + fName + ', Environment=' + fEnvironment);
+    Write('Writers supported: ');
+    if fWriters.Count > 0 then WriteLn(fWriters.CommaText) else WriteLn('(none)');
+    WriteLn;
+
     fStartTime := Now;
     fIsRunning := TRUE;
   end;
@@ -270,6 +276,7 @@ implementation
 
     CheckExpectedStates;
 
+    WriteLn;
     WriteLn(Format('Total Tests = %d, Passed = %d, Failed = %d, Skipped = %d, Errors = %d', [fTestsCount, fTestsPassed, fTestsFailed, fTestsSkipped, fTestsError]));
 
     try
@@ -397,17 +404,19 @@ implementation
     filename: String;
   begin
     for i := 0 to Pred(fWriters.Count) do
+    begin
+      if NOT HasCmdLineOption(fWriters[i], filename) then
+        CONTINUE;
+
       try
-        if HasCmdLineOption(fWriters[i], filename) then
-        begin
-          TResultsWriter(fWriters.Objects[i]).SaveResults(TestRun, filename);
-          WriteLn(Format('%s results written to %s', [fWriters[i], filename]));
-        end;
+        WriteLn(Format('Writing %s results to %s', [fWriters[i], filename]));
+        TResultsWriter(fWriters.Objects[i]).SaveResults(TestRun, filename);
 
       except
         on e: Exception do
           WriteLn(Format('ERROR: Failed to write %s results to %s (%s: %s)', [fWriters[i], filename, e.ClassName, e.Message]));
       end;
+    end;
   end;
 
 
@@ -526,9 +535,10 @@ implementation
 
         TMethod(method).Data := test;
         TMethod(method).Code := test.MethodAddress(methods[i]);
+
+        resultCountBeforeMethodRan := fTestsCount;
         try
           try
-            resultCountBeforeMethodRan := fTestsCount;
             method;
 
           except
