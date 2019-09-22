@@ -3,6 +3,12 @@ trigger:
 - feature*
 - master
 
+pr:
+  branches:
+    include:
+      - develop*
+      - feature*
+
 resources:
   repositories:
     - repository: templates
