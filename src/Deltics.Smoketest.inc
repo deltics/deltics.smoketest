@@ -190,3 +190,9 @@
   {$scopedenums OFF}
 {$endif}
 
+
+{$ifdef debugDelticsSmoketest}
+  {$debuginfo ON}
+{$else}
+  {$debuginfo OFF}
+{$endif}
