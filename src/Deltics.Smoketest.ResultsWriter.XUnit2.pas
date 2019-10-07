@@ -52,12 +52,7 @@ implementation
     y, m, d, h, n, s, z: Word;
     result: TTestResult;
     state: String;
-    testName: String;
-    testMethod: String;
-    useNameForMethod: Boolean;
   begin
-    useNameForMethod := TestRun.HasCmdLineOption('xunit2-useTestNameForMethod');
-
     output := TStringList.Create;
     try
       if FileExists(aFilename) then
@@ -107,26 +102,15 @@ implementation
           rsError : state := 'Error';
         end;
 
-        if useNameForMethod then
-        begin
-          testName    := result.TestMethod;
-          testMethod  := result.TestName;
-        end
-        else
-        begin
-          testName    := result.TestName;
-          testMethod  := result.TestMethod;
-        end;
-
         if (result.State = rsPass) or (result.ErrorMessage = '') then
         begin
           output.Add(Format('      <test name="%s" type="%s" method="%s" time="0" result="%s" />',
-                                   [testName, result.TypeName, testMethod, state]));
+                                   [result.TestName, result.TypeName, result.TestMethod, state]));
           CONTINUE;
         end;
 
         output.Add(Format('      <test name="%s" type="%s" method="%s" time="0" result="%s">',
-                                 [testName, result.TypeName, testMethod, state]));
+                                 [result.TestName, result.TypeName, result.TestMethod, state]));
                output.Add('        <failure exception-type="Assertion">');
                output.Add('          <message>');
                output.Add('            <![CDATA[' + result.ErrorMessage + ']]>');
