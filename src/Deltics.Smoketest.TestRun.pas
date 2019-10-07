@@ -15,6 +15,7 @@ interface
   type
     TTestRun = class
     private
+      fCmdLineArgs: TStringList;
       fName: String;
       fEnvironment: String;
       fIsAborted: Boolean;
@@ -109,8 +110,8 @@ interface
 implementation
 
   uses
-    Deltics.Smoketest,
-    Deltics.Smoketest.ResultsWriter;
+    Deltics.Smoketest.ResultsWriter,
+    Deltics.Smoketest.Utils;
 
 
   type
@@ -118,19 +119,27 @@ implementation
     TTestMethodArray = array of TTestMethod;
 
 
-{ TTestRun }
+{ TTestRun --------------------------------------------------------------------------------------- }
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   constructor TTestRun.Create;
+  var
+    i: Integer;
   begin
     inherited Create;
 
     fExpectedResult := rsPass;
 
-    fResults := TList.Create;
-    fWriters := TStringList.Create;
+    fCmdLineArgs  := TStringList.Create;
+    fResults      := TList.Create;
+    fWriters      := TStringList.Create;
+
+    for i := 0 to ParamCount do
+      fCmdLineArgs.Add(ParamStr(i));
   end;
 
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   destructor TTestRun.Destroy;
   var
     i: Integer;
@@ -143,17 +152,133 @@ implementation
 
     fResults.Free;
     fWriters.Free;
+    fCmdLineArgs.Free;
 
     inherited;
   end;
 
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TTestRun.get_CurrentTestName: String;
+  {
+    Calculates and returns the name of the current test.
+
+    If no test name has been explicitly set then the name will default to the
+     name of the currently executing test method.  If there is no method name
+     then the test (class) name is used.
+
+    Any specified name prefix is then applied.
+
+    Finally, where the name has been derived from either the method or test
+     class name, the name is appended by a numeric identifier of the test
+     being performed (since in this case there are likely to be multiple
+     'unnamed' tests being performed) to help identify which test is being
+     referenced.
+  }
+  begin
+    result := fTestName;
+    if result = '' then
+      result := fMethodName;
+
+    if result = '' then
+      result := fTypeName;
+
+    if fTestNamePrefix <> '' then
+      result := fTestNamePrefix + '.' + result;
+
+    if (fTestName = '') then
+      result := result + ' test ' + IntToStr(fTestIndex);
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TTestRun.get_Failed: Boolean;
+  begin
+    result := (fTestsFailed + fTestsError) > 0;
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TTestRun.get_FinishTime: TDateTime;
+  {
+    It is an error to attempt to reference the testrun finishtime if the
+     testrun has not yet actually finished.
+  }
+  begin
+    if NOT fIsFinished then
+      raise Exception.Create('Test run has not yet finished');
+
+    result := fFinishTime;
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TTestRun.get_Result(const aIndex: Integer): TTestResult;
+  begin
+    result := TTestResult(fResults[aIndex]);
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TTestRun.get_ResultCount: Integer;
+  begin
+    result := fResults.Count;
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TTestRun.get_RunTime: Integer;
+  {
+    Returns the runtime (in milliseconds) of the testrun.  If the testrun
+     is finished then the runtime reflects the time from start to finish.
+     If the testrun is not yet finished then the runtime reflects the time
+     from start to now (and thus will keep increasing until the testrun is
+     finished).
+  }
+  var
+    finish: TDateTime;
+  begin
+    if fIsFinished then
+      finish := FinishTime
+    else
+      finish := Now;
+
+    result := Round((finish - fStartTime) * 24 * 60 * 60 * 1000);
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  procedure TTestRun.set_Environment(const aValue: String);
+  begin
+    if fIsRunning then
+      WriteLn('WARNING: Attempt to change TestRun.Environment during test run (ignored)')
+    else if fIsFinished then
+      WriteLn('WARNING: Attempt to change TestRun.Environment after test run completion (ignored)')
+    else
+      fEnvironment := aValue;
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  procedure TTestRun.set_Name(const aValue: String);
+  begin
+    if fIsRunning then
+      WriteLn('WARNING: Ignored attempt to change TestRun.Name during test run')
+    else if fIsFinished then
+      WriteLn('WARNING: Ignored attempt to change TestRun.Name after test run completion')
+    else
+      fName := aValue;
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTestRun.Abort;
   begin
     fIsAborted := TRUE;
   end;
 
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTestRun.AddResult(const aTestName: String;
                                const aResult: TResultState;
                                const aReason: String);
@@ -205,6 +330,7 @@ implementation
   end;
 
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTestRun.BeginRun;
   begin
     if fIsRunning then
@@ -230,6 +356,7 @@ implementation
   end;
 
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTestRun.CheckExpectedStates;
   var
     i: Integer;
@@ -263,11 +390,13 @@ implementation
   end;
 
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTestRun.Complete;
   begin
     if fIsFinished then
     begin
-      WriteLn('WARNING: Attempt to call TestRun.Complete multiple times (First call terminated the run)');
+      WriteLn('WARNING: Attempt to call TestRun.Complete multiple times.');
+      WriteLn('         (The first call already terminated the run)');
       EXIT;
     end;
 
@@ -277,8 +406,14 @@ implementation
     CheckExpectedStates;
 
     WriteLn;
-    WriteLn(Format('Total Tests = %d, Passed = %d, Failed = %d, Skipped = %d, Errors = %d', [fTestsCount, fTestsPassed, fTestsFailed, fTestsSkipped, fTestsError]));
+    if fTestsCount = 0 then
+    begin
+      WriteLn('WARNING: No tests performed.');
+      EXIT;
+    end;
 
+    WriteLn(Format('Total Tests = %d, Passed = %d, Failed = %d, Skipped = %d, Errors = %d',
+                   [fTestsCount, fTestsPassed, fTestsFailed, fTestsSkipped, fTestsError]));
     try
       SaveResults;
 
@@ -292,8 +427,22 @@ implementation
   end;
 
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTestRun.ExpectingException(const aExceptionClass: TClass;
                                         const aMessage: String);
+  {
+    Sets details of an expected exception.  If the next test that is performed
+     raises an exception that matches these details then this will be
+     acknowledged as the expected result (i.e. a PASS) rather than an error.
+
+    These details are cleared and the expected result reset to Pass by the
+     execution of a test.  That is, setting details of an expected exception
+     applies only for the immediately following test.
+
+    NOTE: This method is intended only to be called by the tests implemented
+           in the smoketest selftest project.  It is NOT designed or intended
+           for general use.
+  }
   begin
     fExpectedResult       := rsError;
     fExpectedErrorClass   := aExceptionClass;
@@ -301,104 +450,55 @@ implementation
   end;
 
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTestRun.ExpectingToFail;
+  {
+    Sets the expected result to Fail.  If the next test that is performed
+     fails then this can be acknowledged as the expected result (i.e. a PASS)
+     rather than an actual failure.
+
+    The expected result will be reset to Pass by the execution of a test.
+     That is, setting the expected result to Fail applies only for the
+     immediately following test.
+
+    NOTE: This method is intended only to be called by the tests implemented
+           in the smoketest selftest project.  It is NOT designed or intended
+           for general use.
+  }
   begin
     fExpectedResult := rsFail;
   end;
 
 
-  function TTestRun.get_CurrentTestName: String;
-  begin
-    result := fTestName;
-    if result = '' then
-      result := fMethodName;
-
-    if result = '' then
-      result := fTypeName;
-
-    if fTestNamePrefix <> '' then
-      result := fTestNamePrefix + '.' + result;
-
-    if (fTestName = '') then
-      result := result + ' test ' + IntToStr(fTestIndex);
-  end;
-
-
-  function TTestRun.get_Failed: Boolean;
-  begin
-    result := (fTestsFailed + fTestsError) > 0;
-  end;
-
-
-  function TTestRun.get_FinishTime: TDateTime;
-  begin
-    if NOT fIsFinished then
-      raise Exception.Create('Test run has not yet finished');
-
-    result := fFinishTime;
-  end;
-
-
-  function TTestRun.get_Result(const aIndex: Integer): TTestResult;
-  begin
-    result := TTestResult(fResults[aIndex]);
-  end;
-
-
-  function TTestRun.get_ResultCount: Integer;
-  begin
-    result := fResults.Count;
-  end;
-
-
-  function TTestRun.get_RunTime: Integer;
-  var
-    finish: TDateTime;
-  begin
-    if fIsFinished then
-      finish := FinishTime
-    else
-      finish := Now;
-
-    result := Round((finish - fStartTime) * 24 * 60 * 60);
-  end;
-
-
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTestRun.SetTestType(const aTypeName: String);
   begin
     fTypeName := aTypeName;
   end;
 
 
-  procedure TTestRun.set_Environment(const aValue: String);
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  procedure TTestRun.SetTestMethod(const aMethodName: String);
   begin
-    if fIsRunning then
-      WriteLn('WARNING: Ignored attempt to change TestRun.Environment during test run')
-    else if fIsFinished then
-      WriteLn('WARNING: Ignored attempt to change TestRun.Environment after test run completion')
-    else
-      fEnvironment := aValue;
+    fMethodName := aMethodName;
+    fTestIndex  := 0;
   end;
 
 
-  procedure TTestRun.set_Name(const aValue: String);
-  begin
-    if fIsRunning then
-      WriteLn('WARNING: Ignored attempt to change TestRun.Name during test run')
-    else if fIsFinished then
-      WriteLn('WARNING: Ignored attempt to change TestRun.Name after test run completion')
-    else
-      fName := aValue;
-  end;
-
-
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTestRun.SetTestNamePrefix(const aPrefix: String);
   begin
     fTestNamePrefix := aPrefix;
   end;
 
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTestRun.SaveResults;
+  {
+    Identifies command line options that specify known results writer
+     formats.  For each identified writer option, call the writer to
+     output the test results as required.
+  }
   var
     i: Integer;
     filename: String;
@@ -420,13 +520,7 @@ implementation
   end;
 
 
-  procedure TTestRun.SetTestMethod(const aMethodName: String);
-  begin
-    fMethodName := aMethodName;
-    fTestIndex  := 0;
-  end;
-
-
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTestRun.TestError(const aException: Exception);
   begin
     if (fExpectedErrorClass = aException.ClassType)
@@ -444,6 +538,7 @@ implementation
 
 
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTestRun.TestFailed(const aTest: String;
                                 const aReason: String);
   begin
@@ -452,13 +547,19 @@ implementation
 
 
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTestRun.TestPassed(const aTest: String);
   begin
     AddResult(aTest, rsPass, '');
   end;
 
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   function TTestRun.HasCmdLineOption(const aName: String): Boolean;
+  {
+    Convenience function for determining the presence of a command line
+     option where there is no associated value or the value is of no interest.
+  }
   var
     notUsed: String;
   begin
@@ -466,42 +567,46 @@ implementation
   end;
 
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   function TTestRun.HasCmdLineOption(const aName: String;
-                                     var aValue: String): Boolean;
-  var
-    i: Integer;
-    s: String;
+                                     var   aValue: String): Boolean;
+  {
+    Examines the command line looking for the presence of a specified option
+     with an optional value which, if present, is passed back in the var
+     aValue parameter.
+
+    Options are expected to be specified in one of the three forms:
+
+         -name
+         -name:value
+         -name=value
+
+    The first provides the option but has no value.  The second and third
+     forms provide the option and the associated value follows the separator
+     character which must be either a ':' or a '='.  Only the first occurence
+     of either of these separators is significant for the purpose of identifying
+     options and associated values:
+
+         -mode:level=42      > identifies option 'mode' with value 'level=42'
+         -mode=level:42      > identifies option 'mode' with value 'level:42'
+         -mode:level:42      > identifies option 'mode' with value 'level:42'
+         -mode=level=42      > identifies option 'mode' with value 'level=42'
+  }
   begin
-    result  := FALSE;
-    aValue  := '';
-
-    for i := 1 to ParamCount do
-    begin
-      s := ParamStr(i);
-      if s[1] <> '-' then
-        CONTINUE;
-
-      Delete(s, 1, 1);
-      if NOT SameText(Copy(s, 1, Length(aName)), aName) then
-        CONTINUE;
-
-      Delete(s, 1, Length(aName));
-      result := (s = '') or (ANSIChar(s[1]) in [':', '=']);
-      if NOT result then
-        CONTINUE;
-
-      if s = '' then
-        EXIT;
-
-      Delete(s, 1, 1);
-      aValue := s;
-      EXIT;
-    end;
+    result := Deltics.Smoketest.Utils.HasCmdLineOption(fCmdLineArgs, aName, aValue);
   end;
 
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTestRun.Test(const aTest: TTestClass;
                           const aNamePrefix: String);
+  {
+    Identifies and executes test methods on the specified class.
+
+    The outcome of tests performed by each test method is recorded on the test
+     run by the Assert() mechanisms implemented in the Test class and called
+     during the execution of each method.
+  }
   var
     i: Integer;
     test: TTest;
@@ -555,14 +660,21 @@ implementation
       end;
 
     finally
+      SetTestNamePrefix('');
+      SetTestType('');
+
       methods.Free;
       test.Free;
     end;
   end;
 
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTestRun.Test(const aTests: TTestArray;
                           const aNamePrefix: String);
+  {
+    Executes test methods on one or more identified test classes.
+  }
   var
     i: Integer;
   begin

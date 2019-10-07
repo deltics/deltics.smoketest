@@ -6,6 +6,7 @@
 interface
 
   uses
+    Classes,
     SysUtils;
 
 
@@ -176,6 +177,7 @@ interface
   function GetVirtualMethodTable(const aClass: TClass): PVirtualMethodTable; overload;
   function GetVirtualMethodTable(const aObject: TObject): PVirtualMethodTable; overload;
 
+  function HasCmdLineOption(const aArgs: TStringList; const aOption: String; var aValue: String): Boolean;
 
 
 implementation
@@ -273,7 +275,6 @@ implementation
   }
   begin
     result := PVirtualMethodTable(Integer(aClass) - sizeof(TVirtualMethodTable));
-//    Dec(result);
   end;
 
 
@@ -287,7 +288,40 @@ implementation
   end;
 
 
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function HasCmdLineOption(const aArgs: TStringList;
+                            const aOption: String;
+                            var   aValue: String): Boolean;
+  var
+    i: Integer;
+    s: String;
+  begin
+    result  := FALSE;
+    aValue  := '';
+
+    for i := 1 to Pred(aArgs.Count) do
+    begin
+      s := aArgs[i];
+      if s[1] <> '-' then
+        CONTINUE;
+
+      Delete(s, 1, 1);
+      if NOT SameText(Copy(s, 1, Length(aOption)), aOption) then
+        CONTINUE;
+
+      Delete(s, 1, Length(aOption));
+      result := (s = '') or (ANSIChar(s[1]) in [':', '=']);
+      if NOT result then
+        CONTINUE;
+
+      if s = '' then
+        EXIT;
+
+      Delete(s, 1, 1);
+      aValue := s;
+      EXIT;
+    end;
+  end;
 
 
-  
 end.
