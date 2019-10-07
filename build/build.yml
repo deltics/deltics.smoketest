@@ -21,3 +21,4 @@ jobs:
 - template: build.yml@congress
   parameters:
     project: selftest
+    testArgs: -xunit2-useTestNameForMethod

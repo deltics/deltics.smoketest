@@ -31,7 +31,7 @@ interface
       NOTE: There is no formal XML handling in this writer.  The XML is constructed as
              a simple stringlist with manually forced indentation.
     }
-      procedure SaveResults(const aTestRun: TTestRun; const aFilename: String); override;
+      procedure SaveResults(const aFilename: String); override;
     end;
 
 
@@ -45,15 +45,19 @@ implementation
 { TXUnit2Writer ---------------------------------------------------------------------------------- }
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  procedure TXUnit2Writer.SaveResults(const aTestRun: TTestRun;
-                                      const aFilename: String);
+  procedure TXUnit2Writer.SaveResults(const aFilename: String);
   var
     i: Integer;
     output: TStringList;
     y, m, d, h, n, s, z: Word;
     result: TTestResult;
     state: String;
+    testName: String;
+    testMethod: String;
+    useNameForMethod: Boolean;
   begin
+    useNameForMethod := TestRun.HasCmdLineOption('xunit2-useTestNameForMethod');
+
     output := TStringList.Create;
     try
       if FileExists(aFilename) then
@@ -72,29 +76,29 @@ implementation
         output.Add('<assemblies>');
       end;
 
-      DecodeDate(aTestRun.StartTime, y, m, d);
-      DecodeTime(aTestRun.StartTime, h, n, s, z);
+      DecodeDate(TestRun.StartTime, y, m, d);
+      DecodeTime(TestRun.StartTime, h, n, s, z);
 
       output.Add(Format('  <assembly name="%s" test-framework="Smoketest" environment="%s" '
                         + 'run-date="%d-%.2d-%.2d" run-time="%.2d:%.2d:%.2d" '
                         + 'time="%.3f" '
                         + 'total="%d" passed="%d" failed="%d" skipped="%d" errors="%d">',
-                        [aTestRun.Name,
-                         aTestRun.Environment,
+                        [TestRun.Name,
+                         TestRun.Environment,
                          y, m, d, h, n, s,
-                         aTestRun.RunTime / 1000,
-                         aTestRun.TestCount, aTestRun.TestsPassed,
-                          aTestRun.TestsFailed, aTestRun.TestsSkipped, aTestRun.TestsError]));
+                         TestRun.RunTime / 1000,
+                         TestRun.TestCount, TestRun.TestsPassed,
+                          TestRun.TestsFailed, TestRun.TestsSkipped, TestRun.TestsError]));
 
       output.Add(Format('    <collection name="Default" time="%.3f" '
                           + 'total="%d" passed="%d" failed="%d" skipped="%d">',
-                          [aTestRun.RunTime / 1000,
-                           aTestRun.TestCount, aTestRun.TestsPassed, aTestRun.TestsFailed,
-                            aTestRun.TestsSkipped]));
+                          [TestRun.RunTime / 1000,
+                           TestRun.TestCount, TestRun.TestsPassed, TestRun.TestsFailed,
+                            TestRun.TestsSkipped]));
 
-      for i := 0 to Pred(aTestRun.ResultCount) do
+      for i := 0 to Pred(TestRun.ResultCount) do
       begin
-        result := aTestRun.Results[i];
+        result := TestRun.Results[i];
 
         case result.State of
           rsPass  : state := 'Pass';
@@ -103,15 +107,26 @@ implementation
           rsError : state := 'Error';
         end;
 
+        if useNameForMethod then
+        begin
+          testName    := result.TestMethod;
+          testMethod  := result.TestName;
+        end
+        else
+        begin
+          testName    := result.TestName;
+          testMethod  := result.TestMethod;
+        end;
+
         if (result.State = rsPass) or (result.ErrorMessage = '') then
         begin
           output.Add(Format('      <test name="%s" type="%s" method="%s" time="0" result="%s" />',
-                                   [result.TestName, result.TypeName, result.TestMethod, state]));
+                                   [testName, result.TypeName, testMethod, state]));
           CONTINUE;
         end;
 
         output.Add(Format('      <test name="%s" type="%s" method="%s" time="0" result="%s">',
-                                 [result.TestName, result.TypeName, result.TestMethod, state]));
+                                 [testName, result.TypeName, testMethod, state]));
                output.Add('        <failure exception-type="Assertion">');
                output.Add('          <message>');
                output.Add('            <![CDATA[' + result.ErrorMessage + ']]>');
