@@ -6,7 +6,9 @@ program selftest;
   uses
   SysUtils,
   Deltics.Smoketest,
-  SelfTestCore in 'SelfTestCore.pas';
+  Test.CoreFunctionality in 'Test.CoreFunctionality.pas',
+  Test.ExceptionHandling in 'Test.ExceptionHandling.pas',
+  Test.CommandLineHandling in 'Test.CommandLineHandling.pas';
 
 const
   DELPHI_VERSION = {$ifdef VER80}  '1' {$endif}
@@ -46,7 +48,9 @@ const
 begin
   TestRun.Environment := 'Delphi ' + Uppercase(DELPHI_VERSION);
   try
-    TestRun.Test(TCoreFunctionality);
+    TestRun.Test([TCoreFunctionalityTests,
+                  TExceptionHandlingTests,
+                  TCommandLineHandlingTests]);
 
   except
     on e: Exception do
