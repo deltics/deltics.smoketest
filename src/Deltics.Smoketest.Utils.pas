@@ -318,7 +318,23 @@ implementation
         EXIT;
 
       Delete(s, 1, 1);
+
+      // This is to replicate the behaviour of values parsed by ParamStr()
+      //  which respects quotes to delimit values but then strips all quotes
+      //  from those values!
+      //
+      // This is only needed to satisfy the tests which use a manually scaffolded
+      //  stringlist to 'simulate' a command line and which as a result end up 
+      //  with very different elements when simulating quoted values.
+      //
+      // This makes me VERY queasy.  Decoupling command line handling from 
+      //  ParamCount/ParamStr should be done if only to eliminate the need for 
+      //  this sort of chicanery!
+
+      s := StringReplace(s, '"', '', [rfReplaceAll]);
+
       aValue := s;
+
       EXIT;
     end;
   end;
