@@ -13,4 +13,3 @@ branches:
   feature:
     regex: feature[/-]?
     tag: alpha
-    increment: Minor

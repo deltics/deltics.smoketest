@@ -3,7 +3,7 @@
 
 program selftest;
 
-  uses
+uses
   SysUtils,
   Deltics.Smoketest,
   Test.CoreFunctionality in 'Test.CoreFunctionality.pas',
@@ -44,6 +44,7 @@ const
                    {$ifdef VER310} '10.1' {$endif}
                    {$ifdef VER320} '10.2' {$endif}
                    {$ifdef VER330} '10.3' {$endif};
+
 
 begin
   TestRun.Environment := 'Delphi ' + Uppercase(DELPHI_VERSION);
