@@ -11,7 +11,27 @@ interface
 
   type
     TXUnit2Writer = class(TResultsWriter)
-      procedure SaveResults(const aTestRun: TTestRun; const aFilename: String); override;
+    {
+      Implements a results writer that will output test run results in xUnit 2.x format.
+       The xUnit 2.x format is documented in full at:
+
+         https://xunit.net/docs/format-xml-v2.html
+
+      This writer will create a file if necessary or append test run results to the
+       contents of an existing file if the specified file already exists.  If the file
+       exists it is ASSUMED to be an xUnit2 format file.  Further, it is ASSUMED to be
+       an xUnit2 file WRITTEN BY THIS WRITER (or in a compatible fashion, with tags
+       on separate lines in the file).
+
+      A testrun is output to the file as a single <collection> within a single <assembly>.
+
+      Collections are an xUnit concept not directly applicable to Smoketest but a <collection>
+       element is required in the format and so a 'Default' collection is created.
+
+      NOTE: There is no formal XML handling in this writer.  The XML is constructed as
+             a simple stringlist with manually forced indentation.
+    }
+      procedure SaveResults(const aFilename: String); override;
     end;
 
 
@@ -22,10 +42,10 @@ implementation
     SysUtils;
 
 
-{ TXUnit2Writer }
+{ TXUnit2Writer ---------------------------------------------------------------------------------- }
 
-  procedure TXUnit2Writer.SaveResults(const aTestRun: TTestRun;
-                                      const aFilename: String);
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  procedure TXUnit2Writer.SaveResults(const aFilename: String);
   var
     i: Integer;
     output: TStringList;
@@ -37,6 +57,8 @@ implementation
     try
       if FileExists(aFilename) then
       begin
+        // Remove everything upto and including the closing </assemblies> tag from
+        //  the existing file.
         output.LoadFromFile(aFilename);
         while output[output.Count - 1] <> '</assemblies>' do
           output.Delete(output.Count - 1);
@@ -49,27 +71,29 @@ implementation
         output.Add('<assemblies>');
       end;
 
-      DecodeDate(aTestRun.StartTime, y, m, d);
-      DecodeTime(aTestRun.StartTime, h, n, s, z);
+      DecodeDate(TestRun.StartTime, y, m, d);
+      DecodeTime(TestRun.StartTime, h, n, s, z);
 
       output.Add(Format('  <assembly name="%s" test-framework="Smoketest" environment="%s" '
                         + 'run-date="%d-%.2d-%.2d" run-time="%.2d:%.2d:%.2d" '
-                        + 'time="%d" '
+                        + 'time="%.3f" '
                         + 'total="%d" passed="%d" failed="%d" skipped="%d" errors="%d">',
-                        [aTestRun.Name,
-                         aTestRun.Environment,
+                        [TestRun.Name,
+                         TestRun.Environment,
                          y, m, d, h, n, s,
-                         aTestRun.RunTime,
-                         aTestRun.TestCount, aTestRun.TestsPassed, aTestRun.TestsFailed, aTestRun.TestsSkipped, aTestRun.TestsError]));
+                         TestRun.RunTime / 1000,
+                         TestRun.TestCount, TestRun.TestsPassed,
+                          TestRun.TestsFailed, TestRun.TestsSkipped, TestRun.TestsError]));
 
-      output.Add(Format('    <collection name="Default" time="%d" '
+      output.Add(Format('    <collection name="Default" time="%.3f" '
                           + 'total="%d" passed="%d" failed="%d" skipped="%d">',
-                          [aTestRun.RunTime,
-                           aTestRun.TestCount, aTestRun.TestsPassed, aTestRun.TestsFailed, aTestRun.TestsSkipped]));
+                          [TestRun.RunTime / 1000,
+                           TestRun.TestCount, TestRun.TestsPassed, TestRun.TestsFailed,
+                            TestRun.TestsSkipped]));
 
-      for i := 0 to Pred(aTestRun.ResultCount) do
+      for i := 0 to Pred(TestRun.ResultCount) do
       begin
-        result := aTestRun.Results[i];
+        result := TestRun.Results[i];
 
         case result.State of
           rsPass  : state := 'Pass';

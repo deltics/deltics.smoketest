@@ -6,6 +6,7 @@
 interface
 
   uses
+    Classes,
     SysUtils;
 
 
@@ -176,6 +177,7 @@ interface
   function GetVirtualMethodTable(const aClass: TClass): PVirtualMethodTable; overload;
   function GetVirtualMethodTable(const aObject: TObject): PVirtualMethodTable; overload;
 
+  function HasCmdLineOption(const aArgs: TStringList; const aOption: String; var aValue: String): Boolean;
 
 
 implementation
@@ -273,7 +275,6 @@ implementation
   }
   begin
     result := PVirtualMethodTable(Integer(aClass) - sizeof(TVirtualMethodTable));
-//    Dec(result);
   end;
 
 
@@ -287,7 +288,56 @@ implementation
   end;
 
 
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function HasCmdLineOption(const aArgs: TStringList;
+                            const aOption: String;
+                            var   aValue: String): Boolean;
+  var
+    i: Integer;
+    s: String;
+  begin
+    result  := FALSE;
+    aValue  := '';
+
+    for i := 1 to Pred(aArgs.Count) do
+    begin
+      s := aArgs[i];
+      if s[1] <> '-' then
+        CONTINUE;
+
+      Delete(s, 1, 1);
+      if NOT SameText(Copy(s, 1, Length(aOption)), aOption) then
+        CONTINUE;
+
+      Delete(s, 1, Length(aOption));
+      result := (s = '') or (ANSIChar(s[1]) in [':', '=']);
+      if NOT result then
+        CONTINUE;
+
+      if s = '' then
+        EXIT;
+
+      Delete(s, 1, 1);
+
+      // This is to replicate the behaviour of values parsed by ParamStr()
+      //  which respects quotes to delimit values but then strips all quotes
+      //  from those values!
+      //
+      // This is only needed to satisfy the tests which use a manually scaffolded
+      //  stringlist to 'simulate' a command line and which as a result end up 
+      //  with very different elements when simulating quoted values.
+      //
+      // This makes me VERY queasy.  Decoupling command line handling from 
+      //  ParamCount/ParamStr should be done if only to eliminate the need for 
+      //  this sort of chicanery!
+
+      s := StringReplace(s, '"', '', [rfReplaceAll]);
+
+      aValue := s;
+
+      EXIT;
+    end;
+  end;
 
 
-  
 end.

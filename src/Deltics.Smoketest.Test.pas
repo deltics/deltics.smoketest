@@ -25,12 +25,8 @@ interface
     {$M-}
     TTestClass = class of TTest;
 
-    TTestArray = array of TTestClass;
-
 
 implementation
-
-{ TTest }
 
   uses
     SysUtils,
@@ -39,20 +35,27 @@ implementation
     Deltics.Smoketest.Utils;
 
 
+  // Test classes have privileged access to protected members of the TestRun
+  //  in order to record test completion and other details.
   type
     TTestRunHelper = class(TTestRun);
 
+  // For convenience we'll keep a ready-reference to the type-cast TestRun
   var
     TestRun: TTestRunHelper;
 
 
 
+{ TTest ------------------------------------------------------------------------------------------ }
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTest.AbortTestRun;
   begin
     TestRun.Abort;
   end;
 
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   function TTest.Assert(const aTest: String;
                         const aResult: Boolean;
                         const aReason: String): Boolean;
@@ -65,6 +68,35 @@ implementation
   end;
 
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TTest.AssertBaseException(const aExceptionBaseClass: TClass;
+                                     const aTestName: String): Boolean;
+  var
+    e: TObject;
+    testName: String;
+  begin
+    result   := FALSE;
+    testName := aTestName;
+
+    if testName = '' then
+      testName := 'Raised ' + aExceptionBaseClass.ClassName;
+
+    e := ExceptObject;
+    if NOT Assigned(e) then
+    begin
+      TestRun.TestFailed(testName, 'No exception raised');
+      EXIT;
+    end;
+
+    result := (e is aExceptionBaseClass);
+    if result then
+      TestRun.TestPassed(testName)
+    else
+      TestRun.TestFailed(testName, 'Unexpected exception: ' + e.ClassName);
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   function TTest.AssertException(const aExceptionClass: TClass;
                                  const aTestName: String): Boolean;
   var
@@ -93,34 +125,15 @@ implementation
   end;
 
 
-  function TTest.AssertBaseException(const aExceptionBaseClass: TClass;
-                                     const aTestName: String): Boolean;
-  var
-    e: TObject;
-    testName: String;
-  begin
-    result   := FALSE;
-    testName := aTestName;
-
-    if testName = '' then
-      testName := 'Raised ' + aExceptionBaseClass.ClassName;
-
-    e := ExceptObject;
-    if NOT Assigned(e) then
-    begin
-      TestRun.TestFailed(testName, 'No exception raised');
-      EXIT;
-    end;
-
-    result := (e is aExceptionBaseClass);
-    if result then
-      TestRun.TestPassed(testName)
-    else
-      TestRun.TestFailed(testName, 'Unexpected exception: ' + e.ClassName);
-  end;
-
-
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTest.GetTestMethods(var aList: TStringList);
+  {
+    Sets the contents of a supplied stringlist to the list of published
+     methods on the class.
+
+    Uses new RTTI in Delphi 2010 onwards, otherwise uses helper methods
+     in the Smoketest.Utils unit.
+  }
 {$ifdef DELPHI2010__}
   var
     i: Integer;
@@ -167,5 +180,8 @@ implementation
 
 
 initialization
+  // Initialise the local reference to the TestRun typecast to the helper
+  //  type to provide access to protected members of the TestRun
+
   TestRun := TTestRunHelper(Deltics.Smoketest.TestRun.TestRun);
 end.

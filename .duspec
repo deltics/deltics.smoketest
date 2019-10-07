@@ -9,9 +9,7 @@
     copyright: "\u00A92019 Jolyon Direnko-Smith",
     language: "en",
     content: "source",
-    dependencies: [
-    	"deltics.inc:1.0.0"
-    ],
+    dependencies: [],
     source: {
         files: [    
             "src\\Deltics.Smoketest.inc",
