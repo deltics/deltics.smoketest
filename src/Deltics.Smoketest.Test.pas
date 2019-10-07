@@ -25,8 +25,6 @@ interface
     {$M-}
     TTestClass = class of TTest;
 
-    TTestArray = array of TTestClass;
-
 
 implementation
 
