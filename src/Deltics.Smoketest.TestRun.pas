@@ -33,6 +33,7 @@ interface
       fExpectedResult: TResultState;
       fExpectedErrorClass: TClass;
       fExpectedErrorMessage: String;
+      fTestsExpected: Boolean;
 
       fTestsCount: Integer;
       fTestsPassed: Integer;
@@ -81,6 +82,7 @@ interface
 
       function HasCmdLineOption(const aName: String; var aValue: String): Boolean; overload;
       function HasCmdLineOption(const aName: String): Boolean; overload;
+      procedure NoTestsPerformed;
       procedure Test(const aTest: TTestClass; const aNamePrefix: String = ''); overload;
       procedure Test(const aTests: array of TTestClass; const aNamePrefix: String = ''); overload;
 
@@ -308,15 +310,18 @@ implementation
 
       fResults.Add(TTestResult.Create(testName, fTypeName, fMethodName, fTestIndex, fExpectedResult, result, aReason));
 
+      if result = fExpectedResult then
+        result := rsPass;
+
       case result of
         rsFail  : if aReason = '' then
-                    WriteLn(testName + ': FAILED')
+                    WriteLn('+ ' + testName + ': FAILED')
                   else
-                    WriteLn(testName + ': FAILED  [' + aReason + ']');
+                    WriteLn('+ ' + testName + ': FAILED  [' + aReason + ']');
 
-        rsPass  : WriteLn(testName + ': PASSED');
+        rsPass  : WriteLn('+ ' + testName + ': PASSED');
 
-        rsSkip  : WriteLn(testName + ': skipped');
+        rsSkip  : WriteLn('+ ' + testName + ': skipped');
 
         rsError : // Handled specifically in TestError
       end;
@@ -504,8 +509,9 @@ implementation
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTestRun.SetTestMethod(const aMethodName: String);
   begin
-    fMethodName := aMethodName;
-    fTestIndex  := 0;
+    fMethodName     := aMethodName;
+    fTestIndex      := 0;
+    fTestsExpected  := TRUE;
   end;
 
 
@@ -551,7 +557,7 @@ implementation
      and (fExpectedErrorMessage = aException.Message) then
     begin
       AddResult('', rsError, Format('Threw expected exception [%s: %s]', [aException.ClassName, aException.Message]));
-      WriteLn(Format('%s threw expected exception [%s: %s]', [CurrentTestName, aException.ClassName, aException.Message]));
+      WriteLn(Format('+ %s threw expected exception [%s: %s]', [CurrentTestName, aException.ClassName, aException.Message]));
     end
     else
     begin
@@ -591,6 +597,20 @@ implementation
   end;
 
 
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TTestRun.NoTestsPerformed;
+  {
+    Indicates to the TestRun that a test method explicitly did not perform
+     any tests.  This suppresses the console warning that is usually produced
+     when a test method does not perform any tests.
+
+    NOTE: This indicator auto-resets for each method.
+  }
+  begin
+    fTestsExpected := FALSE;
+  end;
+
+
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTestRun.PerformMethod(const aMethod: TTestMethod;
                                    const aMessage: String);
@@ -624,6 +644,21 @@ implementation
          -name
          -name:value
          -name=value
+
+    If value contains spaces, then the value should be quoted:
+
+         -name="value with spaces"
+
+    If a quoted value contains quotes then these will be stripped from the value,
+     even if they are 'escaped' by doubling.  This is due to poor handling of
+     quoted command line elements by the ParamSTR() RTL function and will
+     possibly change in the future by avoiding the use of ParamStr() but only
+     if the need becomes pressing.  For now be aware that quoted values will
+     not themselves contain ANY quotes:
+
+         -name="1 foot = 12"""           ->   value = '1 foot = 12'
+         -name="1 foot = 12"             ->   value = '1 foot = 12'
+         -name="value ""with"" spaces"   ->   value = 'value with spaces'
 
     The first provides the option but has no value.  The second and third
      forms provide the option and the associated value follows the separator
@@ -718,7 +753,7 @@ implementation
             end;
 
           finally
-            if fTestsCount = resultCountBeforeMethodRan then
+            if fTestsExpected and (fTestsCount = resultCountBeforeMethodRan) then
               WriteLn(Format('WARNING: Test method %s.%s did not perform any tests', [fTypeName, fMethodName]));
 
             SetTestMethod('');
