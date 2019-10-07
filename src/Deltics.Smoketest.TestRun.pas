@@ -510,7 +510,7 @@ implementation
 
       try
         WriteLn(Format('Writing %s results to %s', [fWriters[i], filename]));
-        TResultsWriter(fWriters.Objects[i]).SaveResults(TestRun, filename);
+        TResultsWriter(fWriters.Objects[i]).SaveResults(filename);
 
       except
         on e: Exception do

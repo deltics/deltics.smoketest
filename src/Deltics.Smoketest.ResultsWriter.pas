@@ -22,8 +22,11 @@ interface
              Deltics.Smoketest unit.  This will ensure that the writer
              implementation is 'used' and therefore registered for use at runtime.
     }
+    private
+      fTestRun: TTestRun;
     public
-      procedure SaveResults(const aTestRun: TTestRun; const aFilename: String); virtual; abstract;
+      procedure SaveResults(const aFilename: String); virtual; abstract;
+      property TestRun: TTestRun read fTestRun;
       class procedure Register(const aName: String);
     end;
     TResultsWriterClass = class of TResultsWriter;
@@ -43,7 +46,6 @@ interface
     rsError = Deltics.Smoketest.TestResult.rsError;
 
 
-
 implementation
 
   uses
@@ -51,7 +53,7 @@ implementation
 
 
   procedure _Register(const aName: String;
-                     const aWriterClass: TResultsWriterClass);
+                      const aWriterClass: TResultsWriterClass);
   var
     idx: Integer;
     name: String;
@@ -59,6 +61,7 @@ implementation
   begin
     name    := Lowercase(aName);
     writer  := aWriterClass.Create;
+    writer.fTestRun := TestRun;
 
     idx := TestRun.ResultsWriters.IndexOf(name);
 
