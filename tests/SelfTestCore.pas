@@ -45,14 +45,14 @@ implementation
   procedure TCoreFunctionality.ThisTestWillFail;
   begin
     TestRun.ExpectingToFail;
-    Assert('This test fails', FALSE);
+    Assert('This test failed', FALSE);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TCoreFunctionality.ThisTestWillPass;
   begin
-    Assert('This test passes', TRUE);
+    Assert('This test passed', TRUE);
   end;
 
 
@@ -80,10 +80,10 @@ implementation
     errors  := TestRun.TestsError;
     total   := TestRun.TestCount;
 
-    Assert('The expected total number of tests',  total  = 3, Format('%d tests counted, 3 expected', [total]));
-    Assert('The expected number of tests passed', passed = 1, Format('%d tests passed, 1 expected', [passed]));
-    Assert('The expected number of tests failed', failed = 1, Format('%d tests failed, 1 expected', [failed]));
-    Assert('The expected number of errors',       errors = 1, Format('%d errors, 1 expected', [errors]));
+    Assert('3 tests counted to this point', total  = 3, Format('%d tests counted, 3 expected', [total]));
+    Assert('1 test passed at this point',   passed = 1, Format('%d tests passed, 1 expected', [passed]));
+    Assert('1 test failed at this point',   failed = 1, Format('%d tests failed, 1 expected', [failed]));
+    Assert('1 test error at this point',    errors = 1, Format('%d errors, 1 expected', [errors]));
   end;
 
 
