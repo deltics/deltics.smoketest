@@ -88,7 +88,7 @@
   {$UNDEF UNKNOWN_COMPILER_VERSION}
 {$endif}
 
-{$ifdef VER250} // RAD Studio XE4    \
+{$ifdef VER250} // RAD Studio XE4
   {$define DELPHI4__}
   {$define DELPHI7__}
   {$define DELPHI2009__}
@@ -175,7 +175,7 @@
 //  symbol which both chokes the compiler and also explains why.
 
 {$ifdef UNKNOWN_COMPILER_VERSION}
-  UNKNOWN_COMPILER_VERSION
+  UNKNOWN_COMPILER_VERSION___Deltics_Smoketest_Inc_needs_updating
 {$endif}
 
 
@@ -190,6 +190,10 @@
   {$scopedenums OFF}
 {$endif}
 
+
+// By default, Smoketest itself will not be compiled with debuginfo to enable
+//  debugging sessions to focus on user-code.  If you suspect a problem in
+//  Smoketest itself, simply add a DEFINE for debugDelticsSmoketest and rebuild.
 
 {$ifdef debugDelticsSmoketest}
   {$debuginfo ON}

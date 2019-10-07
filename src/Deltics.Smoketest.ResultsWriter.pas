@@ -12,6 +12,16 @@ interface
 
   type
     TResultsWriter = class
+    {
+      Base class for result writer implementations.  Register your implementation
+       in the initialization section of your implementation unit.
+
+      NOTE: To maintain the ability for consumers of the Smoketest framework to
+             only need to 'use' the Deltics.Smoketest unit, be sure to add any
+             result writer unit to the implementation uses clause of the
+             Deltics.Smoketest unit.  This will ensure that the writer
+             implementation is 'used' and therefore registered for use at runtime.
+    }
     public
       procedure SaveResults(const aTestRun: TTestRun; const aFilename: String); virtual; abstract;
       class procedure Register(const aName: String);
@@ -20,7 +30,7 @@ interface
 
 
   // These types and constants are brought into scope to allow implementors
-  //  of writer classes to only have to reference the ContinuityResultsWriter
+  //  of writer classes to only have to reference the Deltics.Smoketest.ResultsWriter
   //  unit in their writer implementation units.
   type
     TTestResult = Deltics.Smoketest.TestResult.TTestResult;
@@ -63,11 +73,11 @@ implementation
 
 
 
-{ TContinuityResultsWriter }
-
   class procedure TResultsWriter.Register(const aName: String);
   begin
     _Register(aName, self);
   end;
+
+
 
 end.
