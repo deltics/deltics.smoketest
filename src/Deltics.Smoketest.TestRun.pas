@@ -13,6 +13,8 @@ interface
 
 
   type
+    TTestMethod = procedure of object;
+
     TTestRun = class
     private
       fCmdLineArgs: TStringList;
@@ -53,6 +55,8 @@ interface
 
       procedure AddResult(const aTestName: String; const aResult: TResultState; const aReason: String);
       procedure CheckExpectedStates;
+      function ExtractMethod(const aTest: TTest; const aMethodList: TStringList; const aMethodToExtract: String): TTestMethod;
+      procedure PerformMethod(const aMethod: TTestMethod; const aMessage: String);
 
       procedure SaveResults;
       property CurrentTestName: String read get_CurrentTestName;
@@ -78,7 +82,7 @@ interface
       function HasCmdLineOption(const aName: String; var aValue: String): Boolean; overload;
       function HasCmdLineOption(const aName: String): Boolean; overload;
       procedure Test(const aTest: TTestClass; const aNamePrefix: String = ''); overload;
-      procedure Test(const aTests: TTestArray; const aNamePrefix: String = ''); overload;
+      procedure Test(const aTests: array of TTestClass; const aNamePrefix: String = ''); overload;
 
       property Name: String read fName write set_Name;
       property Environment: String read fEnvironment write set_Environment;
@@ -113,10 +117,6 @@ implementation
     Deltics.Smoketest.ResultsWriter,
     Deltics.Smoketest.Utils;
 
-
-  type
-    TTestMethod = procedure;
-    TTestMethodArray = array of TTestMethod;
 
 
 { TTestRun --------------------------------------------------------------------------------------- }
@@ -471,6 +471,30 @@ implementation
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TTestRun.ExtractMethod(const aTest: TTest;
+                                  const aMethodList: TStringList;
+                                  const aMethodToExtract: String): TTestMethod;
+  var
+    i: Integer;
+  begin
+    TMethod(result).Data := NIL;
+    TMethod(result).Code := NIL;
+
+    for i := 0 to Pred(aMethodList.Count) do
+    begin
+      if NOT SameText(aMethodList[i], aMethodToExtract) then
+        CONTINUE;
+
+      TMethod(result).Data := aTest;
+      TMethod(result).Code := aTest.MethodAddress(aMethodList[i]);
+
+      aMethodList.Delete(i);
+      BREAK;
+    end;
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTestRun.SetTestType(const aTypeName: String);
   begin
     fTypeName := aTypeName;
@@ -568,6 +592,26 @@ implementation
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  procedure TTestRun.PerformMethod(const aMethod: TTestMethod;
+                                   const aMessage: String);
+  begin
+    if NOT Assigned(aMethod) then
+      EXIT;
+
+    if aMessage <> '' then
+      WriteLn(aMessage);
+
+    try
+      aMethod;
+
+    except
+      on e: Exception do
+        WriteLn(Format('ERROR [%s]: %s', [e.ClassName, e.Message]));
+    end;
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   function TTestRun.HasCmdLineOption(const aName: String;
                                      var   aValue: String): Boolean;
   {
@@ -611,8 +655,12 @@ implementation
     i: Integer;
     test: TTest;
     methods: TStringList;
-    method: procedure of object;
+    method: TTestMethod;
     resultCountBeforeMethodRan: Integer;
+    setupTest: TTestMethod;
+    setupMethod: TTestMethod;
+    teardownMethod: TTestMethod;
+    teardownTest: TTestMethod;
   begin
     if IsFinished then
     begin
@@ -623,6 +671,8 @@ implementation
     if NOT IsRunning then
       BeginRun;
 
+    WriteLn('Executing tests in ' + aTest.ClassName + ':');
+
     test    := aTest.Create;
     methods := TStringList.Create;
     try
@@ -632,31 +682,51 @@ implementation
       test.GetTestMethods(methods);
 
       if methods.Count = 0 then
-        WriteLn(Format('WARNING: Test class %s implements no test methods', [fTypeName]));
-
-      for i := 0 to Pred(methods.Count) do
       begin
-        SetTestMethod(methods[i]);
+        WriteLn(Format('WARNING: Test class %s implements no test methods', [fTypeName]));
+        EXIT;
+      end;
 
-        TMethod(method).Data := test;
-        TMethod(method).Code := test.MethodAddress(methods[i]);
+      setupTest       := ExtractMethod(test, methods, 'SetupTest');
+      setupMethod     := ExtractMethod(test, methods, 'SetupMethod');
+      teardownMethod  := ExtractMethod(test, methods, 'TeardownMethod');
+      teardownTest    := ExtractMethod(test, methods, 'TeardownTest');
 
-        resultCountBeforeMethodRan := fTestsCount;
-        try
+      PerformMethod(setupTest, 'Performing setup for test');
+      try
+        for i := 0 to Pred(methods.Count) do
+        begin
+          SetTestMethod(methods[i]);
+
+          TMethod(method).Data := test;
+          TMethod(method).Code := test.MethodAddress(methods[i]);
+
+          resultCountBeforeMethodRan := fTestsCount;
           try
-            method;
+            try
+              PerformMethod(setupMethod, 'Performing setup for method:' + methods[i]);
+              try
+                method;
 
-          except
-            on e: Exception do
-              TestError(e);
+              finally
+                PerformMethod(teardownMethod, 'Performing teardown for method: ' + methods[i]);
+              end;
+
+            except
+              on e: Exception do
+                TestError(e);
+            end;
+
+          finally
+            if fTestsCount = resultCountBeforeMethodRan then
+              WriteLn(Format('WARNING: Test method %s.%s did not perform any tests', [fTypeName, fMethodName]));
+
+            SetTestMethod('');
           end;
-
-        finally
-          if fTestsCount = resultCountBeforeMethodRan then
-            WriteLn(Format('WARNING: Test method %s.%s did not perform any tests', [fTypeName, fMethodName]));
-
-          SetTestMethod('');
         end;
+
+      finally
+        PerformMethod(teardownTest, 'Performing teardown for test');
       end;
 
     finally
@@ -670,7 +740,7 @@ implementation
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  procedure TTestRun.Test(const aTests: TTestArray;
+  procedure TTestRun.Test(const aTests: array of TTestClass;
                           const aNamePrefix: String);
   {
     Executes test methods on one or more identified test classes.
@@ -679,7 +749,11 @@ implementation
     i: Integer;
   begin
     for i := 0 to High(aTests) do
+    begin
       Test(aTests[i], aNamePrefix);
+      if i < High(aTests) then
+        WriteLn;
+    end;
   end;
 
 
