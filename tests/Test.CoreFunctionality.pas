@@ -7,7 +7,7 @@ interface
     Deltics.Smoketest;
 
   type
-    TCoreFunctionalityTests = class(TTest)
+    TCoreFunctionalityTests = class(TSelfTest)
     private
       TestsCounted: Integer;
       TestsPassed: Integer;
@@ -40,25 +40,13 @@ implementation
     Deltics.Smoketest.Utils;
 
 
-  // We wouldn't normally need to do this, but these self-tests area a special
-  //  case that need access to protected members of the TestRun (designed
-  //  specifically for this self-test scenario)
-  type
-    TTestRunHelper = class(TTestRun);
-
-  function TestRun: TTestRunHelper;
-  begin
-    result := TTestRunHelper(Deltics.Smoketest.TestRun.TestRun);
-  end;
-
-
 
 { CoreFunctionality tests ------------------------------------------------------------------------ }
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TCoreFunctionalityTests.ThisTestWillFail;
   begin
-    TestRun.ExpectingToFail;
+    NextAssertExpectedToFail;
     Assert('This test failed', FALSE);
   end;
 
@@ -73,7 +61,7 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TCoreFunctionalityTests.ThisTestWillThrowAnException;
   begin
-    TestRun.ExpectingException(Exception, 'This exception was deliberately raised');
+    ExpectingException(Exception, 'This exception was deliberately raised');
     raise Exception.Create('This exception was deliberately raised');
   end;
 
@@ -96,30 +84,28 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TCoreFunctionalityTests.ThreeTestsHaveBeenRecordedAtThisPoint;
   begin
-    Assert('3 tests recorded to this point', TestsCounted = 3, Format('%d tests counted, 3 expected', [TestsCounted]));
+    Assert('Correct number of tests recorded to this point', TestsCounted).Equals(3);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TCoreFunctionalityTests.OneTestHasPassed;
   begin
-    Assert('1 test passed at this point', TestsPassed = 1, Format('%d tests passed, 1 expected', [TestsPassed]));
+    Assert('Correct number of tests passed at this point', TestsPassed).Equals(1);
   end;
-
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TCoreFunctionalityTests.OneTestHasFailed;
   begin
-    Assert('1 test failed at this point', TestsFailed = 1, Format('%d tests failed, 1 expected', [TestsFailed]));
+    Assert('Correct number of tests failed at this point', TestsFailed).Equals(1);
   end;
-
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TCoreFunctionalityTests.OneTestHasErrored;
   begin
-    Assert('1 test error at this point', TestsErrored = 1, Format('%d errors, 1 expected', [TestsErrored]));
+    Assert('Correct number of tests errored at this point', TestsErrored).Equals(1);
   end;
 
 
