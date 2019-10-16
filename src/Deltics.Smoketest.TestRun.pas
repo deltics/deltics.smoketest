@@ -18,6 +18,8 @@ interface
     TTestRun = class
     private
       fCmdLineArgs: TStringList;
+      fSilentSuccesses: Boolean;
+
       fName: String;
       fEnvironment: String;
       fIsAborted: Boolean;
@@ -138,6 +140,8 @@ implementation
 
     for i := 0 to ParamCount do
       fCmdLineArgs.Add(ParamStr(i));
+
+    fSilentSuccesses := HasCmdLineOption('silentSuccesses') or HasCmdLineOption('ss');
   end;
 
 
@@ -186,7 +190,7 @@ implementation
       result := fTypeName;
 
     if fTestNamePrefix <> '' then
-      result := fTestNamePrefix + '.' + result;
+      result := '[' + fTestNamePrefix + '] ' + result;
 
     if (fTestName = '') then
       result := result + ' test ' + IntToStr(fTestIndex);
@@ -306,24 +310,31 @@ implementation
 
       testName := fTestName;
       if testName = '' then
-        testName := CurrentTestName;
+        testName := CurrentTestName
+      else if fTestNamePrefix <> '' then
+        testName := '[' + fTestNamePrefix + '] ' + testName;
 
       fResults.Add(TTestResult.Create(testName, fTypeName, fMethodName, fTestIndex, fExpectedResult, result, aReason));
 
       if result = fExpectedResult then
-        result := rsPass;
+        result := rsPass
+      else
+        result := rsFail;
 
-      case result of
-        rsFail  : if aReason = '' then
-                    WriteLn('+ ' + testName + ': FAILED')
-                  else
-                    WriteLn('+ ' + testName + ': FAILED  [' + aReason + ']');
+      if (NOT fSilentSuccesses) or (result in [rsFail, rsError]) then
+      begin
+        case result of
+          rsFail  : if aReason = '' then
+                      WriteLn('+ In ' + fMethodName + ' -> ' + testName + ': FAILED')
+                    else
+                      WriteLn('+ In ' + fMethodName + ' -> ' + testName + ': FAILED  [' + aReason + ']');
 
-        rsPass  : WriteLn('+ ' + testName + ': PASSED');
+          rsPass  : WriteLn('+ In ' + fMethodName + ' -> ' + testName + ': PASSED');
 
-        rsSkip  : WriteLn('+ ' + testName + ': skipped');
+          rsSkip  : WriteLn('+ In ' + fMethodName + ' -> ' + testName + ': skipped');
 
-        rsError : // Handled specifically in TestError
+          rsError : // Handled specifically in TestError
+        end;
       end;
 
     finally
@@ -410,13 +421,13 @@ implementation
 
     CheckExpectedStates;
 
-    WriteLn;
     if fTestsCount = 0 then
     begin
       WriteLn('WARNING: No tests performed.');
       EXIT;
     end;
 
+    WriteLn;
     WriteLn(Format('Total Tests = %d, Passed = %d, Failed = %d, Skipped = %d, Errors = %d',
                    [fTestsCount, fTestsPassed, fTestsFailed, fTestsSkipped, fTestsError]));
     try
@@ -706,7 +717,7 @@ implementation
     if NOT IsRunning then
       BeginRun;
 
-    WriteLn('Executing tests in ' + aTest.ClassName + ':');
+    WriteLn('Executing tests in ' + aTest.ClassName);
 
     test    := aTest.Create;
     methods := TStringList.Create;
@@ -784,11 +795,7 @@ implementation
     i: Integer;
   begin
     for i := 0 to High(aTests) do
-    begin
       Test(aTests[i], aNamePrefix);
-      if i < High(aTests) then
-        WriteLn;
-    end;
   end;
 
 

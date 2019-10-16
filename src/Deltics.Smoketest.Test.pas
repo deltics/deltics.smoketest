@@ -9,16 +9,25 @@ interface
   {$ifdef DELPHI2010__}
     RTTI,
   {$endif}
-    Classes;
+    Classes,
+    Deltics.Smoketest.Assertions,
+    Deltics.Smoketest.Utils;
 
   type
     {$M+}
     TTest = class
     protected
       procedure AbortTestRun;
-      function Assert(const aTest: String; const aResult: Boolean; const aReason: String = ''): Boolean;
+      function Assert(const aTest: String; const aResult: Boolean; const aReason: String = ''): Boolean; overload;
+      function Assert(const aTestName: String; const aValue: Integer): IntegerAssertions; overload;
+      function Assert(const aTestName: String; const aValue: AnsiString): AnsiStringAssertions; overload;
+      function Assert(const aTestName: String; const aValue: WideString): WideStringAssertions; overload;
+    {$ifdef UNICODE}
+      function Assert(const aTestName: String; const aValue: UnicodeString): UnicodeStringAssertions; overload;
+    {$endif}
       function AssertBaseException(const aExceptionBaseClass: TClass; const aTestName: String = ''): Boolean;
       function AssertException(const aExceptionClass: TClass; const aTestName: String = ''): Boolean;
+      function AssertNoException(const aTestName: String = ''): Boolean;
     public
       procedure GetTestMethods(var aList: TStringList);
     end;
@@ -26,13 +35,19 @@ interface
     TTestClass = class of TTest;
 
 
+    TSelfTest = class(TTest)
+    protected
+      procedure ExpectingException(const aExceptionClass: TClass; const aExceptionMessage: String);
+      procedure NextAssertExpectedToFail;
+    end;
+
+
 implementation
 
   uses
     SysUtils,
     TypInfo,
-    Deltics.Smoketest.TestRun,
-    Deltics.Smoketest.Utils;
+    Deltics.Smoketest.TestRun;
 
 
   // Test classes have privileged access to protected members of the TestRun
@@ -69,6 +84,42 @@ implementation
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TTest.Assert(const aTestName: String;
+                        const aValue: Integer): IntegerAssertions;
+  begin
+    result := TIntegerAssertions.Create(aTestName, aValue);
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TTest.Assert(const aTestName: String;
+                        const aValue: AnsiString): AnsiStringAssertions;
+  begin
+    result := TAnsiStringAssertions.Create(aTestName, aValue);
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TTest.Assert(const aTestName: String;
+                        const aValue: WideString): WideStringAssertions;
+  begin
+    result := TWideStringAssertions.Create(aTestName, aValue);
+  end;
+
+
+{$ifdef UNICODE}
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TTest.Assert(const aTestName: String;
+                        const aValue: UnicodeString): UnicodeStringAssertions;
+  begin
+    result := TUnicodeStringAssertions.Create(aTestName, aValue);
+  end;
+
+{$endif}
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   function TTest.AssertBaseException(const aExceptionBaseClass: TClass;
                                      const aTestName: String): Boolean;
   var
@@ -96,7 +147,7 @@ implementation
   end;
 
 
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TTest.AssertException(const aExceptionClass: TClass;
                                  const aTestName: String): Boolean;
   var
@@ -125,7 +176,35 @@ implementation
   end;
 
 
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TTest.AssertNoException(const aTestName: String): Boolean;
+  var
+    eo: TObject;
+    e: Exception absolute eo;
+    testName: String;
+    msg: String;
+  begin
+    eo := ExceptObject;
+
+    if testName = '' then
+      testName := 'No exception raised';
+
+    result := NOT Assigned(eo);
+    if result then
+    begin
+      TestRun.TestPassed(testName);
+      EXIT;
+    end;
+
+    msg := Format('No exception was expected but %s was raised', [eo.ClassName]);
+    if e is Exception then
+      msg := msg + Format(' with message %s', [e.Message]);
+
+    TestRun.TestFailed(testName, msg);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TTest.GetTestMethods(var aList: TStringList);
   {
     Sets the contents of a supplied stringlist to the list of published
@@ -177,6 +256,23 @@ implementation
     end;
   end;
 {$endif}
+
+
+
+{ TSelfTest -------------------------------------------------------------------------------------- }
+
+  procedure TSelfTest.ExpectingException(const aExceptionClass: TClass;
+                                         const aExceptionMessage: String);
+  begin
+    TestRun.ExpectingException(aExceptionClass, aExceptionMessage);
+  end;
+
+
+  procedure TSelfTest.NextAssertExpectedToFail;
+  begin
+    TestRun.ExpectingToFail;
+  end;
+
 
 
 initialization

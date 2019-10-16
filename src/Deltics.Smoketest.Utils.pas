@@ -1,5 +1,5 @@
 
-{$i Deltics.Smoketest.inc}
+{$i deltics.smoketest.inc}
 
   unit Deltics.Smoketest.Utils;
 
@@ -11,7 +11,14 @@ interface
 
 
   type
+    {$ifNdef UNICODE}
+      AnsiString    = String;
+      UnicodeString = WideString;
+    {$endif}
+
     PClass = ^TClass;   // A pointer to a TClass.
+
+    EInvalidTest = class(Exception);
 
     //## All documented in documentation for final declaration in this group
     PSafeCallException = function(Self: TObject; ExceptObject: TObject; ExceptAddr: Pointer): HResult;  // <COMBINE PDestroy>
