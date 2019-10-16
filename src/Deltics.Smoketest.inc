@@ -88,7 +88,7 @@
   {$UNDEF UNKNOWN_COMPILER_VERSION}
 {$endif}
 
-{$ifdef VER250} // RAD Studio XE4
+{$ifdef VER250} // RAD Studio XE4    \
   {$define DELPHI4__}
   {$define DELPHI7__}
   {$define DELPHI2009__}

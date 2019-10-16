@@ -801,9 +801,6 @@ implementation
 
 
 
-
-
-
 initialization
   TestRun := TTestRun.Create;
 
