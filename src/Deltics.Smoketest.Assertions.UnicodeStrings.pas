@@ -7,7 +7,6 @@
 interface
 
   uses
-    SysUtils,
     Deltics.Smoketest.Assertions.Base;
 
 
@@ -37,10 +36,9 @@ implementation
     Windows,
   {$endif}
   {$ifdef DELPHI2009__}
-    AnsiStrings;
-  {$else}
-    SysUtils;
+    AnsiStrings,
   {$endif}
+    SysUtils;
 
 
 { TStringAssertions }

@@ -1,5 +1,8 @@
 
+{$i deltics.smoketest.inc}
+
   unit Deltics.Smoketest.Assertions.WideStrings;
+
 
 interface
 
@@ -33,10 +36,9 @@ implementation
     Windows,
   {$endif}
   {$ifdef DELPHI2009__}
-    AnsiStrings;
-  {$else}
-    SysUtils;
+    AnsiStrings,
   {$endif}
+    SysUtils;
 
 
 { TWideStringAssertions }
