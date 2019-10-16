@@ -31,12 +31,14 @@ interface
 implementation
 
   uses
-{$ifdef DELPHI2009__}
-    AnsiStrings,
-    Windows;
-{$else}
+  {$ifdef DELPHI2006__}
+    Windows,
+  {$endif}
+  {$ifdef DELPHI2009__}
+    AnsiStrings;
+  {$else}
     SysUtils;
-{$endif}
+  {$endif}
 
 
 { TAnsiStringAssertions }

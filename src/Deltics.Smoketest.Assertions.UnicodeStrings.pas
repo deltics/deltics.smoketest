@@ -32,6 +32,16 @@ interface
 
 implementation
 
+  uses
+  {$ifdef DELPHI2006__}
+    Windows,
+  {$endif}
+  {$ifdef DELPHI2009__}
+    AnsiStrings;
+  {$else}
+    SysUtils;
+  {$endif}
+
 
 { TStringAssertions }
 
@@ -54,7 +64,7 @@ implementation
 
   function TUnicodeStringAssertionsImpl.EqualsText(const aExpected: UnicodeString): Boolean;
   begin
-    result := SetResult(SameText(fValue, aExpected),
+    result := SetResult(AnsiSameText(fValue, aExpected),
                         '''%s'' is not the expected value (''%s'')',
                         [fValue, aExpected]);
   end;
