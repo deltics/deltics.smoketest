@@ -1,3 +1,40 @@
+{
+  * MIT LICENSE *
+
+  Copyright © 2019 Jolyon Smith
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy of
+   this software and associated documentation files (the "Software"), to deal in
+   the Software without restriction, including without limitation the rights to
+   use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+   of the Software, and to permit persons to whom the Software is furnished to do
+   so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+
+  * GPL and Other Licenses *
+
+  The FSF deem this license to be compatible with version 3 of the GPL.
+   Compatability with other licenses should be verified by reference to those
+   other license terms.
+
+
+  * Contact Details *
+
+  Original author : Jolyon Direnko-Smith
+  e-mail          : jsmith@deltics.co.nz
+  github          : deltics/deltics.smoketest
+}
 
 {$i deltics.smoketest.inc}
 
@@ -11,19 +48,19 @@ interface
 
 
   type
-    IAnsiStringAssertions = interface
+    AnsiStringAssertions = interface
     ['{62ECF808-5F81-4B5F-BF86-928B5D62B313}']
-      function Equals(const aExpected: AnsiString): Boolean;
-      function EqualsText(const aExpected: AnsiString): Boolean;
+      function Equals(const aExpected: AnsiString): AssertionResult;
+      function EqualsText(const aExpected: AnsiString): AssertionResult;
     end;
 
 
-    TAnsiStringAssertionsImpl = class(TFluentAssertions, IAnsiStringAssertions)
+    TAnsiStringAssertions = class(TFluentAssertions, AnsiStringAssertions)
     private
       fValue: AnsiString;
     public
-      function Equals(const aExpected: AnsiString):Boolean; reintroduce;
-      function EqualsText(const aExpected: AnsiString):Boolean;
+      function Equals(const aExpected: AnsiString):AssertionResult; reintroduce;
+      function EqualsText(const aExpected: AnsiString):AssertionResult;
       constructor Create(const aTestName: String; const aValue: AnsiString);
     end;
 
@@ -42,9 +79,10 @@ implementation
   {$endif}
 
 
-{ TAnsiStringAssertions }
+{ TAnsiStringAssertions -------------------------------------------------------------------------- }
 
-  constructor TAnsiStringAssertionsImpl.Create(const aTestName: String; const aValue: AnsiString);
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  constructor TAnsiStringAssertions.Create(const aTestName: String; const aValue: AnsiString);
   begin
     inherited Create(aTestName);
 
@@ -52,7 +90,8 @@ implementation
   end;
 
 
-  function TAnsiStringAssertionsImpl.Equals(const aExpected: AnsiString): Boolean;
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TAnsiStringAssertions.Equals(const aExpected: AnsiString): AssertionResult;
   begin
     result := SetResult(fValue = aExpected,
                         '''%s'' is not the expected value (''%s'')',
@@ -60,7 +99,8 @@ implementation
   end;
 
 
-  function TAnsiStringAssertionsImpl.EqualsText(const aExpected: AnsiString): Boolean;
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TAnsiStringAssertions.EqualsText(const aExpected: AnsiString): AssertionResult;
   begin
     result := SetResult(AnsiSameText(fValue, aExpected),
                         '''%s'' is not the expected value (''%s'')',

@@ -4,7 +4,8 @@
 interface
 
   uses
-    Deltics.Smoketest;
+    Deltics.Smoketest,
+    Test.SelfTest;
 
   type
     TStringTests = class(TSelfTest)
@@ -31,6 +32,7 @@ interface
 
 implementation
 
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TStringTests.AnsiStringEqualsFailsWhenStringsAreNotAnExactMatch;
   const
     A: AnsiString = 'abc';
@@ -41,6 +43,7 @@ implementation
   end;
 
 
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TStringTests.AnsiStringEqualsPassesWhenStringsAreExactMatch;
   const
     A: AnsiString = 'abc';
@@ -50,6 +53,7 @@ implementation
   end;
 
 
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TStringTests.AnsiStringEqualsTextFailsWhenStringsDifferByMoreThanCase;
   const
     A: AnsiString = 'abc';
@@ -60,6 +64,7 @@ implementation
   end;
 
 
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TStringTests.AnsiStringEqualsTextPassesWhenStringsAreExactMatch;
   const
     A: AnsiString = 'abc';
@@ -69,6 +74,7 @@ implementation
   end;
 
 
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TStringTests.AnsiStringEqualsTextPassesWhenStringsDifferOnlyInCase;
   const
     A: AnsiString = 'abc';
@@ -78,9 +84,9 @@ implementation
   end;
 
 
-
 {$ifdef UNICODE}
 
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TStringTests.UnicodeStringEqualsFailsWhenStringsAreNotAnExactMatch;
   const
     A: UnicodeString = 'abc';
@@ -91,6 +97,7 @@ implementation
   end;
 
 
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TStringTests.UnicodeStringEqualsPassesWhenStringsAreExactMatch;
   const
     A: UnicodeString = 'abc';
@@ -100,6 +107,7 @@ implementation
   end;
 
 
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TStringTests.UnicodeStringEqualsTextFailsWhenStringsDifferByMoreThanCase;
   const
     A: UnicodeString = 'abc';
@@ -110,6 +118,7 @@ implementation
   end;
 
 
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TStringTests.UnicodeStringEqualsTextPassesWhenStringsAreExactMatch;
   const
     A: UnicodeString = 'abc';
@@ -119,6 +128,7 @@ implementation
   end;
 
 
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TStringTests.UnicodeStringEqualsTextPassesWhenStringsDifferOnlyInCase;
   const
     A: UnicodeString = 'abc';
@@ -130,7 +140,7 @@ implementation
 {$endif}
 
 
-
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TStringTests.WideStringEqualsFailsWhenStringsAreNotAnExactMatch;
   const
     A: WideString = 'abc';
@@ -141,6 +151,7 @@ implementation
   end;
 
 
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TStringTests.WideStringEqualsPassesWhenStringsAreExactMatch;
   const
     A: WideString = 'abc';
@@ -150,6 +161,7 @@ implementation
   end;
 
 
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TStringTests.WideStringEqualsTextFailsWhenStringsDifferByMoreThanCase;
   const
     A: WideString = 'abc';
@@ -160,6 +172,7 @@ implementation
   end;
 
 
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TStringTests.WideStringEqualsTextPassesWhenStringsAreExactMatch;
   const
     A: WideString = 'abc';
@@ -169,6 +182,7 @@ implementation
   end;
 
 
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TStringTests.WideStringEqualsTextPassesWhenStringsDifferOnlyInCase;
   const
     A: WideString = 'abc';

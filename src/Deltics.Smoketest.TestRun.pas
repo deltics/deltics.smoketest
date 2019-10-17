@@ -1,7 +1,45 @@
+{
+  * MIT LICENSE *
 
-{$i Deltics.Smoketest.inc}
+  Copyright © 2019 Jolyon Smith
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy of
+   this software and associated documentation files (the "Software"), to deal in
+   the Software without restriction, including without limitation the rights to
+   use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+   of the Software, and to permit persons to whom the Software is furnished to do
+   so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+
+  * GPL and Other Licenses *
+
+  The FSF deem this license to be compatible with version 3 of the GPL.
+   Compatability with other licenses should be verified by reference to those
+   other license terms.
+
+
+  * Contact Details *
+
+  Original author : Jolyon Direnko-Smith
+  e-mail          : jsmith@deltics.co.nz
+  github          : deltics/deltics.smoketest
+}
+
+{$i deltics.smoketest.inc}
 
   unit Deltics.Smoketest.TestRun;
+
 
 interface
 
@@ -56,7 +94,7 @@ interface
       procedure set_Environment(const aValue: String);
       procedure set_Name(const aValue: String);
 
-      procedure AddResult(const aTestName: String; const aResult: TResultState; const aReason: String);
+      function AddResult(const aTestName: String; const aResult: TResultState; const aReason: String = ''): TTestResult;
       procedure CheckExpectedStates;
       function ExtractMethod(const aTest: TTest; const aMethodList: TStringList; const aMethodToExtract: String): TTestMethod;
       procedure PerformMethod(const aMethod: TTestMethod; const aMessage: String);
@@ -73,10 +111,10 @@ interface
       procedure SetTestNamePrefix(const aPrefix: String);
       procedure ExpectingException(const aExceptionClass: TClass; const aMessage: String);
       procedure ExpectingToFail;
+      function TestError(const aException: Exception): TTestResult;
+      function TestFailed(const aTestName: String; const aReason: String): TTestResult;
+      function TestPassed(const aTestName: String): TTestResult;
 
-      procedure TestError(const aException: Exception);
-      procedure TestPassed(const aTest: String);
-      procedure TestFailed(const aTest: String; const aReason: String);
 
     public
       constructor Create;
@@ -285,23 +323,24 @@ implementation
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  procedure TTestRun.AddResult(const aTestName: String;
-                               const aResult: TResultState;
-                               const aReason: String);
+  function TTestRun.AddResult(const aTestName: String;
+                              const aResult: TResultState;
+                              const aReason: String): TTestResult;
   var
-    result: TResultState;
+    state: TResultState;
     testName: String;
+    consoleOutput: String;
   begin
     fTestName := aTestName;
     try
       Inc(fTestsCount);
       Inc(fTestIndex);
 
-      result := aResult;
+      state := aResult;
       if IsAborted then
-        result := rsSkip;
+        state := rsSkip;
 
-      case result of
+      case state of
         rsFail  : Inc(fTestsFailed);
         rsPass  : Inc(fTestsPassed);
         rsSkip  : Inc(fTestsSkipped);
@@ -314,27 +353,32 @@ implementation
       else if fTestNamePrefix <> '' then
         testName := '[' + fTestNamePrefix + '] ' + testName;
 
-      fResults.Add(TTestResult.Create(testName, fTypeName, fMethodName, fTestIndex, fExpectedResult, result, aReason));
+      result := TTestResult.Create(testName, fTypeName, fMethodName, fTestIndex, fExpectedResult, state, aReason);
 
-      if result = fExpectedResult then
-        result := rsPass
+      fResults.Add(result);
+
+      if state = fExpectedResult then
+        state := rsPass
       else
-        result := rsFail;
+        state := rsFail;
 
-      if (NOT fSilentSuccesses) or (result in [rsFail, rsError]) then
+      if (NOT fSilentSuccesses) or (state in [rsFail, rsError]) then
       begin
-        case result of
+        case state of
           rsFail  : if aReason = '' then
-                      WriteLn('+ In ' + fMethodName + ' -> ' + testName + ': FAILED')
+                      consoleOutput := '+ ' + fMethodName + ' -> ' + testName + ': FAILED'
                     else
-                      WriteLn('+ In ' + fMethodName + ' -> ' + testName + ': FAILED  [' + aReason + ']');
+                      consoleOutput := '+ ' + fMethodName + ' -> ' + testName + ': FAILED  [' + aReason + ']';
 
-          rsPass  : WriteLn('+ In ' + fMethodName + ' -> ' + testName + ': PASSED');
+          rsPass  : consoleOutput := '+ ' + fMethodName + ' -> ' + testName + ': PASSED';
 
-          rsSkip  : WriteLn('+ In ' + fMethodName + ' -> ' + testName + ': skipped');
+          rsSkip  : consoleOutput := '+ ' + fMethodName + ' -> ' + testName + ': skipped';
 
-          rsError : // Handled specifically in TestError
+          rsError : consoleOutput := ''; // Handled in TestError();
         end;
+
+        if consoleOutput <> '' then
+          WriteLn(consoleOutput);
       end;
 
     finally
@@ -487,6 +531,45 @@ implementation
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TTestRun.TestError(const aException: Exception): TTestResult;
+  var
+    expectedError: Boolean;
+    reason: String;
+  begin
+    expectedError := (fExpectedResult = rsError)
+                 and (fExpectedErrorClass = aException.ClassType)
+                 and (fExpectedErrorMessage = aException.Message);
+
+    if expectedError then
+      reason := 'Raised expected exception [%s: %s]'
+    else
+      reason := 'Raised unexpected exception [%s: %s]';
+
+    reason := Format(reason, [aException.ClassName, aException.Message]);
+    result := AddResult('', rsError, reason);
+
+    if NOT fSilentSuccesses or NOT expectedError then
+      WriteLn('+ ' + fMethodName + ': ' + reason);
+  end;
+
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TTestRun.TestFailed(const aTestName: String;
+                               const aReason: String): TTestResult;
+  begin
+    result := AddResult(aTestName, rsFail, aReason);
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TTestRun.TestPassed(const aTestName: String): TTestResult;
+  begin
+    result := AddResult(aTestName, rsPass);
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   function TTestRun.ExtractMethod(const aTest: TTest;
                                   const aMethodList: TStringList;
                                   const aMethodToExtract: String): TTestMethod;
@@ -558,40 +641,6 @@ implementation
           WriteLn(Format('ERROR: Failed to write %s results to %s (%s: %s)', [fWriters[i], filename, e.ClassName, e.Message]));
       end;
     end;
-  end;
-
-
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  procedure TTestRun.TestError(const aException: Exception);
-  begin
-    if (fExpectedErrorClass = aException.ClassType)
-     and (fExpectedErrorMessage = aException.Message) then
-    begin
-      AddResult('', rsError, Format('Threw expected exception [%s: %s]', [aException.ClassName, aException.Message]));
-      WriteLn(Format('+ %s threw expected exception [%s: %s]', [CurrentTestName, aException.ClassName, aException.Message]));
-    end
-    else
-    begin
-      AddResult('', rsError, Format('%s: %s', [aException.ClassName, aException.Message]));
-      WriteLn(Format('ERROR: %s threw %s: %s', [CurrentTestName, aException.ClassName, aException.Message]));
-    end;
-  end;
-
-
-
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  procedure TTestRun.TestFailed(const aTest: String;
-                                const aReason: String);
-  begin
-    AddResult(aTest, rsFail, aReason);
-  end;
-
-
-
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  procedure TTestRun.TestPassed(const aTest: String);
-  begin
-    AddResult(aTest, rsPass, '');
   end;
 
 

@@ -4,7 +4,8 @@
 interface
 
   uses
-    Deltics.Smoketest;
+    Deltics.Smoketest,
+    Test.SelfTest;
 
   type
     TCoreFunctionalityTests = class(TSelfTest)

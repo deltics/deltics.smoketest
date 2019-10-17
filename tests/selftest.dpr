@@ -5,6 +5,7 @@ program selftest;
 
   uses
     Deltics.Smoketest,
+    Test.SelfTest in 'Test.SelfTest.pas',
     Test.CoreFunctionality in 'Test.CoreFunctionality.pas',
     Test.ExceptionHandling in 'Test.ExceptionHandling.pas',
     Test.CommandLineHandling in 'Test.CommandLineHandling.pas',
