@@ -167,7 +167,7 @@
 // VER__ is defined for all versions from VER onward
 //
 // We start by defining ALL __VER symbols (versions up to VER).
-//  We will subsequently $UNDEFINE those which are not applicable.
+//  We will subsequently $UNDEFine those which are not applicable.
 
 {.$define __DELPHIVER}
 {$define __DELPHI10_3}
@@ -225,7 +225,7 @@
 
 // Now starting with the most recent known version, if VER is defined
 //  then we ensure that VER-1__ (and later) is defined but that VER-1
-//  itself is UNdefined.
+//  itself is UNDEFined.
 
 (* {$ifdef DELPHIVER__}   {$define DELPHIVER-1__}  {$undef __DELPHIVER-1}  {$endif} *)
 {$ifdef DELPHI10_3__}  {$define DELPHI10_2__}  {$undef __DELPHI10_2}  {$endif}

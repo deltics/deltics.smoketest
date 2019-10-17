@@ -44,7 +44,6 @@
 interface
 
   uses
-    Deltics.Smoketest.Interfaces,
     Deltics.Smoketest.TestResult,
     Deltics.Smoketest.Utils;
 
