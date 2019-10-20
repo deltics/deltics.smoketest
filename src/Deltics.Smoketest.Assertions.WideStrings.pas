@@ -44,7 +44,7 @@
 interface
 
   uses
-    Deltics.Smoketest.Assertions.Base;
+    Deltics.Smoketest.Assertions;
 
 
   type
@@ -55,13 +55,13 @@ interface
     end;
 
 
-    TWideStringAssertions = class(TFluentAssertions, WideStringAssertions)
+    TWideStringAssertions = class(TAssertions, WideStringAssertions)
     private
       fValue: WideString;
     public
       function Equals(const aExpected: WideString):AssertionResult; reintroduce;
       function EqualsText(const aExpected: WideString):AssertionResult;
-      constructor Create(const aTestName: WideString; const aValue: WideString);
+      constructor Create(const aTestName: String; const aValue: WideString);
     end;
 
 
@@ -75,16 +75,18 @@ implementation
   {$ifdef DELPHI2009__}
     AnsiStrings,
   {$endif}
-    SysUtils;
+    SysUtils,
+    Deltics.Smoketest.Utils;
+
 
 
 { TWideStringAssertions -------------------------------------------------------------------------- }
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  constructor TWideStringAssertions.Create(const aTestName: WideString;
+  constructor TWideStringAssertions.Create(const aTestName: String;
                                            const aValue: WideString);
   begin
-    inherited Create(aTestName);
+    inherited Create(aTestName, AsString(aValue));
 
     fValue := aValue;
   end;
@@ -93,18 +95,20 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TWideStringAssertions.Equals(const aExpected: WideString): AssertionResult;
   begin
-    result := SetResult(fValue = aExpected,
-                        '''%s'' is not the expected value (''%s'')',
-                        [fValue, aExpected]);
+    Description := Format('''%s'' = ''%s''', [AsString(fValue), AsString(aExpected)]);
+    Failure     := Format('''%s'' is not = ''%s''', [AsString(fValue), AsString(aExpected)]);
+
+    result := Assert(fValue = aExpected);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TWideStringAssertions.EqualsText(const aExpected: WideString): AssertionResult;
   begin
-    result := SetResult(AnsiSameText(fValue, aExpected),
-                        '''%s'' is not the expected value (''%s'')',
-                        [fValue, aExpected]);
+    Description := Format('''%s'' is the same text as ''%s''', [AsString(fValue), AsString(aExpected)]);
+    Failure     := Format('''%s'' is not the same text as ''%s''', [AsString(fValue), AsString(aExpected)]);
+
+    result := Assert(AnsiSameText(fValue, aExpected));
   end;
 
 

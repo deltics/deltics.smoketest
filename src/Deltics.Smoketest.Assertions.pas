@@ -44,24 +44,152 @@
 interface
 
   uses
-    Deltics.Smoketest.Assertions.Integers,
-    Deltics.Smoketest.Assertions.AnsiStrings,
-    Deltics.Smoketest.Assertions.UnicodeStrings,
-    Deltics.Smoketest.Assertions.WideStrings;
+    Deltics.Smoketest.TestResult,
+    Deltics.Smoketest.Utils;
+
 
   type
-    IntegerAssertions       = Deltics.Smoketest.Assertions.Integers.IntegerAssertions;
-    AnsiStringAssertions    = Deltics.Smoketest.Assertions.AnsiStrings.AnsiStringAssertions;
-    UnicodeStringAssertions = Deltics.Smoketest.Assertions.UnicodeStrings.UnicodeStringAssertions;
-    WideStringAssertions    = Deltics.Smoketest.Assertions.WideStrings.WideStringAssertions;
+  {$ifNdef UNICODE}
+    AnsiString = Deltics.Smoketest.Utils.AnsiString;
+    UnicodeString = Deltics.Smoketest.Utils.UnicodeString;
+  {$endif}
 
-    TIntegerAssertions        = Deltics.Smoketest.Assertions.Integers.TIntegerAssertions;
-    TAnsiStringAssertions     = Deltics.Smoketest.Assertions.AnsiStrings.TAnsiStringAssertions;
-    TUnicodeStringAssertions  = Deltics.Smoketest.Assertions.UnicodeStrings.TUnicodeStringAssertions;
-    TWideStringAssertions     = Deltics.Smoketest.Assertions.WideStrings.TWideStringAssertions;
+
+    EInvalidTest = Deltics.Smoketest.Utils.EInvalidTest;
+
+
+    AssertionResult = interface
+    ['{86F9B5C1-FA31-416A-84FE-FFD21BCE7BBA}']
+      function get_Failed: Boolean;
+      function get_Passed: Boolean;
+      function WithFailureReason(const aReason: String): AssertionResult; overload;
+      function WithFailureReason(const aReason: String; aArgs: array of const): AssertionResult; overload;
+      property Failed: Boolean read get_Failed;
+      property Passed: Boolean read get_Passed;
+    end;
+
+
+    TAssertions = class(TInterfacedObject, AssertionResult)
+    private
+      fTestName: String;
+      fTestResult: TTestResult;
+      fTestValue: String;
+      fDescription: String;
+      fFailure: String;
+    private // AssertionResult
+      function get_Failed: Boolean;
+      function get_Passed: Boolean;
+      function WithFailureReason(const aReason: String): AssertionResult; overload;
+      function WithFailureReason(const aReason: String; aArgs: array of const): AssertionResult; overload;
+    protected
+      function Assert(const aResult: Boolean): AssertionResult; overload;
+      function Assert(const aResult: Boolean; const aMessage: String): AssertionResult; overload;
+      function Assert(const aResult: Boolean; const aMessage: String; aArgs: array of const): AssertionResult; overload;
+      property Description: String write fDescription;
+      property Failure: String write fFailure;
+    public
+      constructor Create(const aTestName: String; const aValueAsString: String);
+    end;
+
 
 
 implementation
 
+  uses
+    SysUtils,
+    Deltics.Smoketest.TestRun;
 
+
+  type
+    TTestRunHelper = class(Deltics.Smoketest.TestRun.TTestRun);
+
+  var TestRun: TTestRunHelper;
+
+
+{ TFluentAssertions ------------------------------------------------------------------------------ }
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  constructor TAssertions.Create(const aTestName: String;
+                                 const aValueAsString: String);
+  begin
+    inherited Create;
+
+    fTestName   := aTestName;
+    fTestValue  := aValueAsString;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TAssertions.get_Failed: Boolean;
+  begin
+    result := (fTestResult.State = rsFail);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TAssertions.get_Passed: Boolean;
+  begin
+    result := (fTestResult.State = rsPass);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TAssertions.Assert(const aResult: Boolean): AssertionResult;
+  var
+    testName: String;
+  begin
+    result := self;
+
+    if fTestName <> '' then
+      testName := fTestName + ' [' + fDescription + ']'
+    else
+      testName := fDescription;
+
+    if aResult then
+      fTestResult := TestRun.TestPassed(testName)
+    else
+      fTestResult := TestRun.TestFailed(testName, fFailure);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TAssertions.Assert(const aResult: Boolean;
+                              const aMessage: String): AssertionResult;
+  begin
+    result := self;
+
+    if aResult then
+      fTestResult := TestRun.TestPassed(fTestName)
+    else
+      fTestResult := TestRun.TestFailed(fTestName, aMessage);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TAssertions.Assert(const aResult: Boolean;
+                                       const aMessage: String;
+                                             aArgs: array of const): AssertionResult;
+  begin
+    result := Assert(aResult, Format(aMessage, aArgs));
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TAssertions.WithFailureReason(const aReason: String;
+                                               aArgs: array of const): AssertionResult;
+  begin
+    result := WithFailureReason(Format(aReason, aArgs));
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TAssertions.WithFailureReason(const aReason: String): AssertionResult;
+  begin
+    fTestResult.ErrorMessage := aReason;
+  end;
+
+
+
+initialization
+  TestRun := TTestRunHelper(Deltics.Smoketest.TestRun.TestRun);
 end.

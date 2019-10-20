@@ -56,8 +56,10 @@ interface
     TTestRun = class
     private
       fCmdLineArgs: TStringList;
-      fSilentSuccesses: Boolean;
+      fCelebrateSuccess: Boolean;
+      fVerboseOutput: Boolean;
 
+      fDefaultTestName: String;
       fName: String;
       fEnvironment: String;
       fIsAborted: Boolean;
@@ -68,8 +70,10 @@ interface
 
       fTypeName: String;
       fMethodName: String;
+      fPreviousResultMethodName: String;
       fTestName: String;
       fTestNamePrefix: String;
+      fExpectedFailures: Integer;
       fExpectedResult: TResultState;
       fExpectedErrorClass: TClass;
       fExpectedErrorMessage: String;
@@ -85,7 +89,6 @@ interface
       fResults: TList;
       fWriters: TStringList;
 
-      function get_CurrentTestName: String;
       function get_FinishTime: TDateTime;
       function get_RunTime: Integer;
       function get_Failed: Boolean;
@@ -94,13 +97,12 @@ interface
       procedure set_Environment(const aValue: String);
       procedure set_Name(const aValue: String);
 
-      function AddResult(const aTestName: String; const aResult: TResultState; const aReason: String = ''): TTestResult;
+      function AddResult(const aTestName: String; const aResult: TResultState; const aReason: String; const aException: Exception): TTestResult;
       procedure CheckExpectedStates;
       function ExtractMethod(const aTest: TTest; const aMethodList: TStringList; const aMethodToExtract: String): TTestMethod;
       procedure PerformMethod(const aMethod: TTestMethod; const aMessage: String);
 
       procedure SaveResults;
-      property CurrentTestName: String read get_CurrentTestName;
 
     protected
       procedure Abort;
@@ -110,11 +112,10 @@ interface
       procedure SetTestMethod(const aMethodName: String);
       procedure SetTestNamePrefix(const aPrefix: String);
       procedure ExpectingException(const aExceptionClass: TClass; const aMessage: String);
-      procedure ExpectingToFail;
+      procedure ExpectingToFail(aCount: Integer);
       function TestError(const aException: Exception): TTestResult;
       function TestFailed(const aTestName: String; const aReason: String): TTestResult;
       function TestPassed(const aTestName: String): TTestResult;
-
 
     public
       constructor Create;
@@ -126,6 +127,7 @@ interface
       procedure Test(const aTest: TTestClass; const aNamePrefix: String = ''); overload;
       procedure Test(const aTests: array of TTestClass; const aNamePrefix: String = ''); overload;
 
+      property DefaultTestName: String read fDefaultTestName write fDefaultTestName;
       property Name: String read fName write set_Name;
       property Environment: String read fEnvironment write set_Environment;
       property IsAborted: Boolean read fIsAborted;
@@ -160,6 +162,9 @@ implementation
     Deltics.Smoketest.Utils;
 
 
+  type
+    TTestHelper = class(TTest); // For access to protected GetTestMethods
+
 
 { TTestRun --------------------------------------------------------------------------------------- }
 
@@ -179,7 +184,8 @@ implementation
     for i := 0 to ParamCount do
       fCmdLineArgs.Add(ParamStr(i));
 
-    fSilentSuccesses := HasCmdLineOption('silentSuccesses') or HasCmdLineOption('ss');
+    fCelebrateSuccess := HasCmdLineOption('celebrateSuccess') or HasCmdLineOption('cs');
+    fVerboseOutput    := HasCmdLineOption('verbose') or HasCmdLineOption('v');
   end;
 
 
@@ -199,39 +205,6 @@ implementation
     fCmdLineArgs.Free;
 
     inherited;
-  end;
-
-
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  function TTestRun.get_CurrentTestName: String;
-  {
-    Calculates and returns the name of the current test.
-
-    If no test name has been explicitly set then the name will default to the
-     name of the currently executing test method.  If there is no method name
-     then the test (class) name is used.
-
-    Any specified name prefix is then applied.
-
-    Finally, where the name has been derived from either the method or test
-     class name, the name is appended by a numeric identifier of the test
-     being performed (since in this case there are likely to be multiple
-     'unnamed' tests being performed) to help identify which test is being
-     referenced.
-  }
-  begin
-    result := fTestName;
-    if result = '' then
-      result := fMethodName;
-
-    if result = '' then
-      result := fTypeName;
-
-    if fTestNamePrefix <> '' then
-      result := '[' + fTestNamePrefix + '] ' + result;
-
-    if (fTestName = '') then
-      result := result + ' test ' + IntToStr(fTestIndex);
   end;
 
 
@@ -325,10 +298,99 @@ implementation
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   function TTestRun.AddResult(const aTestName: String;
                               const aResult: TResultState;
-                              const aReason: String): TTestResult;
+                              const aReason: String;
+                              const aException: Exception): TTestResult;
+
+    function Humanised(const aString: String): String;
+    var
+      i, j: Integer;
+      c, nc: AnsiChar;
+    begin
+      SetLength(result, 2 * Length(aString));
+      j := 1;
+      for i := 1 to Length(aString) do
+      begin
+        c := AnsiChar(aString[i]);
+        if (c in ['A'..'Z']) then
+        begin
+          nc := AnsiChar(aString[i + 1]);
+
+          if (i > 1) then
+          begin
+            if (i < Length(aString)) and NOT (nc in ['A'..'Z']) then
+            begin
+              result[j] := ' ';
+              Inc(j);
+            end;
+
+            if i > 1 then
+              result[j] := Char(Ord(aString[i]) + 32);
+          end
+          else
+            result[j] := aString[i];
+
+          Inc(j);
+        end
+        else
+        begin
+          result[j] := aString[i];
+          Inc(j);
+        end;
+      end;
+
+      SetLength(result, j - 1);
+    end;
+
+    function HumanisedMethodName: String;
+    begin
+      result := Humanised(fMethodName);
+    end;
+
+    function HumanisedTypeName: String;
+    begin
+      result := fTypeName;
+      if (result[1] = 'T') and (AnsiChar(result[2]) in ['A'..'Z']) then
+        Delete(result, 1, 1);
+
+      result := Humanised(result);
+    end;
+
+    function GetTestName: String;
+    {
+      Calculates and returns the name of the current test.
+
+      If no test name has been explicitly set then the name will default to the
+       name of the currently executing test method.  If there is no method name
+       then the test (class) name is used.
+
+      Any specified name prefix is then applied.
+
+      Finally, where the name has been derived from either the method or test
+       class name, the name is appended by a numeric identifier of the test
+       being performed (since in this case there are likely to be multiple
+       'unnamed' tests being performed) to help identify which test is being
+       referenced.
+    }
+    begin
+      result := fTestName;
+
+      result := StringReplace(result, METHOD_NAME, HumanisedMethodName, [rfReplaceAll, rfIgnoreCase]);
+      result := StringReplace(result, TEST_NAME, HumanisedTypeName, [rfReplaceAll, rfIgnoreCase]);
+
+      if result = '' then
+        result := fMethodName + ' test #' + IntToStr(fTestIndex);
+
+      if fTestNamePrefix <> '' then
+        result := '[' + fTestNamePrefix + '] ' + result;
+    end;
+
+  const
+    STATE_LABEL: array[TResultState] of String = ('PASSED', 'FAILED', 'skipped', 'ERROR');
   var
     state: TResultState;
     testName: String;
+    expectedError: Boolean;
+    reason: String;
     consoleOutput: String;
   begin
     fTestName := aTestName;
@@ -347,45 +409,68 @@ implementation
         rsError : Inc(fTestsError);
       end;
 
-      testName := fTestName;
-      if testName = '' then
-        testName := CurrentTestName
-      else if fTestNamePrefix <> '' then
-        testName := '[' + fTestNamePrefix + '] ' + testName;
+      testName  := GetTestName;
+      reason    := aReason;
 
-      result := TTestResult.Create(testName, fTypeName, fMethodName, fTestIndex, fExpectedResult, state, aReason);
+      if (state = rsError) then
+      begin
+        expectedError := (fExpectedResult = rsError)
+                     and (fExpectedErrorClass = aException.ClassType)
+                     and ((fExpectedErrorMessage = '') or (fExpectedErrorMessage = aException.Message));
+
+        if expectedError then
+          reason := reason + ' (Expected exception)'
+        else
+          fExpectedResult := rsPass;
+      end
+      else
+        expectedError := FALSE;
+
+      result := TTestResult.Create(testName, fTypeName, fMethodName, fTestIndex, fExpectedResult, state, reason);
 
       fResults.Add(result);
 
-      if state = fExpectedResult then
+      if (state = fExpectedResult)  and (expectedError or (state <> rsError)) then
         state := rsPass
-      else
+      else if state = rsPass then
         state := rsFail;
 
-      if (NOT fSilentSuccesses) or (state in [rsFail, rsError]) then
+      if fMethodName <> fPreviousResultMethodName then
+        WriteLn('  > ' + fMethodName);
+
+      if (fCelebrateSuccess) or (state in [rsFail, rsError]) then
       begin
-        case state of
-          rsFail  : if aReason = '' then
-                      consoleOutput := '+ ' + fMethodName + ' -> ' + testName + ': FAILED'
-                    else
-                      consoleOutput := '+ ' + fMethodName + ' -> ' + testName + ': FAILED  [' + aReason + ']';
+        if (state <> fExpectedResult) and (fExpectedResult <> rsPass) then
+        begin
+          consoleOutput := '    + ' + testName + ': ' + STATE_LABEL[aResult];
 
-          rsPass  : consoleOutput := '+ ' + fMethodName + ' -> ' + testName + ': PASSED';
+          if (aResult in [rsFail, rsError]) then
+            consoleOutput := consoleOutput + ' [' + aReason + ']';
 
-          rsSkip  : consoleOutput := '+ ' + fMethodName + ' -> ' + testName + ': skipped';
+          consoleOutput := consoleOutput + ' (=> ' + STATE_LABEL[state] + ')'
+         end
+        else
+        begin
+          consoleOutput := '    + ' + testName + ': ' + STATE_LABEL[state];
 
-          rsError : consoleOutput := ''; // Handled in TestError();
+          if (state in [rsFail, rsError]) then
+            consoleOutput := consoleOutput + ' [' + aReason + ']';
         end;
 
-        if consoleOutput <> '' then
-          WriteLn(consoleOutput);
+        WriteLn(consoleOutput);
       end;
 
     finally
-      fTestName             := '';
-      fExpectedResult       := rsPass;
-      fExpectedErrorClass   := NIL;
-      fExpectedErrorMessage := '';
+      fTestName                 := '';
+      fExpectedErrorClass       := NIL;
+      fExpectedErrorMessage     := '';
+      fPreviousResultMethodName := fMethodName;
+
+      if (fExpectedFailures > 0) then
+        Dec(fExpectedFailures);
+
+      if fExpectedFailures = 0 then
+        fExpectedResult := rsPass;
     end;
   end;
 
@@ -441,11 +526,13 @@ implementation
         Inc(fTestsPassed);
         result.State := rsPass;
       end
-      else
+      else if result.ActualState = rsFail then
       begin
         Inc(fTestsFailed);
         result.State := rsFail;
-      end;
+      end
+      else if result.ActualState = rsError then
+        Inc(fTestsError);
     end;
   end;
 
@@ -464,17 +551,17 @@ implementation
     fFinishTime := Now;
 
     CheckExpectedStates;
-
-    if fTestsCount = 0 then
-    begin
-      WriteLn('WARNING: No tests performed.');
-      EXIT;
-    end;
-
-    WriteLn;
-    WriteLn(Format('Total Tests = %d, Passed = %d, Failed = %d, Skipped = %d, Errors = %d',
-                   [fTestsCount, fTestsPassed, fTestsFailed, fTestsSkipped, fTestsError]));
     try
+      if fTestsCount = 0 then
+      begin
+        WriteLn('WARNING: No tests performed.');
+        EXIT;
+      end;
+
+      WriteLn;
+      WriteLn(Format('Total Tests = %d, Passed = %d, Failed = %d, Skipped = %d, Errors = %d',
+                     [fTestsCount, fTestsPassed, fTestsFailed, fTestsSkipped, fTestsError]));
+
       SaveResults;
 
     finally
@@ -511,7 +598,7 @@ implementation
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  procedure TTestRun.ExpectingToFail;
+  procedure TTestRun.ExpectingToFail(aCount: Integer);
   {
     Sets the expected result to Fail.  If the next test that is performed
      fails then this can be acknowledged as the expected result (i.e. a PASS)
@@ -526,30 +613,19 @@ implementation
            for general use.
   }
   begin
-    fExpectedResult := rsFail;
+    fExpectedFailures := aCount;
+
+    if aCount <> 0 then
+      fExpectedResult := rsFail
+    else
+      fExpectedResult := rsPass;
   end;
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   function TTestRun.TestError(const aException: Exception): TTestResult;
-  var
-    expectedError: Boolean;
-    reason: String;
   begin
-    expectedError := (fExpectedResult = rsError)
-                 and (fExpectedErrorClass = aException.ClassType)
-                 and (fExpectedErrorMessage = aException.Message);
-
-    if expectedError then
-      reason := 'Raised expected exception [%s: %s]'
-    else
-      reason := 'Raised unexpected exception [%s: %s]';
-
-    reason := Format(reason, [aException.ClassName, aException.Message]);
-    result := AddResult('', rsError, reason);
-
-    if NOT fSilentSuccesses or NOT expectedError then
-      WriteLn('+ ' + fMethodName + ': ' + reason);
+    result := AddResult('', rsError, Format('Raised exception [%s: %s]', [aException.ClassName, aException.Message]), aException);
   end;
 
 
@@ -558,14 +634,14 @@ implementation
   function TTestRun.TestFailed(const aTestName: String;
                                const aReason: String): TTestResult;
   begin
-    result := AddResult(aTestName, rsFail, aReason);
+    result := AddResult(aTestName, rsFail, aReason, NIL);
   end;
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   function TTestRun.TestPassed(const aTestName: String): TTestResult;
   begin
-    result := AddResult(aTestName, rsPass);
+    result := AddResult(aTestName, rsPass, '', NIL);
   end;
 
 
@@ -678,7 +754,7 @@ implementation
     if NOT Assigned(aMethod) then
       EXIT;
 
-    if aMessage <> '' then
+    if fVerboseOutput and (aMessage <> '') then
       WriteLn(aMessage);
 
     try
@@ -774,7 +850,7 @@ implementation
       SetTestType(test.ClassName);
       SetTestNamePrefix(aNamePrefix);
 
-      test.GetTestMethods(methods);
+      TTestHelper(test).GetTestMethods(methods);
 
       if methods.Count = 0 then
       begin
@@ -801,6 +877,8 @@ implementation
             try
               PerformMethod(setupMethod, 'Performing setup for method:' + methods[i]);
               try
+                fExpectedFailures := 0;
+                fExpectedResult   := rsPass;
                 method;
 
               finally

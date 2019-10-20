@@ -44,7 +44,7 @@
 interface
 
   uses
-    Deltics.Smoketest.Assertions.Base;
+    Deltics.Smoketest.Assertions;
 
 
   type
@@ -55,7 +55,7 @@ interface
     end;
 
 
-    TUnicodeStringAssertions = class(TFluentAssertions, UnicodeStringAssertions)
+    TUnicodeStringAssertions = class(TAssertions, UnicodeStringAssertions)
     private
       fValue: UnicodeString;
     public
@@ -75,7 +75,10 @@ implementation
   {$ifdef DELPHI2009__}
     AnsiStrings,
   {$endif}
-    SysUtils;
+    SysUtils,
+    Deltics.Smoketest.Utils;
+
+
 
 
 { TUnicodeStringAssertions ----------------------------------------------------------------------- }
@@ -84,7 +87,7 @@ implementation
   constructor TUnicodeStringAssertions.Create(const aTestName: String;
                                               const aValue: UnicodeString);
   begin
-    inherited Create(aTestName);
+    inherited Create(aTestName, AsString(aValue));
 
     fValue := aValue;
   end;
@@ -93,18 +96,20 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TUnicodeStringAssertions.Equals(const aExpected: UnicodeString): AssertionResult;
   begin
-    result := SetResult(fValue = aExpected,
-                        '''%s'' is not the expected value (''%s'')',
-                        [fValue, aExpected]);
+    Description := Format('''%s'' = ''%s''', [AsString(fValue), AsString(aExpected)]);
+    Failure     := Format('''%s'' is not = ''%s''', [AsString(fValue), AsString(aExpected)]);
+
+    result := Assert(fValue = aExpected);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TUnicodeStringAssertions.EqualsText(const aExpected: UnicodeString): AssertionResult;
   begin
-    result := SetResult(AnsiSameText(fValue, aExpected),
-                        '''%s'' is not the expected value (''%s'')',
-                        [fValue, aExpected]);
+    Description := Format('''%s'' is the same text as ''%s''', [AsString(fValue), AsString(aExpected)]);
+    Failure     := Format('''%s'' is not the same text as ''%s''', [AsString(fValue), AsString(aExpected)]);
+
+    result := Assert(AnsiSameText(fValue, aExpected));
   end;
 
 

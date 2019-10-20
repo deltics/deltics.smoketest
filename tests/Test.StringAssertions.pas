@@ -4,8 +4,7 @@
 interface
 
   uses
-    Deltics.Smoketest,
-    Test.SelfTest;
+    Deltics.Smoketest;
 
   type
     TStringTests = class(TSelfTest)
@@ -38,8 +37,8 @@ implementation
     A: AnsiString = 'abc';
     B: AnsiString = 'def';
   begin
-    NextAssertExpectedToFail;
-    Assert('AnsiString.Equals() fails when strings do not match', A).Equals(B);
+    AllAssertsExpectedToFail;
+    Assert(A).Equals(B);
   end;
 
 
@@ -49,7 +48,7 @@ implementation
     A: AnsiString = 'abc';
     B: AnsiString = 'abc';
   begin
-    Assert('AnsiString.Equals() passes when strings are an exact match', A).Equals(B);
+    Assert(A).Equals(B);
   end;
 
 
@@ -59,8 +58,8 @@ implementation
     A: AnsiString = 'abc';
     B: AnsiString = 'ABC!';
   begin
-    NextAssertExpectedToFail;
-    Assert('AnsiString.EqualsText() fails when strings differ by more than case', A).Equals(B);
+    AllAssertsExpectedToFail;
+    Assert(A).Equals(B);
   end;
 
 
@@ -70,7 +69,7 @@ implementation
     A: AnsiString = 'abc';
     B: AnsiString = 'abc';
   begin
-    Assert('AnsiString.EqualsText() passes when strings are an exact match', A).EqualsText(B);
+    Assert(A).EqualsText(B);
   end;
 
 
@@ -80,7 +79,7 @@ implementation
     A: AnsiString = 'abc';
     B: AnsiString = 'ABC';
   begin
-    Assert('AnsiString.EqualsText() passes when string differ only in case', A).EqualsText(B);
+    Assert(A).EqualsText(B);
   end;
 
 
@@ -92,8 +91,8 @@ implementation
     A: UnicodeString = 'abc';
     B: UnicodeString = 'def';
   begin
-    NextAssertExpectedToFail;
-    Assert('UnicodeString.Equals() fails when strings do not match', A).Equals(B);
+    AllAssertsExpectedToFail;
+    Assert(A).Equals(B);
   end;
 
 
@@ -103,7 +102,7 @@ implementation
     A: UnicodeString = 'abc';
     B: UnicodeString = 'abc';
   begin
-    Assert('UnicodeString.Equals() passes when strings are an exact match', A).Equals(B);
+    Assert(A).Equals(B);
   end;
 
 
@@ -113,8 +112,8 @@ implementation
     A: UnicodeString = 'abc';
     B: UnicodeString = 'ABC!';
   begin
-    NextAssertExpectedToFail;
-    Assert('UnicodeString.EqualsText() fails when strings differ by more than case', A).Equals(B);
+    AllAssertsExpectedToFail;
+    Assert(A).Equals(B);
   end;
 
 
@@ -124,7 +123,7 @@ implementation
     A: UnicodeString = 'abc';
     B: UnicodeString = 'abc';
   begin
-    Assert('UnicodeString.EqualsText() passes when strings are an exact match', A).EqualsText(B);
+    Assert(A).EqualsText(B);
   end;
 
 
@@ -134,7 +133,7 @@ implementation
     A: UnicodeString = 'abc';
     B: UnicodeString = 'ABC';
   begin
-    Assert('UnicodeString.EqualsText() passes when string differ only in case', A).EqualsText(B);
+    Assert(A).EqualsText(B);
   end;
 
 {$endif}
@@ -146,8 +145,8 @@ implementation
     A: WideString = 'abc';
     B: WideString = 'def';
   begin
-    NextAssertExpectedToFail;
-    Assert('WideString.Equals() fails when strings do not match', A).Equals(B);
+    AllAssertsExpectedToFail;
+    Assert(A).Equals(B);
   end;
 
 
@@ -157,7 +156,7 @@ implementation
     A: WideString = 'abc';
     B: WideString = 'abc';
   begin
-    Assert('WideString.Equals() passes when strings are an exact match', A).Equals(B);
+    Assert(A).Equals(B);
   end;
 
 
@@ -167,8 +166,8 @@ implementation
     A: WideString = 'abc';
     B: WideString = 'ABC!';
   begin
-    NextAssertExpectedToFail;
-    Assert('WideString.EqualsText() fails when strings differ by more than case', A).Equals(B);
+    AllAssertsExpectedToFail;
+    Assert(A).Equals(B);
   end;
 
 
@@ -178,7 +177,7 @@ implementation
     A: WideString = 'abc';
     B: WideString = 'abc';
   begin
-    Assert('WideString.EqualsText() passes when strings are an exact match', A).EqualsText(B);
+    Assert(A).EqualsText(B);
   end;
 
 
@@ -188,7 +187,7 @@ implementation
     A: WideString = 'abc';
     B: WideString = 'ABC';
   begin
-    Assert('WideString.EqualsText() passes when string differ only in case', A).EqualsText(B);
+    Assert(A).EqualsText(B);
   end;
 
 

@@ -48,29 +48,45 @@ interface
     RTTI,
   {$endif}
     Classes,
-    Deltics.Smoketest.Assertions,
+    Deltics.Smoketest.Assertions.Integers,
+    Deltics.Smoketest.Assertions.AnsiStrings,
+    Deltics.Smoketest.Assertions.UnicodeStrings,
+    Deltics.Smoketest.Assertions.WideStrings,
     Deltics.Smoketest.Utils;
 
   type
     {$M+}
     TTest = class
+    private
+      fDefaultTestName: String;
+      function get_DefaultTestName: String;
+      function InternalAssertException(aExceptionClass: TClass; aBaseException: Boolean; const aMessage: String): Boolean;
     protected
       procedure AbortTestRun;
       function Assert(const aTest: String; const aResult: Boolean; const aReason: String = ''): Boolean; overload;
+      function Assert(const aValue: Integer): IntegerAssertions; overload;
       function Assert(const aTestName: String; const aValue: Integer): IntegerAssertions; overload;
+      function Assert(const aValue: AnsiString): AnsiStringAssertions; overload;
       function Assert(const aTestName: String; const aValue: AnsiString): AnsiStringAssertions; overload;
+      function Assert(const aValue: WideString): WideStringAssertions; overload;
       function Assert(const aTestName: String; const aValue: WideString): WideStringAssertions; overload;
     {$ifdef UNICODE}
+      function Assert(const aValue: UnicodeString): UnicodeStringAssertions; overload;
       function Assert(const aTestName: String; const aValue: UnicodeString): UnicodeStringAssertions; overload;
     {$endif}
-      function AssertBaseException(const aExceptionBaseClass: TClass; const aTestName: String = ''): Boolean;
-      function AssertException(const aExceptionClass: TClass; const aTestName: String = ''): Boolean;
+      function AssertBaseException(const aExceptionBaseClass: TClass; const aExceptionMessage: String = ''): Boolean;
+      function AssertException(const aExceptionClass: TClass; const aExceptionMessage: String = ''): Boolean;
       function AssertNoException(const aTestName: String = ''): Boolean;
-    public
       procedure GetTestMethods(var aList: TStringList);
+      property DefaultTestName: String read get_DefaultTestName write fDefaultTestName;
     end;
     {$M-}
     TTestClass = class of TTest;
+
+
+  const
+    METHOD_NAME = '{methodName}';
+    TEST_NAME   = '{testName}';
 
 
 
@@ -93,8 +109,94 @@ implementation
     TestRun: TTestRunHelper;
 
 
+  const
+    NO_NAME = '';
+
+
 
 { TTest ------------------------------------------------------------------------------------------ }
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TTest.get_DefaultTestName: String;
+  begin
+    result := fDefaultTestName;
+    if result = '' then
+      result := TestRun.DefaultTestName;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TTest.InternalAssertException(      aExceptionClass: TClass;
+                                               aBaseException: Boolean;
+                                         const aMessage: String): Boolean;
+  var
+    eo: TObject;
+    e: Exception absolute eo;
+    testName: String;
+    failure: String;
+    messageTested: Boolean;
+    messageOk: Boolean;
+  begin
+    result := FALSE;
+
+    testName := 'Raises ' + aExceptionClass.ClassName;
+
+    if aBaseException then
+      testName := testName + ' (or subclass)';
+
+    eo := ExceptObject;
+    if NOT Assigned(eo) then
+    begin
+      TestRun.TestFailed(testName, 'No exception was raised');
+      EXIT;
+    end;
+
+    messageTested := FALSE;
+    messageOk     := TRUE;
+    if (aMessage <> '') then
+    begin
+      if (eo is Exception) then
+      begin
+        messageOk     := AnsiSameText(e.Message, aMessage);
+        messageTested := TRUE;
+      end
+      else
+        WriteLn('WARNING: Expected exception message could not be tested as ' + eo.ClassName + ' does not derive from Exception');
+    end;
+
+    if aBaseException then
+      result := (e is aExceptionClass) and messageOk
+    else
+      result := (eo.ClassType = aExceptionClass) and messageOk;
+
+    if NOT result then
+    begin
+      failure := 'Expected ' + aExceptionClass.ClassName;
+
+      if aBaseException then
+        failure := failure + ' (or subclass)';
+
+      if aMessage <> '' then
+        failure := failure + ' with message ''' + aMessage + '''';
+
+      if eo.ClassType <> aExceptionClass then
+      begin
+        failure := failure + ' but ' + eo.ClassName + ' was raised';
+        if messageTested and NOT messageOk then
+          failure := failure + ' and';
+      end
+      else if messageTested then
+        failure := failure + ' but';
+
+      if NOT messageOk then
+        failure := failure + ' message was ''' + e.Message + '''';
+
+      TestRun.TestFailed(testName, failure);
+    end
+    else
+      TestRun.TestPassed(testName);
+  end;
+
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TTest.AbortTestRun;
@@ -117,6 +219,13 @@ implementation
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TTest.Assert(const aValue: Integer): IntegerAssertions;
+  begin
+    result := TIntegerAssertions.Create(DefaultTestName, aValue);
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   function TTest.Assert(const aTestName: String;
                         const aValue: Integer): IntegerAssertions;
   begin
@@ -125,10 +234,24 @@ implementation
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TTest.Assert(const aValue: AnsiString): AnsiStringAssertions;
+  begin
+    result := TAnsiStringAssertions.Create(DefaultTestName, aValue);
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   function TTest.Assert(const aTestName: String;
                         const aValue: AnsiString): AnsiStringAssertions;
   begin
     result := TAnsiStringAssertions.Create(aTestName, aValue);
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TTest.Assert(const aValue: WideString): WideStringAssertions;
+  begin
+    result := TWideStringAssertions.Create(DefaultTestName, aValue);
   end;
 
 
@@ -143,6 +266,13 @@ implementation
 {$ifdef UNICODE}
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TTest.Assert(const aValue: UnicodeString): UnicodeStringAssertions;
+  begin
+    result := TUnicodeStringAssertions.Create(DefaultTestName, aValue);
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   function TTest.Assert(const aTestName: String;
                         const aValue: UnicodeString): UnicodeStringAssertions;
   begin
@@ -154,58 +284,17 @@ implementation
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   function TTest.AssertBaseException(const aExceptionBaseClass: TClass;
-                                     const aTestName: String): Boolean;
-  var
-    e: TObject;
-    testName: String;
+                                     const aExceptionMessage: String): Boolean;
   begin
-    result   := FALSE;
-    testName := aTestName;
-
-    if testName = '' then
-      testName := 'Raised ' + aExceptionBaseClass.ClassName;
-
-    e := ExceptObject;
-    if NOT Assigned(e) then
-    begin
-      TestRun.TestFailed(testName, 'No exception raised');
-      EXIT;
-    end;
-
-    result := (e is aExceptionBaseClass);
-    if result then
-      TestRun.TestPassed(testName)
-    else
-      TestRun.TestFailed(testName, 'Unexpected exception: ' + e.ClassName);
+    result := InternalAssertException(aExceptionBaseClass, TRUE, aExceptionMessage);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TTest.AssertException(const aExceptionClass: TClass;
-                                 const aTestName: String): Boolean;
-  var
-    e: TObject;
-    testName: String;
+                                 const aExceptionMessage: String): Boolean;
   begin
-    result := FALSE;
-
-    testName := aTestName;
-
-    if testName = '' then
-      testName := 'Raised ' + aExceptionClass.ClassName;
-
-    e := ExceptObject;
-    if NOT Assigned(e) then
-    begin
-      TestRun.TestFailed(testName, 'No exception raised');
-      EXIT;
-    end;
-
-    result := (e.ClassType = aExceptionClass);
-    if result then
-      TestRun.TestPassed(testName)
-    else
-      TestRun.TestFailed(testName, 'Unexpected exception: ' + e.ClassName);
+    result := InternalAssertException(aExceptionClass, FALSE, aExceptionMessage);
   end;
 
 
@@ -288,6 +377,7 @@ implementation
       aList.Add(String(method.Name));
     end;
   end;
+
 {$endif}
 
 

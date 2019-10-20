@@ -44,6 +44,7 @@
 interface
 
   uses
+    Deltics.Smoketest.SelfTest,
     Deltics.Smoketest.Test,
     Deltics.Smoketest.TestRun,
     Deltics.Smoketest.Utils;
@@ -52,7 +53,12 @@ interface
   //  need only reference Deltics.Smoketest.
   type
     TTest         = Deltics.Smoketest.Test.TTest;
+    TSelfTest     = Deltics.Smoketest.SelfTest.TSelfTest;
     EInvalidTest  = Deltics.Smoketest.Utils.EInvalidTest;
+
+  const
+    METHOD_NAME = Deltics.Smoketest.Test.METHOD_NAME;
+    TEST_NAME   = Deltics.Smoketest.Test.TEST_NAME;
 
 
   // This function provides read-only access to the TestRun variable maintained
@@ -95,39 +101,39 @@ interface
                      {$ifdef VER320} '10.2' {$endif}
                      {$ifdef VER330} '10.3' {$endif};
 
-    DELPHI_VERSION_NAME = {$ifdef VER80}  '1' {$endif}
-                          {$ifdef VER90}  '2' {$endif}
-                          {$ifdef VER100} '3' {$endif}
-                          {$ifdef VER120} '4' {$endif}
-                          {$ifdef VER130} '5' {$endif}
-                          {$ifdef VER140} '6' {$endif}
-                          {$ifdef VER150} '7' {$endif}
-                          {$ifdef VER160} '8' {$endif}
+    DELPHI_VERSION_NAME = {$ifdef VER80}  'Delphi 1' {$endif}
+                          {$ifdef VER90}  'Delphi 2' {$endif}
+                          {$ifdef VER100} 'Delphi 3' {$endif}
+                          {$ifdef VER120} 'Delphi 4' {$endif}
+                          {$ifdef VER130} 'Delphi 5' {$endif}
+                          {$ifdef VER140} 'Delphi 6' {$endif}
+                          {$ifdef VER150} 'Delphi 7' {$endif}
+                          {$ifdef VER160} 'Delphi 8' {$endif}
 
-                          {$ifdef VER170} '2005' {$endif}
+                          {$ifdef VER170} 'Delphi 2005' {$endif}
                           {$ifdef VER180} // VER180 is defined for both Delphi 2006 and 2007
                             {$ifdef VER185}
-                              '2007'
+                              'Delphi 2007'
                             {$else}
-                              '2006'
+                              'Delphi 2006'
                             {$endif}
                           {$endif}
-                          {$ifdef VER200} '2009' {$endif}
-                          {$ifdef VER210} '2010' {$endif}
+                          {$ifdef VER200} 'Delphi 2009' {$endif}
+                          {$ifdef VER210} 'Delphi 2010' {$endif}
 
-                          {$ifdef VER220} 'XE'  {$endif}
-                          {$ifdef VER230} 'XE2' {$endif}
-                          {$ifdef VER240} 'XE3' {$endif}
-                          {$ifdef VER250} 'XE4' {$endif}
-                          {$ifdef VER260} 'XE5' {$endif}
-                          {$ifdef VER270} 'XE6' {$endif}
-                          {$ifdef VER280} 'XE7' {$endif}
-                          {$ifdef VER290} 'XE8' {$endif}
+                          {$ifdef VER220} 'Delphi XE'  {$endif}
+                          {$ifdef VER230} 'Delphi XE2' {$endif}
+                          {$ifdef VER240} 'Delphi XE3' {$endif}
+                          {$ifdef VER250} 'Delphi XE4' {$endif}
+                          {$ifdef VER260} 'Delphi XE5' {$endif}
+                          {$ifdef VER270} 'Delphi XE6' {$endif}
+                          {$ifdef VER280} 'Delphi XE7' {$endif}
+                          {$ifdef VER290} 'Delphi XE8' {$endif}
 
-                          {$ifdef VER300} '10 Seattle' {$endif}
-                          {$ifdef VER310} '10.1 Berlin'{$endif}
-                          {$ifdef VER320} '10.2 Tokyo' {$endif}
-                          {$ifdef VER330} '10.3 Rio'   {$endif};
+                          {$ifdef VER300} 'Delphi 10 Seattle' {$endif}
+                          {$ifdef VER310} 'Delphi 10.1 Berlin'{$endif}
+                          {$ifdef VER320} 'Delphi 10.2 Tokyo' {$endif}
+                          {$ifdef VER330} 'Delphi 10.3 Rio'   {$endif};
 
 
 

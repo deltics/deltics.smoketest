@@ -25,7 +25,7 @@ interface
       procedure SwitchPresentWithNoValueIsHandledCorrectly;
       procedure SwitchPresentWithValueIsHandledCorrectly;
       procedure SwitchNotPresentIsHandledCorrectly;
-      procedure QuotedValueIsUnquotedCorrectly;
+      procedure QuotedSwitchValueIsUnquotedCorrectly;
   end;
 
 
@@ -65,32 +65,32 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TCommandLineHandlingTests.SwitchPresentWithNoValueIsHandledCorrectly;
   begin
-    Assert('Present -switch is identified', HasCmdLineOption(Args, 'switch', Value), 'Failed to identify -switch in args');
-    Assert('Present -switch has no value', Value = '', Format('-switch without value yielded value of ''%s''', [Value]));
+    Assert('-switch is identified as present', HasCmdLineOption(Args, 'switch', Value), 'Failed to identify -switch in args');
+    Assert('-switch has no value', Value).Equals('');
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TCommandLineHandlingTests.SwitchPresentWithValueIsHandledCorrectly;
   begin
-    Assert('-mode switch is identified', HasCmdLineOption(Args, 'mode', Value), 'Failed to identify -mode switch in args');
-    Assert('-mode value is ''level=42''', Value = 'level=42', Format('-mode value was expected to be ''level=42'' but was ''%s''', [Value]));
+    Assert('-mode switch is identified as present', HasCmdLineOption(Args, 'mode', Value), 'Failed to identify -mode switch in args');
+    Assert('-mode switch value', Value).Equals('level=42');
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TCommandLineHandlingTests.SwitchNotPresentIsHandledCorrectly;
   begin
-    Assert('Missing -lever is not identified', NOT HasCmdLineOption(Args, 'lever', Value), '-lever option identified as present when it is not');
-    Assert('Missing -lever has no value', Value = '', Format('Missing -lever option yielded value ''%s'' but should be ''''', [Value]));
+    Assert('-lever switch is identified as not present', NOT HasCmdLineOption(Args, 'lever', Value), '-lever option identified as present when it is not');
+    Assert('-lever switch has no value', Value).Equals('');
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  procedure TCommandLineHandlingTests.QuotedValueIsUnquotedCorrectly;
+  procedure TCommandLineHandlingTests.QuotedSwitchValueIsUnquotedCorrectly;
   begin
-    HasCmdLineOption(Args, 'quoted', Value);
-    Assert('Quoted value is unquoted correctly', Value = 'value contains quotes', Format('Quoted value should have unquoted as ''value contains quotes'' but was ''%s''', [Value]));
+    Assert('-quoted switch is identified as present', HasCmdLineOption(Args, 'quoted', Value), 'Failed to identify -quoted in args');
+    Assert(Value).Equals('value contains quotes');
   end;
 
 

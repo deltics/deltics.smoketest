@@ -4,10 +4,11 @@
 interface
 
   uses
-    Deltics.SmokeTest;
+    Deltics.SmokeTest,
+    Test.SelfTest;
 
   type
-    TExceptionHandlingTests = class(TTest)
+    TExceptionHandlingTests = class(TSelfTest)
       procedure EDivByZeroIsCaughtByAssertingEDivByZero;
       procedure EDivByZeroIsCaughtByAssertingBaseException;
       procedure EDivByZeroNotCaughtByAssertExceptionCausesTestToFail;
@@ -45,7 +46,7 @@ implementation
     try
       raise EDivByZero.Create('This exception was deliberately raised');
     except
-      AssertException(EDivByZero, 'EDivByZero caught by AssertException(EDivByZero)');
+      AssertException(EDivByZero);
     end;
   end;
 
@@ -56,7 +57,7 @@ implementation
     try
       raise EDivByZero.Create('EDivByZero is an Exception');
     except
-      AssertBaseException(Exception, 'EDivByZero caught by AssertBaseException(Exception)');
+      AssertBaseException(Exception);
     end;
   end;
 
@@ -64,11 +65,11 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TExceptionHandlingTests.EDivByZeroNotCaughtByAssertExceptionCausesTestToFail;
   begin
-    TestRun.ExpectingToFail;
+    NextAssertExpectedToFail;
     try
       raise EDivByZero.Create('Testing for a specific exception type');
     except
-      AssertException(Exception, 'EDivByZero not caught by Assert(Exception) causes test to fail');
+      AssertException(Exception);
     end;
   end;
 
@@ -76,9 +77,9 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TExceptionHandlingTests.AssertingAnExceptionThatIsNotRaisedCausesTestToFail;
   begin
-    TestRun.ExpectingToFail;
+    NextAssertExpectedToFail;
     try
-      AssertException(Exception, 'Unexpected Exception raised causes test to fail');
+      AssertException(Exception);
     except
       // NO-OP (there is no exception raised)
     end;

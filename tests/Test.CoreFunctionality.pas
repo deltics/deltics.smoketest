@@ -47,15 +47,15 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TCoreFunctionalityTests.ThisTestWillFail;
   begin
-    NextAssertExpectedToFail;
-    Assert('This test failed', FALSE);
+    AllAssertsExpectedToFail;
+    Assert('This test will fail', FALSE);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TCoreFunctionalityTests.ThisTestWillPass;
   begin
-    Assert('This test passed', TRUE);
+    Assert('This test will pass', TRUE);
   end;
 
 
@@ -85,28 +85,28 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TCoreFunctionalityTests.ThreeTestsHaveBeenRecordedAtThisPoint;
   begin
-    Assert('Correct number of tests recorded to this point', TestsCounted).Equals(3);
+    Assert(TestsCounted).Equals(3);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TCoreFunctionalityTests.OneTestHasPassed;
   begin
-    Assert('Correct number of tests passed at this point', TestsPassed).Equals(1);
+    Assert(TestsPassed).Equals(1);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TCoreFunctionalityTests.OneTestHasFailed;
   begin
-    Assert('Correct number of tests failed at this point', TestsFailed).Equals(1);
+    Assert(TestsFailed).Equals(1);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TCoreFunctionalityTests.OneTestHasErrored;
   begin
-    Assert('Correct number of tests errored at this point', TestsErrored).Equals(1);
+    Assert(TestsErrored).Equals(1);
   end;
 
 

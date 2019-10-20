@@ -18,7 +18,8 @@ interface
 
     PClass = ^TClass;   // A pointer to a TClass.
 
-    EInvalidTest = class(Exception);
+    ESmoketest   = class(Exception);
+    EInvalidTest = class(ESmoketest);
 
     //## All documented in documentation for final declaration in this group
     PSafeCallException = function(Self: TObject; ExceptObject: TObject; ExceptAddr: Pointer): HResult;  // <COMBINE PDestroy>
@@ -186,6 +187,10 @@ interface
 
   function HasCmdLineOption(const aArgs: TStringList; const aOption: String; var aValue: String): Boolean;
 
+  function AsString(const aValue: AnsiString): String; overload;
+  function AsString(const aValue: UnicodeString): String; overload;
+  function AsString(const aValue: WideString): String; overload;
+
 
 implementation
 
@@ -345,6 +350,41 @@ implementation
       EXIT;
     end;
   end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+    // These AsString() utilities are provided to ensure hint/warning free
+    //  'casts' of Ansi/Unicode/WideString values to whatever the native
+    //  'String' type is at time of compilation.
+  function AsString(const aValue: AnsiString): String;
+  begin
+  {$ifdef UNICODE}
+    result := UnicodeString(aValue);
+  {$else}
+    result := aValue;
+  {$endif}
+  end;
+
+  {-   -   -   -   -   -   -   -   -   - -   -   -   -   -   -   -   -   -   -}
+  function AsString(const aValue: UnicodeString): String;
+  begin
+  {$ifdef UNICODE}
+    result := aValue;
+  {$else}
+    result := AnsiString(aValue);
+  {$endif}
+  end;
+
+  {-   -   -   -   -   -   -   -   -   - -   -   -   -   -   -   -   -   -   -}
+  function AsString(const aValue: WideString): String;
+  begin
+  {$ifdef UNICODE}
+    result := aValue;
+  {$else}
+    result := AnsiString(aValue);
+  {$endif}
+  end;
+
 
 
 end.

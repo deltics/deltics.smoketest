@@ -1,5 +1,5 @@
 
-  unit Test.SelfTest;
+  unit Deltics.Smoketest.SelfTest;
 
 interface
 
@@ -10,7 +10,7 @@ interface
   type
     TSelfTest = class(TTest)
     protected
-      procedure ExpectingException(const aExceptionClass: TClass; const aExceptionMessage: String);
+      procedure ExpectingException(const aExceptionClass: TClass; const aExceptionMessage: String = '');
       procedure AllAssertsExpectedToFail;
       procedure NextAssertExpectedToFail;
       procedure NextAssertsExpectedToFail(aCount: Integer);

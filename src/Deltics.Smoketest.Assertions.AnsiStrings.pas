@@ -44,7 +44,7 @@
 interface
 
   uses
-    Deltics.Smoketest.Assertions.Base;
+    Deltics.Smoketest.Assertions;
 
 
   type
@@ -55,7 +55,7 @@ interface
     end;
 
 
-    TAnsiStringAssertions = class(TFluentAssertions, AnsiStringAssertions)
+    TAnsiStringAssertions = class(TAssertions, AnsiStringAssertions)
     private
       fValue: AnsiString;
     public
@@ -73,18 +73,20 @@ implementation
     Windows,
   {$endif}
   {$ifdef DELPHI2009__}
-    AnsiStrings;
-  {$else}
-    SysUtils;
+    AnsiStrings,
   {$endif}
+    SysUtils,
+    Deltics.Smoketest.Utils;
+
 
 
 { TAnsiStringAssertions -------------------------------------------------------------------------- }
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  constructor TAnsiStringAssertions.Create(const aTestName: String; const aValue: AnsiString);
+  constructor TAnsiStringAssertions.Create(const aTestName: String;
+                                           const aValue: AnsiString);
   begin
-    inherited Create(aTestName);
+    inherited Create(aTestName, AsString(aValue));
 
     fValue := aValue;
   end;
@@ -93,18 +95,20 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TAnsiStringAssertions.Equals(const aExpected: AnsiString): AssertionResult;
   begin
-    result := SetResult(fValue = aExpected,
-                        '''%s'' is not the expected value (''%s'')',
-                        [fValue, aExpected]);
+    Description := SysUtils.Format('''%s'' = ''%s''', [AsString(fValue), AsString(aExpected)]);
+    Failure     := SysUtils.Format('''%s'' is not = ''%s''', [AsString(fValue), AsString(aExpected)]);
+
+    result := Assert(fValue = aExpected);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TAnsiStringAssertions.EqualsText(const aExpected: AnsiString): AssertionResult;
   begin
-    result := SetResult(AnsiSameText(fValue, aExpected),
-                        '''%s'' is not the expected value (''%s'')',
-                        [fValue, aExpected]);
+    Description := Format('''%s'' is the same text as ''%s''', [AsString(fValue), AsString(aExpected)]);
+    Failure     := Format('''%s'' is not the same text as ''%s''', [AsString(fValue), AsString(aExpected)]);
+
+    result := Assert(AnsiSameText(fValue, aExpected));
   end;
 
 

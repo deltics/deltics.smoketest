@@ -44,7 +44,7 @@
 interface
 
   uses
-    Deltics.Smoketest.Assertions.Base;
+    Deltics.Smoketest.Assertions;
 
 
   type
@@ -52,9 +52,9 @@ interface
     ['{46F67D92-BD65-4D8D-B9B6-65203BC1DF41}']
       function Equals(const aExpected: Integer): AssertionResult;
       function GreaterThan(const aExpected: Integer): AssertionResult;
-      function GreaterThanOrEqualTo(const aExpected: Integer): AssertionResult;
+      function GreaterThanOrEquals(const aExpected: Integer): AssertionResult;
       function LessThan(const aExpected: Integer): AssertionResult;
-      function LessThanOrEqualTo(const aExpected: Integer): AssertionResult;
+      function LessThanOrEquals(const aExpected: Integer): AssertionResult;
       function Between(const aLowerBound, aUpperBound: Integer): AssertionResult;
       function InRange(const aMin, aMax: Integer): AssertionResult;
       function IsNegative: AssertionResult;
@@ -62,14 +62,14 @@ interface
     end;
 
 
-    TIntegerAssertions = class(TFluentAssertions, IntegerAssertions)
+    TIntegerAssertions = class(TAssertions, IntegerAssertions)
     private
       fValue: Integer;
       function Equals(const aExpected: Integer): AssertionResult; reintroduce;
       function GreaterThan(const aExpected: Integer): AssertionResult;
-      function GreaterThanOrEqualTo(const aExpected: Integer): AssertionResult;
+      function GreaterThanOrEquals(const aExpected: Integer): AssertionResult;
       function LessThan(const aExpected: Integer): AssertionResult;
-      function LessThanOrEqualTo(const aExpected: Integer): AssertionResult;
+      function LessThanOrEquals(const aExpected: Integer): AssertionResult;
       function Between(const aLowerBound, aUpperBound: Integer): AssertionResult;
       function InRange(const aMin, aMax: Integer): AssertionResult;
       function IsNegative: AssertionResult;
@@ -81,13 +81,25 @@ interface
 
 implementation
 
+  uses
+    SysUtils;
+
+
+  procedure Swap(var a, b: Integer);
+  begin
+    a := a + b;
+    b := a - b;
+    a := a - b;
+  end;
+
+
 { TIntegerAssertions ----------------------------------------------------------------------------- }
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   constructor TIntegerAssertions.Create(const aTestName: String;
                                               aValue: Integer);
   begin
-    inherited Create(aTestName);
+    inherited Create(aTestName, IntToStr(aValue));
 
     fValue := aValue;
   end;
@@ -95,96 +107,113 @@ implementation
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TIntegerAssertions.Between(const aLowerBound, aUpperBound: Integer): AssertionResult;
+  var
+    lbound, ubound: Integer;
   begin
     if Abs(aLowerBound - aUpperBound) < 2 then
       raise EInvalidTest.CreateFmt('Invalid lower (%d) and upper (%d) bounds to Assert(Integer).Between.  There must be a difference greater than 1 between the lower and upper bounds.', [aLowerBound, aUpperBound]);
 
-    if aUpperBound < aLowerBound then
-      result := Between(aUpperBound, aLowerBound)
-    else
-      result := SetResult((fValue > aLowerBound) and (fValue < aUpperBound),
-                          'Value is expected to be between %d and %d (exclusive) but is %d',
-                          [aLowerBound, aUpperBound, fValue]);
+    lbound := aLowerBound;
+    ubound := aUpperBound;
+    if lbound > ubound then
+      Swap(lbound, ubound);
+
+    Description := Format('%d between %d and %d (excl.)', [fValue, aLowerBound, aUpperBound]);
+    Failure     := Format('%d is not between %d and %d (excl.)', [fValue, aLowerBound, aUpperBound]);
+
+    result := Assert((fValue > lbound) and (fValue < ubound));
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TIntegerAssertions.Equals(const aExpected: Integer): AssertionResult;
   begin
-    result := SetResult(fValue = aExpected,
-                        'Value is expected to be %d but is %d',
-                        [aExpected, fValue]);
+    Description := Format('%d = %d', [fValue, aExpected]);
+    Failure     := Format('%d was expected to be %d', [fValue, aExpected]);
+
+    result := Assert(fValue = aExpected);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TIntegerAssertions.GreaterThan(const aExpected: Integer): AssertionResult;
   begin
-    result := SetResult(fValue > aExpected,
-                        'Value is expected to be greater than %d but is %d',
-                        [aExpected, fValue]);
+    Description := Format('%d > %d', [fValue, aExpected]);
+    Failure     := Format('%d is not > %d', [fValue, aExpected]);
+
+    result := Assert(fValue > aExpected);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TIntegerAssertions.InRange(const aMin, aMax: Integer): AssertionResult;
+  function TIntegerAssertions.GreaterThanOrEquals(const aExpected: Integer): AssertionResult;
   begin
-    if aMin = aMax then
-      result := Equals(aMax)
-    else if aMax < aMin then
-      result := InRange(aMax, aMin)
-    else
-    begin
-      result := SetResult((fValue >= aMin) and (fValue <= aMax),
-                          'Value is expected to be between %d and %d (inclusive) but is %d',
-                          [aMin, aMax, fValue]);
-    end;
-  end;
+    Description := Format('%d >= %d', [fValue, aExpected]);
+    Failure     := Format('%d is not >= %d', [fValue, aExpected]);
 
-
-  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TIntegerAssertions.IsNegative: AssertionResult;
-  begin
-    result := SetResult(fValue < 0,
-                        'Value is expected to be negative (< 0) but is %d',
-                        [fValue]);
-  end;
-
-
-  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TIntegerAssertions.IsPositive: AssertionResult;
-  begin
-    result := SetResult(fValue > 0,
-                        'Value is expected to be positive (> 0) but is %d',
-                        [fValue]);
+    result := Assert(fValue >= aExpected);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TIntegerAssertions.LessThan(const aExpected: Integer): AssertionResult;
   begin
-    result := SetResult(fValue < aExpected,
-                        'Value is expected to be less than %d but is %d',
-                        [aExpected, fValue]);
+    Description := Format('%d < %d', [fValue, aExpected]);
+    Failure     := Format('%d is not < %d', [fValue, aExpected]);
+
+    result := Assert(fValue < aExpected);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TIntegerAssertions.LessThanOrEqualTo(const aExpected: Integer): AssertionResult;
+  function TIntegerAssertions.LessThanOrEquals(const aExpected: Integer): AssertionResult;
   begin
-    result := SetResult(fValue <= aExpected,
-                        'Value is expected to be less than or equal to %d but is %d',
-                        [aExpected, fValue]);
+    Description := Format('%d <= %d', [fValue, aExpected]);
+    Failure     := Format('%d is not <= %d', [fValue, aExpected]);
+
+    result := Assert(fValue <= aExpected);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TIntegerAssertions.GreaterThanOrEqualTo(const aExpected: Integer): AssertionResult;
+  function TIntegerAssertions.InRange(const aMin, aMax: Integer): AssertionResult;
+  var
+    min, max: Integer;
   begin
-    result := SetResult(fValue >= aExpected,
-                        'Value is expected to be greater than or equal to %d but is %d',
-                        [aExpected, fValue]);
+    if aMin = aMax then
+      raise EInvalidTest.CreateFmt('Min (%d) and Max (%d) bounds to Assert(Integer).InRange are equal.  Did you mean to use Assert.Equals() ?', [aMin, aMax]);
+
+    min := aMin;
+    max := aMax;
+    if min > max then
+      Swap(min, max);
+
+    Description := Format('%d is in the range %d .. %d (incl.)', [fValue, aMin, aMax]);
+    Failure     := Format('%d is not in the range %d .. %d (incl.)', [fValue, aMin, aMax]);
+
+    result := Assert((fValue >= min) and (fValue <= max));
   end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TIntegerAssertions.IsNegative: AssertionResult;
+  begin
+    Description := Format('%d is negative (< 0)', [fValue]);
+    Failure     := Format('%d is not negative (< 0)', [fValue]);
+
+    result := Assert(fValue < 0);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TIntegerAssertions.IsPositive: AssertionResult;
+  begin
+    Description := Format('%d is positive (> 0)', [fValue]);
+    Failure     := Format('%d is not positive (> 0)', [fValue]);
+
+    result := Assert(fValue > 0);
+  end;
+
 
 
 
