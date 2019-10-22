@@ -93,6 +93,11 @@ interface
 implementation
 
   uses
+  {$ifdef DELPHI2006__}
+    {$ifNdef DELPHI2010__}
+      Windows,
+    {$endif}
+  {$endif}
     SysUtils,
     TypInfo,
     Deltics.Smoketest.TestResult,

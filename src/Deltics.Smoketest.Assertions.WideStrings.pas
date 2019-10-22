@@ -70,10 +70,9 @@ implementation
 
   uses
   {$ifdef DELPHI2006__}
-    Windows,
-  {$endif}
-  {$ifdef DELPHI2009__}
-    AnsiStrings,
+    {$ifNdef DELPHI2010__}
+      Windows,
+    {$endif}
   {$endif}
     SysUtils,
     Deltics.Smoketest.Utils;
