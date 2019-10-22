@@ -188,8 +188,10 @@ interface
   function HasCmdLineOption(const aArgs: TStringList; const aOption: String; var aValue: String): Boolean;
 
   function AsString(const aValue: AnsiString): String; overload;
-  function AsString(const aValue: UnicodeString): String; overload;
   function AsString(const aValue: WideString): String; overload;
+{$ifdef UNICODE}
+  function AsString(const aValue: UnicodeString): String; overload;
+{$endif}
 
 
 implementation
@@ -366,16 +368,6 @@ implementation
   end;
 
   {-   -   -   -   -   -   -   -   -   - -   -   -   -   -   -   -   -   -   -}
-  function AsString(const aValue: UnicodeString): String;
-  begin
-  {$ifdef UNICODE}
-    result := aValue;
-  {$else}
-    result := AnsiString(aValue);
-  {$endif}
-  end;
-
-  {-   -   -   -   -   -   -   -   -   - -   -   -   -   -   -   -   -   -   -}
   function AsString(const aValue: WideString): String;
   begin
   {$ifdef UNICODE}
@@ -384,6 +376,16 @@ implementation
     result := AnsiString(aValue);
   {$endif}
   end;
+
+{$ifdef UNICODE}
+
+  {-   -   -   -   -   -   -   -   -   - -   -   -   -   -   -   -   -   -   -}
+  function AsString(const aValue: UnicodeString): String;
+  begin
+    result := aValue;
+  end;
+
+{$endif}
 
 
 
