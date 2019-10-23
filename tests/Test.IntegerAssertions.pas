@@ -13,7 +13,8 @@ interface
       procedure BetweenFailsWhenValueIsOutsideLowerAndUpperBounds;
       procedure BetweenPassesWhenValueIsBetweenLowerAndUpperBounds;
       procedure BetweenPassesWhenValueIsBetweenReversedLowerAndUpperBounds;
-      procedure BetweenRaisesEInvalidTestWhenInsufficientRangeinLowerAndUpperBounds;
+      procedure BetweenRaisesEInvalidTestWhenLowerAndUpperBoundsAreEqual;
+      procedure BetweenRaisesEInvalidTestWhenLowerAndUpperBoundsDifferByOne;
       procedure EqualsFailsWhenValueIsNotEqual;
       procedure EqualsPassesWhenValueIsEqual;
       procedure GreaterThanFailsWhenValueIsEqual;
@@ -71,21 +72,18 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  procedure TIntegerAssertionTests.BetweenRaisesEInvalidTestWhenInsufficientRangeinLowerAndUpperBounds;
+  procedure TIntegerAssertionTests.BetweenRaisesEInvalidTestWhenLowerAndUpperBoundsAreEqual;
   begin
-    try
-      Assert(42).Between(42, 42);
-      AssertException(EInvalidTest);
-    except
-      AssertException(EInvalidTest);
-    end;
+    ExpectingException(EInvalidTest);
+    Assert(42).Between(42, 42);
+  end;
 
-    try
-      Assert(42).Between(42, 43);
-      AssertException(EInvalidTest);
-    except
-      AssertException(EInvalidTest);
-    end;
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TIntegerAssertionTests.BetweenRaisesEInvalidTestWhenLowerAndUpperBoundsDifferByOne;
+  begin
+    ExpectingException(EInvalidTest);
+    Assert(42).Between(42, 43);
   end;
 
 
@@ -274,12 +272,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TIntegerAssertionTests.InRangeRaisesEInvalidTestWhenLowerAndUpperBoundsAreEqual;
   begin
-    try
-      Assert(42).InRange(42, 42);
-      AssertException(EInvalidTest);
-    except
-      AssertException(EInvalidTest);
-    end;
+    ExpectingException(EInvalidTest);
+    Assert(42).InRange(42, 42);
   end;
 
 

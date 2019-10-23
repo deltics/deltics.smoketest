@@ -69,8 +69,10 @@ interface
       fFinishTime: TDateTime;
 
       fTypeName: String;
+      fHumanisedMethodName: String;
       fMethodName: String;
-      fPreviousResultMethodName: String;
+      fPreviousMethodName: String;
+      fPreviousTypeName: String;
       fTestName: String;
       fTestNamePrefix: String;
       fExpectedFailures: Integer;
@@ -99,8 +101,9 @@ interface
 
       function AddResult(const aTestName: String; const aResult: TResultState; const aReason: String; const aException: Exception): TTestResult;
       procedure CheckExpectedStates;
+      procedure EmitMethodName;
+      procedure EmitTypeName;
       function ExtractMethod(const aTest: TTest; const aMethodList: TStringList; const aMethodToExtract: String): TTestMethod;
-      procedure PerformMethod(const aMethod: TTestMethod; const aMessage: String);
 
       procedure SaveResults;
 
@@ -113,7 +116,8 @@ interface
       procedure SetTestNamePrefix(const aPrefix: String);
       procedure ExpectingException(const aExceptionClass: TClass; const aMessage: String);
       procedure ExpectingToFail(aCount: Integer);
-      function TestError(const aException: Exception): TTestResult;
+      function TestError(const aException: Exception = NIL): TTestResult;
+      function TestException(aExceptionClass: TClass; aBaseException: Boolean; const aMessage: String): Boolean;
       function TestFailed(const aTestName: String; const aReason: String): TTestResult;
       function TestPassed(const aTestName: String): TTestResult;
 
@@ -164,6 +168,54 @@ implementation
 
   type
     TTestHelper = class(TTest); // For access to protected GetTestMethods
+
+
+  function Humanised(const aString: String): String;
+  var
+    i, j: Integer;
+    c, nc: AnsiChar;
+  begin
+    if aString = '' then
+    begin
+      result := '';
+      EXIT;
+    end;
+
+    SetLength(result, 2 * Length(aString));
+    j := 1;
+    for i := 1 to Length(aString) do
+    begin
+      c := AnsiChar(aString[i]);
+      if (c in ['A'..'Z']) then
+      begin
+        nc := AnsiChar(aString[i + 1]);
+
+        if (i > 1) then
+        begin
+          if (i < Length(aString)) and NOT (nc in ['A'..'Z']) then
+          begin
+            result[j] := ' ';
+            Inc(j);
+          end;
+
+          if i > 1 then
+            result[j] := Char(Ord(aString[i]) + 32);
+        end
+        else
+          result[j] := aString[i];
+
+        Inc(j);
+      end
+      else
+      begin
+        result[j] := aString[i];
+        Inc(j);
+      end;
+    end;
+
+    SetLength(result, j - 1);
+  end;
+
 
 
 { TTestRun --------------------------------------------------------------------------------------- }
@@ -301,51 +353,6 @@ implementation
                               const aReason: String;
                               const aException: Exception): TTestResult;
 
-    function Humanised(const aString: String): String;
-    var
-      i, j: Integer;
-      c, nc: AnsiChar;
-    begin
-      SetLength(result, 2 * Length(aString));
-      j := 1;
-      for i := 1 to Length(aString) do
-      begin
-        c := AnsiChar(aString[i]);
-        if (c in ['A'..'Z']) then
-        begin
-          nc := AnsiChar(aString[i + 1]);
-
-          if (i > 1) then
-          begin
-            if (i < Length(aString)) and NOT (nc in ['A'..'Z']) then
-            begin
-              result[j] := ' ';
-              Inc(j);
-            end;
-
-            if i > 1 then
-              result[j] := Char(Ord(aString[i]) + 32);
-          end
-          else
-            result[j] := aString[i];
-
-          Inc(j);
-        end
-        else
-        begin
-          result[j] := aString[i];
-          Inc(j);
-        end;
-      end;
-
-      SetLength(result, j - 1);
-    end;
-
-    function HumanisedMethodName: String;
-    begin
-      result := Humanised(fMethodName);
-    end;
-
     function HumanisedTypeName: String;
     begin
       result := fTypeName;
@@ -374,7 +381,7 @@ implementation
     begin
       result := fTestName;
 
-      result := StringReplace(result, METHOD_NAME, HumanisedMethodName, [rfReplaceAll, rfIgnoreCase]);
+      result := StringReplace(result, METHOD_NAME, fHumanisedMethodName, [rfReplaceAll, rfIgnoreCase]);
       result := StringReplace(result, TEST_NAME, HumanisedTypeName, [rfReplaceAll, rfIgnoreCase]);
 
       if result = '' then
@@ -435,36 +442,26 @@ implementation
       else if state = rsPass then
         state := rsFail;
 
-      if fMethodName <> fPreviousResultMethodName then
-        WriteLn('  > ' + fMethodName);
+      if NOT ((fCelebrateSuccess) or (state in [rsFail, rsError])) then
+        EXIT;
 
-      if (fCelebrateSuccess) or (state in [rsFail, rsError]) then
+      consoleOutput := '';
+      if (state <> aResult) then
       begin
-        if (state <> fExpectedResult) and (fExpectedResult <> rsPass) then
-        begin
-          consoleOutput := '    + ' + testName + ': ' + STATE_LABEL[aResult];
+        consoleOutput := '    + ' + testName + ': ' + STATE_LABEL[aResult];
+        consoleOutput := consoleOutput + ' (=> ' + STATE_LABEL[state] + ')'
+      end
+      else
+        consoleOutput := '    + ' + testName + ': ' + STATE_LABEL[state];
 
-          if (aResult in [rsFail, rsError]) then
-            consoleOutput := consoleOutput + ' [' + aReason + ']';
-
-          consoleOutput := consoleOutput + ' (=> ' + STATE_LABEL[state] + ')'
-         end
-        else
-        begin
-          consoleOutput := '    + ' + testName + ': ' + STATE_LABEL[state];
-
-          if (state in [rsFail, rsError]) then
-            consoleOutput := consoleOutput + ' [' + aReason + ']';
-        end;
-
-        WriteLn(consoleOutput);
-      end;
+      EmitTypeName;
+      EmitMethodName;
+      WriteLn(consoleOutput);
 
     finally
-      fTestName                 := '';
-      fExpectedErrorClass       := NIL;
-      fExpectedErrorMessage     := '';
-      fPreviousResultMethodName := fMethodName;
+      fTestName             := '';
+      fExpectedErrorClass   := NIL;
+      fExpectedErrorMessage := '';
 
       if (fExpectedFailures > 0) then
         Dec(fExpectedFailures);
@@ -575,6 +572,26 @@ implementation
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  procedure TTestRun.EmitMethodName;
+  begin
+    if (fPreviousMethodName <> fMethodName) then
+    begin
+      WriteLn('  > ' + fMethodName);
+      fPreviousMethodName := fMethodName;
+    end;
+  end;
+
+
+  procedure TTestRun.EmitTypeName;
+  begin
+    if (fPreviousTypeName <> fTypeName) then
+    begin
+      WriteLn(' Executing tests in ' + fTypeName);
+      fPreviousTypeName := fTypeName;
+    end;
+  end;
+
+
   procedure TTestRun.ExpectingException(const aExceptionClass: TClass;
                                         const aMessage: String);
   {
@@ -624,10 +641,103 @@ implementation
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   function TTestRun.TestError(const aException: Exception): TTestResult;
+  var
+    eo: TObject;
+    e: Exception;
+    msg: String;
   begin
-    result := AddResult('', rsError, Format('Raised exception [%s: %s]', [aException.ClassName, aException.Message]), aException);
+    e := aException;
+
+    if NOT Assigned(e) then
+    begin
+      eo := ExceptObject;
+
+      if eo is Exception then
+        e := Exception(eo);
+    end
+    else
+      eo := e;
+
+    if Assigned(e) then
+      msg := e.Message
+    else
+      msg := '';
+
+    result := AddResult('', rsError, Format('Raised exception [%s: %s]', [eo.ClassName, msg]), e);
   end;
 
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TTestrun.TestException(      aExceptionClass: TClass;
+                                        aBaseException: Boolean;
+                                  const aMessage: String): Boolean;
+  var
+    eo: TObject;
+    e: Exception absolute eo;
+    testName: String;
+    failure: String;
+    messageTested: Boolean;
+    messageOk: Boolean;
+  begin
+    result := FALSE;
+
+    testName := fMethodName + ' raises ' + aExceptionClass.ClassName;
+
+    if aBaseException then
+      testName := testName + ' (or subclass)';
+
+    eo := ExceptObject;
+    if NOT Assigned(eo) then
+    begin
+      TestRun.TestFailed(testName, 'No exception was raised');
+      EXIT;
+    end;
+
+    messageTested := FALSE;
+    messageOk     := TRUE;
+    if (aMessage <> '') then
+    begin
+      if (eo is Exception) then
+      begin
+        messageOk     := AnsiSameText(e.Message, aMessage);
+        messageTested := TRUE;
+      end
+      else
+        WriteLn('WARNING: Expected exception message could not be tested as ' + eo.ClassName + ' does not derive from Exception');
+    end;
+
+    if aBaseException then
+      result := (e is aExceptionClass) and messageOk
+    else
+      result := (eo.ClassType = aExceptionClass) and messageOk;
+
+    if NOT result then
+    begin
+      failure := 'Expected ' + aExceptionClass.ClassName;
+
+      if aBaseException then
+        failure := failure + ' (or subclass)';
+
+      if aMessage <> '' then
+        failure := failure + ' with message ''' + aMessage + '''';
+
+      if eo.ClassType <> aExceptionClass then
+      begin
+        failure := failure + ' but ' + eo.ClassName + ' was raised';
+        if messageTested and NOT messageOk then
+          failure := failure + ' and';
+      end
+      else if messageTested then
+        failure := failure + ' but';
+
+      if NOT messageOk then
+        failure := failure + ' message was ''' + e.Message + '''';
+
+      TestRun.TestFailed(testName, failure);
+    end
+    else
+      TestRun.TestPassed(testName);
+  end;
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
@@ -679,9 +789,11 @@ implementation
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTestRun.SetTestMethod(const aMethodName: String);
   begin
-    fMethodName     := aMethodName;
-    fTestIndex      := 0;
-    fTestsExpected  := TRUE;
+    fHumanisedMethodName  := Humanised(aMethodName);
+    fMethodName           := aMethodName;
+
+    fTestIndex     := 0;
+    fTestsExpected := TRUE;
   end;
 
 
@@ -748,26 +860,6 @@ implementation
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  procedure TTestRun.PerformMethod(const aMethod: TTestMethod;
-                                   const aMessage: String);
-  begin
-    if NOT Assigned(aMethod) then
-      EXIT;
-
-    if fVerboseOutput and (aMessage <> '') then
-      WriteLn(aMessage);
-
-    try
-      aMethod;
-
-    except
-      on e: Exception do
-        WriteLn(Format('ERROR [%s]: %s', [e.ClassName, e.Message]));
-    end;
-  end;
-
-
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   function TTestRun.HasCmdLineOption(const aName: String;
                                      var   aValue: String): Boolean;
   {
@@ -822,6 +914,29 @@ implementation
      run by the Assert() mechanisms implemented in the Test class and called
      during the execution of each method.
   }
+
+    procedure PerformMethod(const aMethod: TTestMethod;
+                            const aMessage: String;
+                                  aIndent: Integer);
+    var
+      indent: String;
+    begin
+      if NOT Assigned(aMethod) then
+        EXIT;
+
+      indent := StringOfChar(' ', aIndent);
+      if fVerboseOutput and (aMessage <> '') then
+        WriteLn(indent + aMessage);
+
+      try
+        aMethod;
+
+      except
+        on e: Exception do
+          WriteLn(indent + Format('  ERROR [%s]: %s', [e.ClassName, e.Message]));
+      end;
+    end;
+
   var
     i: Integer;
     test: TTest;
@@ -842,13 +957,14 @@ implementation
     if NOT IsRunning then
       BeginRun;
 
-    WriteLn('Executing tests in ' + aTest.ClassName);
-
     test    := aTest.Create;
     methods := TStringList.Create;
     try
       SetTestType(test.ClassName);
       SetTestNamePrefix(aNamePrefix);
+
+      if (fVerboseOutput) then
+        EmitTypeName;
 
       TTestHelper(test).GetTestMethods(methods);
 
@@ -863,7 +979,7 @@ implementation
       teardownMethod  := ExtractMethod(test, methods, 'TeardownMethod');
       teardownTest    := ExtractMethod(test, methods, 'TeardownTest');
 
-      PerformMethod(setupTest, 'Performing setup for test');
+      PerformMethod(setupTest, 'Setup Test', 2);
       try
         for i := 0 to Pred(methods.Count) do
         begin
@@ -875,14 +991,21 @@ implementation
           resultCountBeforeMethodRan := fTestsCount;
           try
             try
-              PerformMethod(setupMethod, 'Performing setup for method:' + methods[i]);
+              PerformMethod(setupMethod, 'Setup ' + methods[i], 4);
               try
                 fExpectedFailures := 0;
                 fExpectedResult   := rsPass;
+
+                if (fVerboseOutput) then
+                  EmitMethodName;
+
                 method;
 
+                if Assigned(fExpectedErrorClass) then
+                  TestException(fExpectedErrorClass, FALSE, fExpectedErrorMessage);
+
               finally
-                PerformMethod(teardownMethod, 'Performing teardown for method: ' + methods[i]);
+                PerformMethod(teardownMethod, 'Teardown ' + methods[i], 4);
               end;
 
             except
@@ -899,7 +1022,7 @@ implementation
         end;
 
       finally
-        PerformMethod(teardownTest, 'Performing teardown for test');
+        PerformMethod(teardownTest, 'Teardown Test', 2);
       end;
 
     finally

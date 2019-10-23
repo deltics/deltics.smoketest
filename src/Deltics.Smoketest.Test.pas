@@ -60,7 +60,6 @@ interface
     private
       fDefaultTestName: String;
       function get_DefaultTestName: String;
-      function InternalAssertException(aExceptionClass: TClass; aBaseException: Boolean; const aMessage: String): Boolean;
     protected
       procedure AbortTestRun;
       function Assert(const aTest: String; const aResult: Boolean; const aReason: String = ''): Boolean; overload;
@@ -127,79 +126,6 @@ implementation
     result := fDefaultTestName;
     if result = '' then
       result := TestRun.DefaultTestName;
-  end;
-
-
-  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TTest.InternalAssertException(      aExceptionClass: TClass;
-                                               aBaseException: Boolean;
-                                         const aMessage: String): Boolean;
-  var
-    eo: TObject;
-    e: Exception absolute eo;
-    testName: String;
-    failure: String;
-    messageTested: Boolean;
-    messageOk: Boolean;
-  begin
-    result := FALSE;
-
-    testName := 'Raises ' + aExceptionClass.ClassName;
-
-    if aBaseException then
-      testName := testName + ' (or subclass)';
-
-    eo := ExceptObject;
-    if NOT Assigned(eo) then
-    begin
-      TestRun.TestFailed(testName, 'No exception was raised');
-      EXIT;
-    end;
-
-    messageTested := FALSE;
-    messageOk     := TRUE;
-    if (aMessage <> '') then
-    begin
-      if (eo is Exception) then
-      begin
-        messageOk     := AnsiSameText(e.Message, aMessage);
-        messageTested := TRUE;
-      end
-      else
-        WriteLn('WARNING: Expected exception message could not be tested as ' + eo.ClassName + ' does not derive from Exception');
-    end;
-
-    if aBaseException then
-      result := (e is aExceptionClass) and messageOk
-    else
-      result := (eo.ClassType = aExceptionClass) and messageOk;
-
-    if NOT result then
-    begin
-      failure := 'Expected ' + aExceptionClass.ClassName;
-
-      if aBaseException then
-        failure := failure + ' (or subclass)';
-
-      if aMessage <> '' then
-        failure := failure + ' with message ''' + aMessage + '''';
-
-      if eo.ClassType <> aExceptionClass then
-      begin
-        failure := failure + ' but ' + eo.ClassName + ' was raised';
-        if messageTested and NOT messageOk then
-          failure := failure + ' and';
-      end
-      else if messageTested then
-        failure := failure + ' but';
-
-      if NOT messageOk then
-        failure := failure + ' message was ''' + e.Message + '''';
-
-      TestRun.TestFailed(testName, failure);
-    end
-    else
-      TestRun.TestPassed(testName);
   end;
 
 
@@ -291,7 +217,7 @@ implementation
   function TTest.AssertBaseException(const aExceptionBaseClass: TClass;
                                      const aExceptionMessage: String): Boolean;
   begin
-    result := InternalAssertException(aExceptionBaseClass, TRUE, aExceptionMessage);
+    result := TestRun.TestException(aExceptionBaseClass, TRUE, aExceptionMessage);
   end;
 
 
@@ -299,7 +225,7 @@ implementation
   function TTest.AssertException(const aExceptionClass: TClass;
                                  const aExceptionMessage: String): Boolean;
   begin
-    result := InternalAssertException(aExceptionClass, FALSE, aExceptionMessage);
+    result := TestRun.TestException(aExceptionClass, FALSE, aExceptionMessage);
   end;
 
 
