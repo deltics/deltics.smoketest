@@ -44,6 +44,7 @@
 interface
 
   uses
+    Classes,
     Deltics.Smoketest.TestResult,
     Deltics.Smoketest.Utils;
 
@@ -71,24 +72,32 @@ interface
 
     TAssertions = class(TInterfacedObject, AssertionResult)
     private
-      fTestName: String;
       fTestResult: TTestResult;
-      fTestValue: String;
       fDescription: String;
       fFailure: String;
+      fFormatTokens: TStringList;
+      fValueAsString: String;
+      fValueName: String;
     private // AssertionResult
       function get_Failed: Boolean;
       function get_Passed: Boolean;
+      function ReplaceTokensIn(const aString: String): String;
       function WithFailureReason(const aReason: String): AssertionResult; overload;
       function WithFailureReason(const aReason: String; aArgs: array of const): AssertionResult; overload;
     protected
       function Assert(const aResult: Boolean): AssertionResult; overload;
       function Assert(const aResult: Boolean; const aMessage: String): AssertionResult; overload;
       function Assert(const aResult: Boolean; const aMessage: String; aArgs: array of const): AssertionResult; overload;
-      property Description: String write fDescription;
-      property Failure: String write fFailure;
+      function Format(const aString: String): String; overload;
+      function Format(const aString: String; aArgs: array of const): String; overload;
+      procedure FormatExpected(const aTokenValue: String);
+      procedure FormatToken(const aTokenString: String; const aTokenValue: String);
+      property Description: String read fDescription write fDescription;
+      property Failure: String read fFailure write fFailure;
+      property ValueName: String read fValueName;
     public
-      constructor Create(const aTestName: String; const aValueAsString: String);
+      constructor Create(const aValueName: String; const aValueAsString: String);
+      destructor Destroy; override;
     end;
 
 
@@ -109,13 +118,53 @@ implementation
 { TFluentAssertions ------------------------------------------------------------------------------ }
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  constructor TAssertions.Create(const aTestName: String;
+  constructor TAssertions.Create(const aValueName: String;
                                  const aValueAsString: String);
   begin
     inherited Create;
 
-    fTestName   := aTestName;
-    fTestValue  := aValueAsString;
+    fFormatTokens := TStringList.Create;
+
+    fValueName     := aValueName;
+    fValueAsString := aValueAsString;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  destructor TAssertions.Destroy;
+  begin
+    fFormatTokens.Free;
+
+    inherited;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TAssertions.Format(const aString: String): String;
+  begin
+    result := Format(aString, []);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TAssertions.Format(const aString: String; aArgs: array of const): String;
+  begin
+    result := ReplaceTokensIn(aString);
+    result := Interpolate(result, aArgs);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TAssertions.FormatExpected(const aTokenValue: String);
+  begin
+    FormatToken('expected', aTokenValue);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TAssertions.FormatToken(const aTokenString, aTokenValue: String);
+  begin
+    fFormatTokens.Values[Lowercase(aTokenString)] := aTokenValue;
   end;
 
 
@@ -134,21 +183,30 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TAssertions.Assert(const aResult: Boolean): AssertionResult;
+  function TAssertions.ReplaceTokensIn(const aString: String): String;
   var
-    testName: String;
+    i: Integer;
+  begin
+    result := aString;
+
+    for i := 0 to Pred(fFormatTokens.Count) do
+      StringReplace(result, '{' + fFormatTokens.Names[i] + '}', fFormatTokens.ValueFromIndex[i], [rfReplaceAll, rfIgnoreCase]);
+
+    result := StringReplace(result, '{valueWithName}',  '{valueName} ({value})', [rfReplaceAll, rfIgnoreCase]);
+    result := StringReplace(result, '{valueName}', fValueName, [rfReplaceAll, rfIgnoreCase]);
+    result := StringReplace(result, '{value}', fValueAsString, [rfReplaceAll, rfIgnoreCase]);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TAssertions.Assert(const aResult: Boolean): AssertionResult;
   begin
     result := self;
 
-    if fTestName <> '' then
-      testName := fTestName + ' [' + fDescription + ']'
-    else
-      testName := fDescription;
-
     if aResult then
-      fTestResult := TestRun.TestPassed(testName)
+      fTestResult := TestRun.TestPassed(Description)
     else
-      fTestResult := TestRun.TestFailed(testName, fFailure);
+      fTestResult := TestRun.TestFailed(Description, Failure);
   end;
 
 
@@ -159,18 +217,18 @@ implementation
     result := self;
 
     if aResult then
-      fTestResult := TestRun.TestPassed(fTestName)
+      fTestResult := TestRun.TestPassed(Description)
     else
-      fTestResult := TestRun.TestFailed(fTestName, aMessage);
+      fTestResult := TestRun.TestFailed(Description, ReplaceTokensIn(aMessage));
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TAssertions.Assert(const aResult: Boolean;
-                                       const aMessage: String;
-                                             aArgs: array of const): AssertionResult;
+                              const aMessage: String;
+                                    aArgs: array of const): AssertionResult;
   begin
-    result := Assert(aResult, Format(aMessage, aArgs));
+    result := Assert(aResult, Format(ReplaceTokensIn(aMessage), aArgs));
   end;
 
 
@@ -178,15 +236,17 @@ implementation
   function TAssertions.WithFailureReason(const aReason: String;
                                                aArgs: array of const): AssertionResult;
   begin
-    result := WithFailureReason(Format(aReason, aArgs));
+    result := WithFailureReason(Format(ReplaceTokensIn(aReason), aArgs));
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TAssertions.WithFailureReason(const aReason: String): AssertionResult;
   begin
-    fTestResult.ErrorMessage := aReason;
+    fTestResult.ErrorMessage := ReplaceTokensIn(aReason);
   end;
+
+
 
 
 

@@ -4,7 +4,8 @@
 interface
 
   uses
-    Deltics.Smoketest;
+    Deltics.Smoketest,
+    SelfTest;
 
   type
     TStringTests = class(TSelfTest)
@@ -38,7 +39,7 @@ implementation
     B: AnsiString = 'def';
   begin
     AllAssertsExpectedToFail;
-    Assert(A).Equals(B);
+    Test('A').Assert(A).Equals(B);
   end;
 
 
@@ -48,7 +49,7 @@ implementation
     A: AnsiString = 'abc';
     B: AnsiString = 'abc';
   begin
-    Assert(A).Equals(B);
+    Test('A').Assert(A).Equals(B);
   end;
 
 
@@ -59,7 +60,7 @@ implementation
     B: AnsiString = 'ABC!';
   begin
     AllAssertsExpectedToFail;
-    Assert(A).Equals(B);
+    Test('A').Assert(A).Equals(B);
   end;
 
 
@@ -69,7 +70,7 @@ implementation
     A: AnsiString = 'abc';
     B: AnsiString = 'abc';
   begin
-    Assert(A).EqualsText(B);
+    Test('A').Assert(A).EqualsText(B);
   end;
 
 
@@ -79,7 +80,7 @@ implementation
     A: AnsiString = 'abc';
     B: AnsiString = 'ABC';
   begin
-    Assert(A).EqualsText(B);
+    Test('A').Assert(A).EqualsText(B);
   end;
 
 
@@ -92,7 +93,7 @@ implementation
     B: UnicodeString = 'def';
   begin
     AllAssertsExpectedToFail;
-    Assert(A).Equals(B);
+    Test('A').Assert(A).Equals(B);
   end;
 
 
@@ -102,7 +103,7 @@ implementation
     A: UnicodeString = 'abc';
     B: UnicodeString = 'abc';
   begin
-    Assert(A).Equals(B);
+    Test('A').Assert(A).Equals(B);
   end;
 
 
@@ -113,7 +114,7 @@ implementation
     B: UnicodeString = 'ABC!';
   begin
     AllAssertsExpectedToFail;
-    Assert(A).Equals(B);
+    Test('A').Assert(A).Equals(B);
   end;
 
 
@@ -123,7 +124,7 @@ implementation
     A: UnicodeString = 'abc';
     B: UnicodeString = 'abc';
   begin
-    Assert(A).EqualsText(B);
+    Test('A').Assert(A).EqualsText(B);
   end;
 
 
@@ -133,7 +134,7 @@ implementation
     A: UnicodeString = 'abc';
     B: UnicodeString = 'ABC';
   begin
-    Assert(A).EqualsText(B);
+    Test('A').Assert(A).EqualsText(B);
   end;
 
 {$endif}
@@ -146,7 +147,7 @@ implementation
     B: WideString = 'def';
   begin
     AllAssertsExpectedToFail;
-    Assert(A).Equals(B);
+    Test('A').Assert(A).Equals(B);
   end;
 
 
@@ -156,7 +157,7 @@ implementation
     A: WideString = 'abc';
     B: WideString = 'abc';
   begin
-    Assert(A).Equals(B);
+    Test('A').Assert(A).Equals(B);
   end;
 
 
@@ -167,7 +168,7 @@ implementation
     B: WideString = 'ABC!';
   begin
     AllAssertsExpectedToFail;
-    Assert(A).Equals(B);
+    Test('A').Assert(A).Equals(B);
   end;
 
 
@@ -177,7 +178,7 @@ implementation
     A: WideString = 'abc';
     B: WideString = 'abc';
   begin
-    Assert(A).EqualsText(B);
+    Test('A').Assert(A).EqualsText(B);
   end;
 
 
@@ -187,7 +188,7 @@ implementation
     A: WideString = 'abc';
     B: WideString = 'ABC';
   begin
-    Assert(A).EqualsText(B);
+    Test('A').Assert(A).EqualsText(B);
   end;
 
 

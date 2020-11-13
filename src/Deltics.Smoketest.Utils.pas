@@ -187,11 +187,21 @@ interface
 
   function HasCmdLineOption(const aArgs: TStringList; const aOption: String; var aValue: String): Boolean;
 
+  function AsQuotedString(const aValue: AnsiString): String; overload;
+  function AsQuotedString(const aValue: WideString): String; overload;
+{$ifdef UNICODE}
+  function AsQuotedString(const aValue: UnicodeString): String; overload;
+{$endif}
+
   function AsString(const aValue: AnsiString): String; overload;
   function AsString(const aValue: WideString): String; overload;
 {$ifdef UNICODE}
   function AsString(const aValue: UnicodeString): String; overload;
 {$endif}
+
+  function Enquote(const aValue: String): String;
+  function Interpolate(const aString: String; aValues: array of const): String;
+
 
 
 implementation
@@ -338,11 +348,11 @@ implementation
       //  from those values!
       //
       // This is only needed to satisfy the tests which use a manually scaffolded
-      //  stringlist to 'simulate' a command line and which as a result end up 
+      //  stringlist to 'simulate' a command line and which as a result end up
       //  with very different elements when simulating quoted values.
       //
-      // This makes me VERY queasy.  Decoupling command line handling from 
-      //  ParamCount/ParamStr should be done if only to eliminate the need for 
+      // This makes me VERY queasy.  Decoupling command line handling from
+      //  ParamCount/ParamStr should be done if only to eliminate the need for
       //  this sort of chicanery!
 
       s := StringReplace(s, '"', '', [rfReplaceAll]);
@@ -358,6 +368,40 @@ implementation
     // These AsString() utilities are provided to ensure hint/warning free
     //  'casts' of Ansi/Unicode/WideString values to whatever the native
     //  'String' type is at time of compilation.
+  function AsQuotedString(const aValue: AnsiString): String;
+  begin
+  {$ifdef UNICODE}
+    result := UnicodeString(aValue);
+  {$else}
+    result := aValue;
+  {$endif}
+
+    result := Enquote(result);
+  end;
+
+  {-   -   -   -   -   -   -   -   -   - -   -   -   -   -   -   -   -   -   -}
+  function AsQuotedString(const aValue: WideString): String;
+  begin
+  {$ifdef UNICODE}
+    result := aValue;
+  {$else}
+    result := AnsiString(aValue);
+  {$endif}
+
+    result := Enquote(result);
+  end;
+
+{$ifdef UNICODE}
+
+  {-   -   -   -   -   -   -   -   -   - -   -   -   -   -   -   -   -   -   -}
+  function AsQuotedString(const aValue: UnicodeString): String;
+  begin
+    result := Enquote(aValue);
+  end;
+
+{$endif}
+
+
   function AsString(const aValue: AnsiString): String;
   begin
   {$ifdef UNICODE}
@@ -386,6 +430,127 @@ implementation
   end;
 
 {$endif}
+
+
+  function Enquote(const aValue: String): String;
+  begin
+    result := StringReplace(aValue, '''', '''''', [rfReplaceAll, rfIgnoreCase]);
+  end;
+
+
+
+  function Interpolate(const aString: String;
+                             aValues: array of const): String;
+
+    procedure SplitNameAndFormatSpec(const aString: String;
+                                     var   aName: String;
+                                     var   aFormatSpec: String);
+    var
+      cp: Integer;
+    begin
+      aName       := aString;
+      aFormatSpec := '';
+
+      cp := Pos(':', aString);
+      if cp = 0 then
+        EXIT;
+
+      aName       := Copy(aString, 1, cp - 1);
+      aFormatSpec := Copy(aString, cp + 1, Length(aString) - cp);
+    end;
+
+  var
+    i: Integer;
+    msgLen: Integer;
+    inPropertyRef: Boolean;
+    propertyRef: String;
+    refs: TStringList;
+    names: TStringList;
+    firstRef: TStringList;
+    name: String;
+    formatSpec: String;
+    argIndex: Integer;
+  begin
+    result := aString;
+    if Length(aValues) = 0 then
+      EXIT;
+
+    inPropertyRef := FALSE;
+    propertyRef   := '';
+
+    refs  := TStringList.Create;
+    names := TStringList.Create;
+    names.Sorted      := TRUE;
+    names.Duplicates  := dupIgnore;
+    firstRef := TStringList.Create;
+    try
+      i       := 1;
+      msgLen  := Length(result);
+      while i <= msgLen do
+      begin
+        if inPropertyRef and (result[i] = '}') then
+        begin
+          inPropertyRef := FALSE;
+
+          refs.Add(AnsiLowercase(propertyRef));
+        end
+        else if (result[i] = '{') then
+        begin
+          if (i < msgLen) and (result[i + 1] <> '{') then
+          begin
+            inPropertyRef := TRUE;
+            propertyRef   := '';
+          end
+          else
+            Inc(i);
+        end
+        else if (result[i] = '}') then
+        begin
+          if (i < msgLen) and (result[i + 1] = '}') then
+            Inc(i)
+          else
+            raise ESmoketest.CreateFmt('Error in interpolated string ''%s''.'#13'Found ''}'' at %d but but expected ''}}''.', [result, i]);
+        end
+        else
+          propertyRef := propertyRef + result[i];
+
+        Inc(i);
+      end;
+
+      for i := 0 to Pred(refs.Count) do
+      begin
+        propertyRef := refs[i];
+        SplitNameAndFormatSpec(propertyRef, name, formatSpec);
+
+        if (firstRef.IndexOfName(name) = -1) then
+        begin
+          if formatSpec = '' then
+            formatSpec := '%s';
+
+          firstRef.Add(name + '=' + formatSpec)
+        end
+        else if formatSpec = '' then
+          formatSpec := firstRef.Values[name];
+
+        Delete(formatSpec, 1, 1);
+
+        argIndex    := names.Add(name);
+        formatSpec  := '%' + IntToStr(argIndex) + ':' + formatSpec;
+
+        if Pos('s', formatSpec) <> 0 then
+          formatSpec := '''' + formatSpec + '''';
+
+        result := StringReplace(result, '{' + propertyRef + '}', formatSpec, [rfIgnoreCase, rfReplaceAll]);
+      end;
+
+      result := Format(result, aValues);
+
+    finally
+      refs.Free;
+      names.Free;
+      firstRef.Free;
+    end;
+  end;
 
 
 

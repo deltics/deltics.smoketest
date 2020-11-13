@@ -48,36 +48,22 @@ interface
     RTTI,
   {$endif}
     Classes,
-    Deltics.Smoketest.Assertions.Integers,
-    Deltics.Smoketest.Assertions.AnsiStrings,
-    Deltics.Smoketest.Assertions.UnicodeStrings,
-    Deltics.Smoketest.Assertions.WideStrings,
+    Deltics.Smoketest.AssertFactory,
     Deltics.Smoketest.Utils;
 
   type
     {$M+}
     TTest = class
     private
-      fDefaultTestName: String;
-      function get_DefaultTestName: String;
+      fAssertValueName: String;
+      fAssertValueNameTemplate: String;
+      fAssertValueNameArgs: array of TVarRec;
     protected
       procedure AbortTestRun;
-      function Assert(const aTest: String; const aResult: Boolean; const aReason: String = ''): Boolean; overload;
-      function Assert(const aValue: Integer): IntegerAssertions; overload;
-      function Assert(const aTestName: String; const aValue: Integer): IntegerAssertions; overload;
-      function Assert(const aValue: AnsiString): AnsiStringAssertions; overload;
-      function Assert(const aTestName: String; const aValue: AnsiString): AnsiStringAssertions; overload;
-      function Assert(const aValue: WideString): WideStringAssertions; overload;
-      function Assert(const aTestName: String; const aValue: WideString): WideStringAssertions; overload;
-    {$ifdef UNICODE}
-      function Assert(const aValue: UnicodeString): UnicodeStringAssertions; overload;
-      function Assert(const aTestName: String; const aValue: UnicodeString): UnicodeStringAssertions; overload;
-    {$endif}
-      function AssertBaseException(const aExceptionBaseClass: TClass; const aExceptionMessage: String = ''): Boolean;
-      function AssertException(const aExceptionClass: TClass; const aExceptionMessage: String = ''): Boolean;
-      function AssertNoException(const aTestName: String = ''): Boolean;
+      function Test(const aValueName: String): AssertFactory; overload;
+      function Test(const aValueName: String; aValueNameArgs: array of const): AssertFactory; overload;
       procedure GetTestMethods(var aList: TStringList);
-      property DefaultTestName: String read get_DefaultTestName write fDefaultTestName;
+      property AssertValueName: String read fAssertValueName;
     end;
     {$M-}
     TTestClass = class of TTest;
@@ -121,11 +107,37 @@ implementation
 { TTest ------------------------------------------------------------------------------------------ }
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TTest.get_DefaultTestName: String;
+  function TTest.Test(const aValueName: String): AssertFactory;
   begin
-    result := fDefaultTestName;
-    if result = '' then
-      result := TestRun.DefaultTestName;
+    result := Test(aValueName, []);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TTest.Test(const aValueName: String;
+                            aValueNameArgs: array of const): AssertFactory;
+  var
+    i: Integer;
+    templateWithValueTokenObfuscated: String;
+  begin
+    fAssertValueNameTemplate := aValueName;
+
+    SetLength(fAssertValueNameArgs, Length(aValueNameArgs));
+
+    if Length(fAssertValueNameArgs) > 0 then
+    begin
+      for i := 0 to High(aValueNameArgs) do
+        fAssertValueNameArgs[i] := aValueNameArgs[i];
+
+      templateWithValueTokenObfuscated := StringReplace(fAssertValueNameTemplate, '{value}', '@@value@@', [rfReplaceAll, rfIgnoreCase]);
+
+      fAssertValueName := Interpolate(templateWithValueTokenObfuscated, fAssertValueNameArgs);
+      fAssertValueName := StringReplace(fAssertValueName, '@@value@@', '{value}', [rfReplaceAll, rfIgnoreCase]);
+    end
+    else
+      fAssertValueName := fAssertValueNameTemplate;
+
+    result := TAssertFactory.Create(fAssertValueName);
   end;
 
 
@@ -135,126 +147,6 @@ implementation
     TestRun.Abort;
   end;
 
-
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  function TTest.Assert(const aTest: String;
-                        const aResult: Boolean;
-                        const aReason: String): Boolean;
-  begin
-    result := aResult;
-    if result then
-      TestRun.TestPassed(aTest)
-    else
-      TestRun.TestFailed(aTest, aReason);
-  end;
-
-
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  function TTest.Assert(const aValue: Integer): IntegerAssertions;
-  begin
-    result := TIntegerAssertions.Create(DefaultTestName, aValue);
-  end;
-
-
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  function TTest.Assert(const aTestName: String;
-                        const aValue: Integer): IntegerAssertions;
-  begin
-    result := TIntegerAssertions.Create(aTestName, aValue);
-  end;
-
-
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  function TTest.Assert(const aValue: AnsiString): AnsiStringAssertions;
-  begin
-    result := TAnsiStringAssertions.Create(DefaultTestName, aValue);
-  end;
-
-
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  function TTest.Assert(const aTestName: String;
-                        const aValue: AnsiString): AnsiStringAssertions;
-  begin
-    result := TAnsiStringAssertions.Create(aTestName, aValue);
-  end;
-
-
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  function TTest.Assert(const aValue: WideString): WideStringAssertions;
-  begin
-    result := TWideStringAssertions.Create(DefaultTestName, aValue);
-  end;
-
-
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  function TTest.Assert(const aTestName: String;
-                        const aValue: WideString): WideStringAssertions;
-  begin
-    result := TWideStringAssertions.Create(aTestName, aValue);
-  end;
-
-
-{$ifdef UNICODE}
-
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  function TTest.Assert(const aValue: UnicodeString): UnicodeStringAssertions;
-  begin
-    result := TUnicodeStringAssertions.Create(DefaultTestName, aValue);
-  end;
-
-
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  function TTest.Assert(const aTestName: String;
-                        const aValue: UnicodeString): UnicodeStringAssertions;
-  begin
-    result := TUnicodeStringAssertions.Create(aTestName, aValue);
-  end;
-
-{$endif}
-
-
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  function TTest.AssertBaseException(const aExceptionBaseClass: TClass;
-                                     const aExceptionMessage: String): Boolean;
-  begin
-    result := TestRun.TestException(aExceptionBaseClass, TRUE, aExceptionMessage);
-  end;
-
-
-  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TTest.AssertException(const aExceptionClass: TClass;
-                                 const aExceptionMessage: String): Boolean;
-  begin
-    result := TestRun.TestException(aExceptionClass, FALSE, aExceptionMessage);
-  end;
-
-
-  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TTest.AssertNoException(const aTestName: String): Boolean;
-  var
-    eo: TObject;
-    e: Exception absolute eo;
-    testName: String;
-    msg: String;
-  begin
-    eo := ExceptObject;
-
-    if testName = '' then
-      testName := 'No exception raised';
-
-    result := NOT Assigned(eo);
-    if result then
-    begin
-      TestRun.TestPassed(testName);
-      EXIT;
-    end;
-
-    msg := Format('No exception was expected but %s was raised', [eo.ClassName]);
-    if e is Exception then
-      msg := msg + Format(' with message %s', [e.Message]);
-
-    TestRun.TestFailed(testName, msg);
-  end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
@@ -310,6 +202,10 @@ implementation
   end;
 
 {$endif}
+
+
+
+
 
 
 

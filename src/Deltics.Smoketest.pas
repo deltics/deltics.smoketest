@@ -44,7 +44,6 @@
 interface
 
   uses
-    Deltics.Smoketest.SelfTest,
     Deltics.Smoketest.Test,
     Deltics.Smoketest.TestRun,
     Deltics.Smoketest.Utils;
@@ -53,7 +52,6 @@ interface
   //  need only reference Deltics.Smoketest.
   type
     TTest         = Deltics.Smoketest.Test.TTest;
-    TSelfTest     = Deltics.Smoketest.SelfTest.TSelfTest;
     EInvalidTest  = Deltics.Smoketest.Utils.EInvalidTest;
 
   const
@@ -139,7 +137,7 @@ interface
 
 implementation
 
-  // NOTE: Ensure that results writer implementations are added to the uses clause!
+  // NOTE: Ensure that results writer implementations are added to this uses clause!
   uses
     Deltics.Smoketest.ResultsWriter.XUnit2;
 

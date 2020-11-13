@@ -65,32 +65,32 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TCommandLineHandlingTests.SwitchPresentWithNoValueIsHandledCorrectly;
   begin
-    Assert('-switch is identified as present', HasCmdLineOption(Args, 'switch', Value), 'Failed to identify -switch in args');
-    Assert('-switch has no value', Value).Equals('');
+    Test('-switch is identified as present').Assert(HasCmdLineOption(Args, 'switch', Value));
+    Test('-switch has no value').Assert(Value).Equals('');
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TCommandLineHandlingTests.SwitchPresentWithValueIsHandledCorrectly;
   begin
-    Assert('-mode switch is identified as present', HasCmdLineOption(Args, 'mode', Value), 'Failed to identify -mode switch in args');
-    Assert('-mode switch value', Value).Equals('level=42');
+    Test('-mode switch is identified as present').Assert(HasCmdLineOption(Args, 'mode', Value));
+    Test('-mode switch value').Assert(Value).Equals('level=42');
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TCommandLineHandlingTests.SwitchNotPresentIsHandledCorrectly;
   begin
-    Assert('-lever switch is identified as not present', NOT HasCmdLineOption(Args, 'lever', Value), '-lever option identified as present when it is not');
-    Assert('-lever switch has no value', Value).Equals('');
+    Test('-lever switch is identified as not present').Assert(NOT HasCmdLineOption(Args, 'lever', Value));
+    Test('-lever switch has no value').Assert(Value).Equals('');
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TCommandLineHandlingTests.QuotedSwitchValueIsUnquotedCorrectly;
   begin
-    Assert('-quoted switch is identified as present', HasCmdLineOption(Args, 'quoted', Value), 'Failed to identify -quoted in args');
-    Assert(Value).Equals('value contains quotes');
+    Test('-quoted switch is identified as present').Assert(HasCmdLineOption(Args, 'quoted', Value));
+    Test('-quoted switch value').Assert(Value).Equals('value contains quotes');
   end;
 
 

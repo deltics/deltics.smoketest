@@ -66,10 +66,10 @@ interface
     private
       fValue: Integer;
       function Equals(const aExpected: Integer): AssertionResult; reintroduce;
-      function GreaterThan(const aExpected: Integer): AssertionResult;
-      function GreaterThanOrEquals(const aExpected: Integer): AssertionResult;
-      function LessThan(const aExpected: Integer): AssertionResult;
-      function LessThanOrEquals(const aExpected: Integer): AssertionResult;
+      function GreaterThan(const aLimit: Integer): AssertionResult;
+      function GreaterThanOrEquals(const aMin: Integer): AssertionResult;
+      function LessThan(const aLimit: Integer): AssertionResult;
+      function LessThanOrEquals(const aMax: Integer): AssertionResult;
       function Between(const aLowerBound, aUpperBound: Integer): AssertionResult;
       function InRange(const aMin, aMax: Integer): AssertionResult;
       function IsNegative: AssertionResult;
@@ -118,8 +118,11 @@ implementation
     if lbound > ubound then
       Swap(lbound, ubound);
 
-    Description := Format('%d between %d and %d (excl.)', [fValue, aLowerBound, aUpperBound]);
-    Failure     := Format('%d is not between %d and %d (excl.)', [fValue, aLowerBound, aUpperBound]);
+    FormatToken('lowerBound', IntToStr(lbound));
+    FormatToken('upperBound', IntToStr(ubound));
+
+    Description := Format('{valueWithName} is between {lowerBound} and {upperBound} (excl.)');
+    Failure     := Format('{valueWithName} is not between {lowerBound} and {upperBound} (excl.)');
 
     result := Assert((fValue > lbound) and (fValue < ubound));
   end;
@@ -128,50 +131,60 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TIntegerAssertions.Equals(const aExpected: Integer): AssertionResult;
   begin
-    Description := Format('%d = %d', [fValue, aExpected]);
-    Failure     := Format('%d was expected to be %d', [fValue, aExpected]);
+    FormatExpected(IntToStr(aExpected));
+
+    Description := Format('{valueName} = {expected}');
+    Failure     := Format('{valueWithName} does not = {expected}');
 
     result := Assert(fValue = aExpected);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TIntegerAssertions.GreaterThan(const aExpected: Integer): AssertionResult;
+  function TIntegerAssertions.GreaterThan(const aLimit: Integer): AssertionResult;
   begin
-    Description := Format('%d > %d', [fValue, aExpected]);
-    Failure     := Format('%d is not > %d', [fValue, aExpected]);
+    FormatToken('limit', IntToStr(aLimit));
 
-    result := Assert(fValue > aExpected);
+    Description := Format('{valueWithName} > {limit}');
+    Failure     := Format('{valueWithName} is not > {limit}');
+
+    result := Assert(fValue > aLimit);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TIntegerAssertions.GreaterThanOrEquals(const aExpected: Integer): AssertionResult;
+  function TIntegerAssertions.GreaterThanOrEquals(const aMin: Integer): AssertionResult;
   begin
-    Description := Format('%d >= %d', [fValue, aExpected]);
-    Failure     := Format('%d is not >= %d', [fValue, aExpected]);
+    FormatToken('min', IntToStr(aMin));
 
-    result := Assert(fValue >= aExpected);
+    Description := Format('{valueWithName} >= {min}');
+    Failure     := Format('{valueWithName} is not >= {min}');
+
+    result := Assert(fValue >= aMin);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TIntegerAssertions.LessThan(const aExpected: Integer): AssertionResult;
+  function TIntegerAssertions.LessThan(const aLimit: Integer): AssertionResult;
   begin
-    Description := Format('%d < %d', [fValue, aExpected]);
-    Failure     := Format('%d is not < %d', [fValue, aExpected]);
+    FormatToken('limit', IntToStr(aLimit));
 
-    result := Assert(fValue < aExpected);
+    Description := Format('{valueWithName} < {limit}');
+    Failure     := Format('{valueWithName} is not < {limit}');
+
+    result := Assert(fValue < aLimit);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TIntegerAssertions.LessThanOrEquals(const aExpected: Integer): AssertionResult;
+  function TIntegerAssertions.LessThanOrEquals(const aMax: Integer): AssertionResult;
   begin
-    Description := Format('%d <= %d', [fValue, aExpected]);
-    Failure     := Format('%d is not <= %d', [fValue, aExpected]);
+    FormatToken('max', IntToStr(aMax));
 
-    result := Assert(fValue <= aExpected);
+    Description := Format('{valueWithName} <= {max}');
+    Failure     := Format('{valueWithName} is not <= {max}');
+
+    result := Assert(fValue <= aMax);
   end;
 
 
@@ -188,8 +201,11 @@ implementation
     if min > max then
       Swap(min, max);
 
-    Description := Format('%d is in the range %d .. %d (incl.)', [fValue, aMin, aMax]);
-    Failure     := Format('%d is not in the range %d .. %d (incl.)', [fValue, aMin, aMax]);
+    FormatToken('min', IntToStr(min));
+    FormatToken('max', IntToStr(max));
+
+    Description := Format('{valueWithName} is in the range {min} .. {max} (incl.)');
+    Failure     := Format('{valueWithName} is not in the range {min} .. {max} (incl.)');
 
     result := Assert((fValue >= min) and (fValue <= max));
   end;
@@ -198,8 +214,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TIntegerAssertions.IsNegative: AssertionResult;
   begin
-    Description := Format('%d is negative (< 0)', [fValue]);
-    Failure     := Format('%d is not negative (< 0)', [fValue]);
+    Description := Format('{valueWithName} is negative (< 0)');
+    Failure     := Format('{valueWithName} is not negative (< 0)');
 
     result := Assert(fValue < 0);
   end;
@@ -208,8 +224,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TIntegerAssertions.IsPositive: AssertionResult;
   begin
-    Description := Format('%d is positive (> 0)', [fValue]);
-    Failure     := Format('%d is not positive (> 0)', [fValue]);
+    Description := Format('{valueWithName} is positive (> 0)');
+    Failure     := Format('{valueWithName} is not positive (> 0)');
 
     result := Assert(fValue > 0);
   end;

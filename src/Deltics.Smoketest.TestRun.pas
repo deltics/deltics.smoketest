@@ -58,6 +58,7 @@ interface
       fCmdLineArgs: TStringList;
       fCelebrateSuccess: Boolean;
       fVerboseOutput: Boolean;
+      fLineFeedBeforeTypeNameOrSummary: Boolean;
 
       fDefaultTestName: String;
       fName: String;
@@ -117,7 +118,7 @@ interface
       procedure ExpectingException(const aExceptionClass: TClass; const aMessage: String);
       procedure ExpectingToFail(aCount: Integer);
       function TestError(const aException: Exception = NIL): TTestResult;
-      function TestException(aExceptionClass: TClass; aBaseException: Boolean; const aMessage: String): Boolean;
+      function TestException(const aValueName: String; aExceptionClass: TClass; aBaseException: Boolean; const aMessage: String): Boolean;
       function TestFailed(const aTestName: String; const aReason: String): TTestResult;
       function TestPassed(const aTestName: String): TTestResult;
 
@@ -403,7 +404,6 @@ implementation
     testName: String;
     expectedError: Boolean;
     reason: String;
-    consoleOutput: String;
   begin
     fTestName := aTestName;
     try
@@ -447,21 +447,22 @@ implementation
       else if state = rsPass then
         state := rsFail;
 
-      if NOT ((fCelebrateSuccess) or (state in [rsFail, rsError])) then
+      if NOT (fVerboseOutput or fCelebrateSuccess or (state in [rsFail, rsError])) then
         EXIT;
-
-      consoleOutput := '';
-      if (state <> aResult) then
-      begin
-        consoleOutput := '    + ' + testName + ': ' + STATE_LABEL[aResult];
-        consoleOutput := consoleOutput + ' (=> ' + STATE_LABEL[state] + ')'
-      end
-      else
-        consoleOutput := '    + ' + testName + ': ' + STATE_LABEL[state];
 
       EmitTypeName;
       EmitMethodName;
-      WriteLn(consoleOutput);
+      fLineFeedBeforeTypeNameOrSummary := TRUE;
+
+      Write('    + ');
+      if (state = aResult) then
+      begin
+        WriteLn(STATE_LABEL[state] + ': ' + testName);
+        if state in [rsFail, rsError] then
+          WriteLn('      [' + reason + ']');
+      end
+      else
+        WriteLn(STATE_LABEL[aResult] + ' (=> ' + STATE_LABEL[state] + '): ' + testName);
 
     finally
       fTestName             := '';
@@ -560,7 +561,9 @@ implementation
         EXIT;
       end;
 
-      WriteLn;
+      if fLineFeedBeforeTypeNameOrSummary then
+        WriteLn;
+
       WriteLn(Format('Total Tests = %d, Passed = %d, Failed = %d, Skipped = %d, Errors = %d',
                      [fTestsCount, fTestsPassed, fTestsFailed, fTestsSkipped, fTestsError]));
 
@@ -591,8 +594,12 @@ implementation
   begin
     if (fPreviousTypeName <> fTypeName) then
     begin
-      WriteLn(' Executing tests in ' + fTypeName);
+      if fLineFeedBeforeTypeNameOrSummary then
+        WriteLn;
+
+      WriteLn(' ' + fTypeName);
       fPreviousTypeName := fTypeName;
+      fLineFeedBeforeTypeNameOrSummary := FALSE;
     end;
   end;
 
@@ -673,7 +680,8 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TTestrun.TestException(      aExceptionClass: TClass;
+  function TTestrun.TestException(const aValueName: String;
+                                        aExceptionClass: TClass;
                                         aBaseException: Boolean;
                                   const aMessage: String): Boolean;
   var
@@ -686,7 +694,7 @@ implementation
   begin
     result := FALSE;
 
-    testName := fMethodName + ' raises ' + aExceptionClass.ClassName;
+    testName := aValueName + ' raises ' + aExceptionClass.ClassName;
 
     if aBaseException then
       testName := testName + ' (or subclass)';
@@ -1007,7 +1015,7 @@ implementation
                 method;
 
                 if Assigned(fExpectedErrorClass) then
-                  TestException(fExpectedErrorClass, FALSE, fExpectedErrorMessage);
+                  TestException(fMethodName, fExpectedErrorClass, FALSE, fExpectedErrorMessage);
 
               finally
                 PerformMethod(teardownMethod, 'Teardown ' + methods[i], 4);

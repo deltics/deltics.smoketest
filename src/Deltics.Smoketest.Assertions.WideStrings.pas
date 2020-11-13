@@ -94,8 +94,10 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TWideStringAssertions.Equals(const aExpected: WideString): AssertionResult;
   begin
-    Description := Format('''%s'' = ''%s''', [AsString(fValue), AsString(aExpected)]);
-    Failure     := Format('''%s'' is not = ''%s''', [AsString(fValue), AsString(aExpected)]);
+    FormatExpected(AsString(aExpected));
+
+    Description := Format('{valueName} = {expected}');
+    Failure     := Format('{valueWithName} should be {expected}');
 
     result := Assert(fValue = aExpected);
   end;
@@ -104,8 +106,10 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TWideStringAssertions.EqualsText(const aExpected: WideString): AssertionResult;
   begin
-    Description := Format('''%s'' is the same text as ''%s''', [AsString(fValue), AsString(aExpected)]);
-    Failure     := Format('''%s'' is not the same text as ''%s''', [AsString(fValue), AsString(aExpected)]);
+    FormatExpected(AsString(aExpected));
+
+    Description := Format('{valueWithName} is the same text as {expected}');
+    Failure     := Format('{valueWithName} is not the same text as {expected}');
 
     result := Assert(AnsiSameText(fValue, aExpected));
   end;

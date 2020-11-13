@@ -46,7 +46,7 @@ implementation
     try
       raise EDivByZero.Create('This exception was deliberately raised');
     except
-      AssertException(EDivByZero);
+      Test('asserting specific exception class').AssertException(EDivByZero);
     end;
   end;
 
@@ -57,7 +57,7 @@ implementation
     try
       raise EDivByZero.Create('EDivByZero is an Exception');
     except
-      AssertBaseException(Exception);
+      Test('Asserting base exception class').AssertBaseException(Exception);
     end;
   end;
 
@@ -69,7 +69,7 @@ implementation
     try
       raise EDivByZero.Create('Testing for a specific exception type');
     except
-      AssertException(Exception);
+      Test('Asserting exception super-class').AssertException(Exception);
     end;
   end;
 
@@ -79,7 +79,7 @@ implementation
   begin
     NextAssertExpectedToFail;
     try
-      AssertException(Exception);
+      Test('Asserting exception that is not raised').AssertException(Exception);
     except
       // NO-OP (there is no exception raised)
     end;
