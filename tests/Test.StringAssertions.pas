@@ -5,7 +5,7 @@ interface
 
   uses
     Deltics.Smoketest,
-    SelfTest;
+    Test.SelfTest;
 
   type
     TStringTests = class(TSelfTest)

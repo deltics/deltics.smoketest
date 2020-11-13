@@ -56,7 +56,8 @@ implementation
   uses
     Contnrs,
     SysUtils,
-    Deltics.Smoketest.TestRun;
+    Deltics.Smoketest.TestRun,
+    Deltics.Smoketest.Utils;
 
 
   type
@@ -99,7 +100,7 @@ implementation
   begin
     result := S_OK;
 
-    if (aIID = AssertFactory) then
+    if GuidsAreEqual(aIID, AssertFactory) then
     begin
       result := inherited QueryInterface(aIID, aIntf);
       EXIT;
@@ -108,7 +109,7 @@ implementation
     for i := 0 to Pred(_AssertFactoryRegistrations.Count) do
     begin
       reg := TAssertFactoryRegistration(_AssertFactoryRegistrations[i]);
-      if reg.IID = aIID then
+      if GuidsAreEqual(reg.IID, aIID) then
       begin
         factory := reg.FactoryClass.Create(ValueName);
         factory.GetInterface(aIID, aIntf);

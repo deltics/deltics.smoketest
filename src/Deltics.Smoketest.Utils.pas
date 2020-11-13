@@ -202,6 +202,8 @@ interface
   function Enquote(const aValue: String): String;
   function Interpolate(const aString: String; aValues: array of const): String;
 
+  function GuidsAreEqual(const a, b: TGUID): Boolean;
+
 
 
 implementation
@@ -550,6 +552,12 @@ implementation
       names.Free;
       firstRef.Free;
     end;
+  end;
+
+
+  function GuidsAreEqual(const a, b: TGUID): Boolean;
+  begin
+    result := CompareMem(@a, @b, sizeof(a));
   end;
 
 
