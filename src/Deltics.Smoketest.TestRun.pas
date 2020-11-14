@@ -570,7 +570,7 @@ implementation
       SaveResults;
 
     finally
-      if HasCmdLineOption('wait') then
+      if (DebugHook > 0) or HasCmdLineOption('wait') then
         ReadLn;
 
       if (fTestsFailed + fTestsError > 0) then
