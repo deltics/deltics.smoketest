@@ -48,7 +48,7 @@ interface
     RTTI,
   {$endif}
     Classes,
-    Deltics.Smoketest.AssertFactory,
+    Deltics.Smoketest.Assertions.AssertFactory,
     Deltics.Smoketest.Utils;
 
   type
@@ -60,6 +60,7 @@ interface
       fAssertValueNameArgs: array of TVarRec;
     protected
       procedure AbortTestRun;
+      function Test: IExceptionAssertions; overload;
       function Test(const aValueName: String): AssertFactory; overload;
       function Test(const aValueName: String; aValueNameArgs: array of const): AssertFactory; overload;
       procedure GetTestMethods(var aList: TStringList);
@@ -105,6 +106,13 @@ implementation
 
 
 { TTest ------------------------------------------------------------------------------------------ }
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TTest.Test: IExceptionAssertions;
+  begin
+    result := Test('Exception', []) as IExceptionAssertions;
+  end;
+
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TTest.Test(const aValueName: String): AssertFactory;

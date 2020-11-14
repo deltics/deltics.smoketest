@@ -1,5 +1,5 @@
 
-  unit Deltics.Smoketest.AssertFactory;
+  unit Deltics.Smoketest.Assertions.AssertFactory;
 
 interface
 
@@ -12,6 +12,14 @@ interface
 
 
   type
+    IExceptionAssertions = interface
+    ['{3DDF7260-CD25-40DA-9D47-C6C4683F4F49}']
+      function AssertBaseException(const aExceptionBaseClass: TClass; const aExceptionMessage: String = ''): Boolean;
+      function AssertException(const aExceptionClass: TClass; const aExceptionMessage: String = ''): Boolean;
+      function AssertNoException: Boolean;
+    end;
+
+
     AssertFactory = interface
     ['{5D45A072-5B9D-4ECC-AB86-AFD82E9F6911}']
       function Assert(const aValue: Boolean): Boolean; overload;
@@ -21,13 +29,10 @@ interface
     {$ifdef UNICODE}
       function Assert(const aValue: UnicodeString): UnicodeStringAssertions; overload;
     {$endif}
-      function AssertBaseException(const aExceptionBaseClass: TClass; const aExceptionMessage: String = ''): Boolean;
-      function AssertException(const aExceptionClass: TClass; const aExceptionMessage: String = ''): Boolean;
-      function AssertNoException: Boolean;
     end;
 
 
-    TAssertFactory = class(TInterfacedObject, AssertFactory)
+    TAssertFactory = class(TInterfacedObject, AssertFactory, IExceptionAssertions)
     private
       fValueName: String;
     protected
@@ -36,6 +41,7 @@ interface
       class procedure Register(const aIID: TGUID);
     public
       constructor Create(const aValueName: String); virtual;
+    public // AssertFactory
       function Assert(const aValue: Boolean): Boolean; overload;
       function Assert(const aValue: Integer): IntegerAssertions; overload;
       function Assert(const aValue: AnsiString): AnsiStringAssertions; overload;
@@ -43,6 +49,7 @@ interface
     {$ifdef UNICODE}
       function Assert(const aValue: UnicodeString): UnicodeStringAssertions; overload;
     {$endif}
+    public // IExceptionAssertions
       function AssertBaseException(const aExceptionBaseClass: TClass; const aExceptionMessage: String = ''): Boolean;
       function AssertException(const aExceptionClass: TClass; const aExceptionMessage: String = ''): Boolean;
       function AssertNoException: Boolean;
@@ -56,6 +63,7 @@ implementation
   uses
     Contnrs,
     SysUtils,
+    TypInfo,
     Deltics.Smoketest.TestRun,
     Deltics.Smoketest.Utils;
 
@@ -98,13 +106,15 @@ implementation
     reg: TAssertFactoryRegistration;
     factory: TObject;
   begin
-    result := S_OK;
+    // Give the inherited QueryInterface an opportunity to resolve the
+    //  request interface.  If successful, we have no more work to do
 
-    if GuidsAreEqual(aIID, AssertFactory) then
-    begin
-      result := inherited QueryInterface(aIID, aIntf);
+    result := inherited QueryInterface(aIID, aIntf);
+    if result = S_OK then
       EXIT;
-    end;
+
+    // In the event that the interface was not resolved then there may
+    //  be a registered extension, so check for that...
 
     for i := 0 to Pred(_AssertFactoryRegistrations.Count) do
     begin
