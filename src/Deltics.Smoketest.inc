@@ -383,7 +383,7 @@
 //  debugging sessions to focus on user-code.  If you suspect a problem in
 //  Smoketest itself, simply add a DEFINE for debugDelticsSmoketest and rebuild.
 
-{$ifdef debugDelticsSmoketest}
+{$ifdef debug_DelticsSmoketest}
   {$debuginfo ON}
 {$else}
   {$debuginfo OFF}
