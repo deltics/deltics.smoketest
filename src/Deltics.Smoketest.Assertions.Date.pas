@@ -44,6 +44,9 @@
 interface
 
   uses
+  {$ifdef __DELPHI2007}
+    Controls,
+  {$endif}
     Deltics.Smoketest.Assertions;
 
 
