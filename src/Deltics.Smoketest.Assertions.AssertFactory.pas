@@ -30,8 +30,13 @@ interface
     AssertFactory = interface(IExceptionAssertions)
     ['{5D45A072-5B9D-4ECC-AB86-AFD82E9F6911}']
       function Assert(const aValue: Boolean): Boolean; overload;
+    {$ifdef EnhancedOverloads}
       function Assert(const aValue: TDate): DateAssertions; overload;
       function Assert(const aValue: TDateTime): DateTimeAssertions; overload;
+    {$else}
+      function AssertDate(const aValue: TDate): DateAssertions; overload;
+      function AssertDatetime(const aValue: TDateTime): DateTimeAssertions; overload;
+    {$endif}
       function Assert(const aValue: Integer): IntegerAssertions; overload;
       function Assert(const aValue: AnsiString): AnsiStringAssertions; overload;
       function Assert(const aValue: WideString): WideStringAssertions; overload;
@@ -52,8 +57,13 @@ interface
       constructor Create(const aValueName: String); virtual;
     public // AssertFactory
       function Assert(const aValue: Boolean): Boolean; overload;
+    {$ifdef EnhancedOverloads}
       function Assert(const aValue: TDate): DateAssertions; overload;
       function Assert(const aValue: TDateTime): DateTimeAssertions; overload;
+    {$else}
+      function AssertDate(const aValue: TDate): DateAssertions; overload;
+      function AssertDatetime(const aValue: TDateTime): DateTimeAssertions; overload;
+    {$endif}
       function Assert(const aValue: Integer): IntegerAssertions; overload;
       function Assert(const aValue: AnsiString): AnsiStringAssertions; overload;
       function Assert(const aValue: WideString): WideStringAssertions; overload;
@@ -166,14 +176,22 @@ implementation
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+{$ifdef EnhancedOverloads}
   function TAssertFactory.Assert(const aValue: TDate): DateAssertions;
+{$else}
+  function TAssertFactory.AssertDate(const aValue: TDate): DateAssertions;
+{$endif}
   begin
     result := TDateAssertions.Create(ValueName, aValue);
   end;
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+{$ifdef EnhancedOverloads}
   function TAssertFactory.Assert(const aValue: TDateTime): DateTimeAssertions;
+{$else}
+  function TAssertFactory.AssertDatetime(const aValue: TDateTime): DateTimeAssertions;
+{$endif}
   begin
     result := TDateTimeAssertions.Create(ValueName, aValue);
   end;

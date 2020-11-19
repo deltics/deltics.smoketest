@@ -309,6 +309,11 @@
   {$endif}
 
 
+  {$ifdef DELPHI2009__}
+    {$define EnhancedOverloads}
+  {$endif}
+
+
 // Delphi 2006 introduced inline methods and class helpers.
 // + Delphi XE3 extended helpers to other types.
 

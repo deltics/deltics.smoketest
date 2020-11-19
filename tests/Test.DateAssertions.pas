@@ -1,5 +1,8 @@
 
+{$i deltics.smoketest.inc}
+
   unit Test.DateAssertions;
+
 
 interface
 
@@ -17,9 +20,13 @@ interface
 implementation
 
   uses
+  {$ifdef __DELPHI2007}
+    Controls,
+  {$endif}
     SysUtils,
     Deltics.Smoketest.Assertions.Date,
     Deltics.Smoketest.Assertions.Datetime;
+
 
 
 { TDateAssertionTests }
@@ -32,7 +39,11 @@ implementation
   begin
     dt := EncodeDate(2020, 2, 20);
 
+  {$ifdef EnhancedOverloads}
     assertions := Test('test').Assert(dt);
+  {$else}
+    assertions := Test('test').AssertDate(dt);
+  {$endif}
 
     Test('assertions').Assert(Supports(assertions, DateAssertions, notUsed));
   end;
@@ -46,7 +57,11 @@ implementation
   begin
     dt := EncodeDate(2020, 2, 20) + EncodeTime(2, 2, 2, 0);
 
+  {$ifdef EnhancedOverloads}
     assertions := Test('test').Assert(dt);
+  {$else}
+    assertions := Test('test').AssertDatetime(dt);
+  {$endif}
 
     Test('assertions').Assert(Supports(assertions, DatetimeAssertions, notUsed));
   end;
