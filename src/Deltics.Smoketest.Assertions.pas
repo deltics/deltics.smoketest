@@ -190,7 +190,7 @@ implementation
     result := aString;
 
     for i := 0 to Pred(fFormatTokens.Count) do
-      StringReplace(result, '{' + fFormatTokens.Names[i] + '}', fFormatTokens.ValueFromIndex[i], [rfReplaceAll, rfIgnoreCase]);
+      result := StringReplace(result, '{' + fFormatTokens.Names[i] + '}', fFormatTokens.ValueFromIndex[i], [rfReplaceAll, rfIgnoreCase]);
 
     result := StringReplace(result, '{valueWithName}',  '{valueName} ({value})', [rfReplaceAll, rfIgnoreCase]);
     result := StringReplace(result, '{valueName}', fValueName, [rfReplaceAll, rfIgnoreCase]);
