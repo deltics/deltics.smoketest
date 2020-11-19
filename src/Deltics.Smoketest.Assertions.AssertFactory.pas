@@ -5,6 +5,8 @@ interface
 
   uses
     Classes,
+    Deltics.Smoketest.Assertions.Date,
+    Deltics.Smoketest.Assertions.DateTime,
     Deltics.Smoketest.Assertions.Integers,
     Deltics.Smoketest.Assertions.AnsiStrings,
     Deltics.Smoketest.Assertions.UnicodeStrings,
@@ -20,9 +22,10 @@ interface
     end;
 
 
-    AssertFactory = interface
+    AssertFactory = interface(IExceptionAssertions)
     ['{5D45A072-5B9D-4ECC-AB86-AFD82E9F6911}']
       function Assert(const aValue: Boolean): Boolean; overload;
+      function Assert(const aValue: TDateTime): DateTimeAssertions; overload;
       function Assert(const aValue: Integer): IntegerAssertions; overload;
       function Assert(const aValue: AnsiString): AnsiStringAssertions; overload;
       function Assert(const aValue: WideString): WideStringAssertions; overload;
@@ -43,6 +46,7 @@ interface
       constructor Create(const aValueName: String); virtual;
     public // AssertFactory
       function Assert(const aValue: Boolean): Boolean; overload;
+      function Assert(const aValue: TDateTime): DateTimeAssertions; overload;
       function Assert(const aValue: Integer): IntegerAssertions; overload;
       function Assert(const aValue: AnsiString): AnsiStringAssertions; overload;
       function Assert(const aValue: WideString): WideStringAssertions; overload;
@@ -151,6 +155,13 @@ implementation
       TestRun.TestPassed(ValueName)
     else
       TestRun.TestFailed(ValueName, ValueName + ' is not TRUE');
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TAssertFactory.Assert(const aValue: TDateTime): DateTimeAssertions;
+  begin
+    result := TDateTimeAssertions.Create(ValueName, aValue);
   end;
 
 
