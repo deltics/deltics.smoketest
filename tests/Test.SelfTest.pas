@@ -4,16 +4,18 @@
 interface
 
   uses
-    Deltics.Smoketest.Test;
+    Deltics.Smoketest.Test,
+    Deltics.Smoketest.Assertions.Integers;
 
 
   type
     TSelfTest = class(TTest)
     protected
-      procedure ExpectingException(const aExceptionClass: TClass; const aExceptionMessage: String);
+      procedure ExpectingException(const aExceptionClass: TClass; const aExceptionMessage: String = '');
       procedure AllAssertsExpectedToFail;
       procedure NextAssertExpectedToFail;
       procedure NextAssertsExpectedToFail(aCount: Integer);
+      function Assert(aValue: Integer): IntegerAssertions;
     end;
 
 
@@ -65,6 +67,12 @@ implementation
     TestRun.ExpectingToFail(1);
   end;
 
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TSelfTest.Assert(aValue: Integer): IntegerAssertions;
+  begin
+    result := Test('test').Assert(aValue);
+  end;
 
 
 

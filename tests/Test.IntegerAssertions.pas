@@ -5,7 +5,8 @@ interface
 
   uses
     Deltics.Smoketest,
-    Deltics.Smoketest.Assertions.Integers;
+    Deltics.Smoketest.Assertions.Integers,
+    Test.SelfTest;
 
 
   type
