@@ -7,6 +7,9 @@ interface
 
   uses
     Classes,
+  {$ifdef __DELPHI2007}
+    Controls,
+  {$endif}
     Deltics.Smoketest.Assertions.Date,
     Deltics.Smoketest.Assertions.DateTime,
     Deltics.Smoketest.Assertions.Integers,
