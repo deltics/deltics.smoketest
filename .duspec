@@ -19,6 +19,7 @@
             "src\\Deltics.Smoketest.Assertions.Date.pas",
             "src\\Deltics.Smoketest.Assertions.Datetime.pas",
             "src\\Deltics.Smoketest.Assertions.AnsiStrings.pas",
+            "src\\Deltics.Smoketest.Assertions.Int64.pas",
             "src\\Deltics.Smoketest.Assertions.Integers.pas",
             "src\\Deltics.Smoketest.Assertions.UnicodeStrings.pas",
             "src\\Deltics.Smoketest.Assertions.WideStrings.pas",
