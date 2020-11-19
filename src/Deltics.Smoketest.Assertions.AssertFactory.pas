@@ -1,4 +1,6 @@
 
+{$i deltics.smoketest.inc}
+
   unit Deltics.Smoketest.Assertions.AssertFactory;
 
 interface
@@ -25,6 +27,7 @@ interface
     AssertFactory = interface(IExceptionAssertions)
     ['{5D45A072-5B9D-4ECC-AB86-AFD82E9F6911}']
       function Assert(const aValue: Boolean): Boolean; overload;
+      function Assert(const aValue: TDate): DateAssertions; overload;
       function Assert(const aValue: TDateTime): DateTimeAssertions; overload;
       function Assert(const aValue: Integer): IntegerAssertions; overload;
       function Assert(const aValue: AnsiString): AnsiStringAssertions; overload;
@@ -46,6 +49,7 @@ interface
       constructor Create(const aValueName: String); virtual;
     public // AssertFactory
       function Assert(const aValue: Boolean): Boolean; overload;
+      function Assert(const aValue: TDate): DateAssertions; overload;
       function Assert(const aValue: TDateTime): DateTimeAssertions; overload;
       function Assert(const aValue: Integer): IntegerAssertions; overload;
       function Assert(const aValue: AnsiString): AnsiStringAssertions; overload;
@@ -155,6 +159,13 @@ implementation
       TestRun.TestPassed(ValueName)
     else
       TestRun.TestFailed(ValueName, ValueName + ' is not TRUE');
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TAssertFactory.Assert(const aValue: TDate): DateAssertions;
+  begin
+    result := TDateAssertions.Create(ValueName, aValue);
   end;
 
 

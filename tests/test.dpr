@@ -24,7 +24,8 @@ program test;
   Test.ExceptionHandling in 'Test.ExceptionHandling.pas',
   Test.CommandLineHandling in 'Test.CommandLineHandling.pas',
   Test.IntegerAssertions in 'Test.IntegerAssertions.pas',
-  Test.StringAssertions in 'Test.StringAssertions.pas';
+  Test.StringAssertions in 'Test.StringAssertions.pas',
+  Test.DateAssertions in 'Test.DateAssertions.pas';
 
 begin
   TestRun.Environment     := 'Delphi ' + DELPHI_VERSION;
@@ -34,5 +35,6 @@ begin
   TestRun.Test(TExceptionHandlingTests);
   TestRun.Test(TCommandLineHandlingTests);
   TestRun.Test(TStringTests);
+  TestRun.Test(TDateAssertionTests);
   TestRun.Test(TIntegerAssertionTests);
 end.
