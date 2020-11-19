@@ -10,6 +10,7 @@ program test;
   Deltics.Smoketest.Assertions.Date in '..\src\Deltics.Smoketest.Assertions.Date.pas',
   Deltics.Smoketest.Assertions.DateTime in '..\src\Deltics.Smoketest.Assertions.DateTime.pas',
   Deltics.Smoketest.Assertions.AnsiStrings in '..\src\Deltics.Smoketest.Assertions.AnsiStrings.pas',
+  Deltics.Smoketest.Assertions.Int64 in '..\src\Deltics.Smoketest.Assertions.Int64.pas',
   Deltics.Smoketest.Assertions.Integers in '..\src\Deltics.Smoketest.Assertions.Integers.pas',
   Deltics.Smoketest.Assertions.UnicodeStrings in '..\src\Deltics.Smoketest.Assertions.UnicodeStrings.pas',
   Deltics.Smoketest.Assertions.WideStrings in '..\src\Deltics.Smoketest.Assertions.WideStrings.pas',
@@ -25,7 +26,8 @@ program test;
   Test.CommandLineHandling in 'Test.CommandLineHandling.pas',
   Test.IntegerAssertions in 'Test.IntegerAssertions.pas',
   Test.StringAssertions in 'Test.StringAssertions.pas',
-  Test.DateAssertions in 'Test.DateAssertions.pas';
+  Test.DateAssertions in 'Test.DateAssertions.pas',
+  Test.Int64Assertions in 'Test.Int64Assertions.pas';
 
 begin
   TestRun.Environment     := 'Delphi ' + DELPHI_VERSION;

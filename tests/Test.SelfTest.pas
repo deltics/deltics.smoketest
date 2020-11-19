@@ -5,6 +5,7 @@ interface
 
   uses
     Deltics.Smoketest.Test,
+    Deltics.Smoketest.Assertions.Int64,
     Deltics.Smoketest.Assertions.Integers;
 
 
@@ -15,7 +16,8 @@ interface
       procedure AllAssertsExpectedToFail;
       procedure NextAssertExpectedToFail;
       procedure NextAssertsExpectedToFail(aCount: Integer);
-      function Assert(aValue: Integer): IntegerAssertions;
+      function Assert(aValue: Integer): IntegerAssertions; overload;
+      function Assert(aValue: Int64): Int64Assertions; overload;
     end;
 
 
@@ -70,6 +72,13 @@ implementation
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TSelfTest.Assert(aValue: Integer): IntegerAssertions;
+  begin
+    result := Test('test').Assert(aValue);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TSelfTest.Assert(aValue: Int64): Int64Assertions;
   begin
     result := Test('test').Assert(aValue);
   end;
