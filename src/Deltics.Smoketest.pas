@@ -97,7 +97,8 @@ interface
                      {$ifdef VER300} '10'   {$endif}
                      {$ifdef VER310} '10.1' {$endif}
                      {$ifdef VER320} '10.2' {$endif}
-                     {$ifdef VER330} '10.3' {$endif};
+                     {$ifdef VER330} '10.3' {$endif}
+                     {$ifdef VER340} '10.4' {$endif};
 
     DELPHI_VERSION_NAME = {$ifdef VER80}  'Delphi 1' {$endif}
                           {$ifdef VER90}  'Delphi 2' {$endif}
@@ -128,10 +129,11 @@ interface
                           {$ifdef VER280} 'Delphi XE7' {$endif}
                           {$ifdef VER290} 'Delphi XE8' {$endif}
 
-                          {$ifdef VER300} 'Delphi 10 Seattle' {$endif}
-                          {$ifdef VER310} 'Delphi 10.1 Berlin'{$endif}
-                          {$ifdef VER320} 'Delphi 10.2 Tokyo' {$endif}
-                          {$ifdef VER330} 'Delphi 10.3 Rio'   {$endif};
+                          {$ifdef VER300} 'Delphi 10 Seattle'   {$endif}
+                          {$ifdef VER310} 'Delphi 10.1 Berlin'  {$endif}
+                          {$ifdef VER320} 'Delphi 10.2 Tokyo'   {$endif}
+                          {$ifdef VER330} 'Delphi 10.3 Rio'     {$endif}
+                          {$ifdef VER340} 'Delphi 10.4 Sydney'  {$endif};
 
 
 
