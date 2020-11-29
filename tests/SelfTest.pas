@@ -44,6 +44,9 @@
 interface
 
   uses
+  {$ifdef __DELPHI2007} // TDate declared in Controls up to Delphi 2007
+    Controls,
+  {$endif}
     Deltics.Smoketest.Test,
     Deltics.Smoketest.Assertions.Factory,
     Deltics.Smoketest.Assertions.Int64,
@@ -197,14 +200,14 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TSelfTest.AssertDate(const aValue: TDate): DateAssertions;
   begin
-    result := Test('test').Assert(aValue);
+    result := Test('test').AssertDate(aValue);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TSelfTest.AssertDatetime(const aValue: TDateTime): DateTimeAssertions;
   begin
-    result := Test('test').Assert(aValue);
+    result := Test('test').AssertDatetime(aValue);
   end;
 {$endif}
 

@@ -26,15 +26,15 @@ program test;
   Deltics.Smoketest.TestRun in '..\src\Deltics.Smoketest.TestRun.pas',
   Deltics.Smoketest.Utils in '..\src\Deltics.Smoketest.Utils.pas' {/  Test.IntegerAssertions in 'Test.IntegerAssertions.pas';},
   SelfTest in 'SelfTest.pas',
+  Test.CommandLineHandling in 'Test.CommandLineHandling.pas',
+  Test.AssertionFactory in 'Test.AssertionFactory.pas',
   Test.SelfTestResultsAndAccumulators in 'Test.SelfTestResultsAndAccumulators.pas',
   Test.DeprecatedAssert in 'Test.DeprecatedAssert.pas',
-  Test.CommandLineHandling in 'Test.CommandLineHandling.pas',
   Test.ExceptionHandling in 'Test.ExceptionHandling.pas',
   Test.IntegerAssertions in 'Test.IntegerAssertions.pas',
   Test.StringAssertions in 'Test.StringAssertions.pas',
   Test.DateAssertions in 'Test.DateAssertions.pas',
-  Test.Int64Assertions in 'Test.Int64Assertions.pas',
-  Test.AssertionFactory in 'Test.AssertionFactory.pas';
+  Test.Int64Assertions in 'Test.Int64Assertions.pas';
 
 begin
   TestRun.Environment     := 'Delphi ' + DELPHI_VERSION;

@@ -92,7 +92,7 @@ implementation
   procedure TExceptionHandlingTests.ExceptionThatDoesNotSatisfyTestForGeneralisedExceptionCausesTestToFail;
   begin
     Test.IsExpectedToFail;
-    Test.RaisesExceptionOf(EInvalidOpException);
+    Test.RaisesExceptionOf(EInvalidOp);
 
     raise EDivByZero.Create('Testing for a specific exception type');
   end;
