@@ -77,7 +77,8 @@ implementation
   uses
     Classes,
     SysUtils,
-    Deltics.Smoketest.Accumulators;
+    Deltics.Smoketest.Accumulators,
+    Deltics.Smoketest.Utils;
 
 
 { TXUnit2Writer ---------------------------------------------------------------------------------- }
@@ -144,12 +145,12 @@ implementation
         if (result.State = rsPass) or (result.ErrorMessage = '') then
         begin
           output.Add(Format('      <test name="%s" type="%s" method="%s" time="0" result="%s" />',
-                                   [result.TestName, result.TypeName, result.TestMethod, state]));
+                                   [XmlEncodedAttr(result.TestName), result.TypeName, result.TestMethod, state]));
           CONTINUE;
         end;
 
         output.Add(Format('      <test name="%s" type="%s" method="%s" time="0" result="%s">',
-                                 [result.TestName, result.TypeName, result.TestMethod, state]));
+                                 [XmlEncodedAttr(result.TestName), result.TypeName, result.TestMethod, state]));
                output.Add('        <failure exception-type="Assertion">');
                output.Add('          <message>');
                output.Add('            <![CDATA[' + result.ErrorMessage + ']]>');

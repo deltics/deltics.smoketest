@@ -240,6 +240,7 @@ interface
 
   function Enquote(const aValue: String): String;
   function Interpolate(const aString: String; aValues: array of const): String;
+  function XmlEncodedAttr(const aValue: String): String;
 
   function GuidsAreEqual(const a, b: TGUID): Boolean;
 
@@ -591,6 +592,58 @@ implementation
       names.Free;
       firstRef.Free;
     end;
+  end;
+
+
+  function XmlEncodedAttr(const aValue: String): String;
+  const
+    TAB = #9;
+    LF  = #10;
+    CR  = #13;
+  var
+    i, j: Integer;
+    c: Char;
+
+    procedure Append(const aString: String);
+    var
+      ai: Integer;
+    begin
+      if (j + Length(aString)) >= Length(result) then
+        SetLength(result, 2 * Length(result));
+
+      for ai := 1 to Length(aString) do
+      begin
+        Inc(j);
+        result[j] := aString[ai];
+      end;
+    end;
+
+  begin
+    SetLength(result, Length(aValue) * 2);
+
+    j := 0;
+    for i := 1 to Length(aValue) do
+    begin
+      c := aValue[i];
+
+      case c of
+        TAB : Append('&#x9;');
+        LF  : Append('&#xA;');
+        CR  : Append('&#xD;');
+        '<' : Append('&lt;');
+        '>' : Append('&gt;');
+        '&' : Append('&amp;');
+        '"' : Append('&quot;');
+      else
+        if j = Length(result) then
+          SetLength(result, 2 * Length(result));
+
+        Inc(j);
+        result[j] := c;
+      end;
+    end;
+
+    SetLength(result, j);
   end;
 
 

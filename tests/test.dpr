@@ -24,7 +24,7 @@ program test;
   Deltics.Smoketest.Test in '..\src\Deltics.Smoketest.Test.pas',
   Deltics.Smoketest.TestResult in '..\src\Deltics.Smoketest.TestResult.pas',
   Deltics.Smoketest.TestRun in '..\src\Deltics.Smoketest.TestRun.pas',
-  Deltics.Smoketest.Utils in '..\src\Deltics.Smoketest.Utils.pas' {/  Test.IntegerAssertions in 'Test.IntegerAssertions.pas';},
+  Deltics.Smoketest.Utils in '..\src\Deltics.Smoketest.Utils.pas',
   SelfTest in 'SelfTest.pas',
   Test.CommandLineHandling in 'Test.CommandLineHandling.pas',
   Test.AssertionFactory in 'Test.AssertionFactory.pas',
@@ -34,17 +34,19 @@ program test;
   Test.IntegerAssertions in 'Test.IntegerAssertions.pas',
   Test.StringAssertions in 'Test.StringAssertions.pas',
   Test.DateAssertions in 'Test.DateAssertions.pas',
-  Test.Int64Assertions in 'Test.Int64Assertions.pas';
+  Test.Int64Assertions in 'Test.Int64Assertions.pas',
+  Test.Utils in 'Test.Utils.pas';
 
 begin
   TestRun.Environment     := 'Delphi ' + DELPHI_VERSION;
   TestRun.DefaultTestName := METHOD_NAME;
 
-  TestRun.Test(TDeprecatedAssertTests);
   TestRun.Test(TAssertionFactoryTests);
   TestRun.Test(TSelfTestResultsAndAccumulatorTests);
   TestRun.Test(TCommandLineHandlingTests);
+  TestRun.Test(TUtilsTests);
 
+  TestRun.Test(TDeprecatedAssertTests);
   TestRun.Test(TExceptionHandlingTests);
   TestRun.Test(TStringTests);
   TestRun.Test(TDateAssertionTests);
