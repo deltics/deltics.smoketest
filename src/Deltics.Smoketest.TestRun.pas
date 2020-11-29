@@ -1,7 +1,7 @@
-{
+﻿{
   * MIT LICENSE *
 
-  Copyright � 2019 Jolyon Smith
+  Copyright © 2019 Jolyon Smith
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of
    this software and associated documentation files (the "Software"), to deal in
@@ -46,6 +46,9 @@ interface
   uses
     Classes,
     SysUtils,
+    Deltics.Smoketest.Accumulators,
+    Deltics.Smoketest.ExpectedException,
+    Deltics.Smoketest.SelfTestContext,
     Deltics.Smoketest.Test,
     Deltics.Smoketest.TestResult;
 
@@ -76,32 +79,23 @@ interface
       fPreviousTypeName: String;
       fTestName: String;
       fTestNamePrefix: String;
-      fExpectedFailures: Integer;
-      fExpectedResult: TResultState;
-      fExpectedErrorClass: TClass;
-      fExpectedErrorMessage: String;
+      fExpectedException: IExpectedException;
+      fSelfTest: ISelfTestContext;
       fTestsExpected: Boolean;
 
-      fTestsCount: Integer;
-      fTestsPassed: Integer;
-      fTestsFailed: Integer;
-      fTestsSkipped: Integer;
-      fTestsError: Integer;
       fTestIndex: Integer;
 
       fResults: TList;
+      fAccumulator: IAccumulator;
       fWriters: TStringList;
 
       function get_FinishTime: TDateTime;
       function get_RunTime: Integer;
       function get_Failed: Boolean;
-      function get_Result(const aIndex: Integer): TTestResult;
-      function get_ResultCount: Integer;
       procedure set_Environment(const aValue: String);
       procedure set_Name(const aValue: String);
 
       function AddResult(const aTestName: String; const aResult: TResultState; const aReason: String; const aException: Exception): TTestResult;
-      procedure CheckExpectedStates;
       procedure EmitMethodName;
       procedure EmitTypeName;
       function ExtractMethod(const aTest: TTest; const aMethodList: TStringList; const aMethodToExtract: String): TTestMethod;
@@ -115,8 +109,10 @@ interface
       procedure SetTestType(const aTypeName: String);
       procedure SetTestMethod(const aMethodName: String);
       procedure SetTestNamePrefix(const aPrefix: String);
-      procedure ExpectingException(const aExceptionClass: TClass; const aMessage: String);
-      procedure ExpectingToFail(aCount: Integer);
+      procedure ExpectingException(const aExceptionClass: TClass; const aMessage: String; const aExactClass: Boolean);
+      procedure ExpectingNoException;
+      procedure ExpectingToError;
+      procedure ExpectingToFail;
       function TestError(const aException: Exception = NIL): TTestResult;
       function TestException(const aValueName: String; aExceptionClass: TClass; aBaseException: Boolean; const aMessage: String): Boolean;
       function TestFailed(const aTestName: String; const aReason: String): TTestResult;
@@ -144,15 +140,8 @@ interface
       property FinishTime: TDateTime read get_FinishTime;
       property RunTime: Integer read get_RunTime;
 
-      property ResultCount: Integer read get_ResultCount;
-      property Results[const aIndex: Integer]: TTestResult read get_Result;
+      property Results: IAccumulator read fAccumulator;
       property ResultsWriters: TStringList read fWriters;
-
-      property TestCount: Integer read fTestsCount;
-      property TestsPassed: Integer read fTestsPassed;
-      property TestsFailed: Integer read fTestsFailed;
-      property TestsSkipped: Integer read fTestsSkipped;
-      property TestsError: Integer read fTestsError;
     end;
 
 
@@ -168,6 +157,7 @@ implementation
       Windows,
     {$endif}
   {$endif}
+    Deltics.Smoketest.Accumulators.StateAccumulator,
     Deltics.Smoketest.ResultsWriter,
     Deltics.Smoketest.Utils;
 
@@ -233,8 +223,6 @@ implementation
   begin
     inherited Create;
 
-    fExpectedResult := rsPass;
-
     fCmdLineArgs  := TStringList.Create;
     fResults      := TList.Create;
     fWriters      := TStringList.Create;
@@ -244,6 +232,8 @@ implementation
 
     fCelebrateSuccess := HasCmdLineOption('celebrateSuccess') or HasCmdLineOption('cs');
     fVerboseOutput    := HasCmdLineOption('verbose') or HasCmdLineOption('v');
+
+    fAccumulator := Accumulators.Register(TStateAccumulator);
   end;
 
 
@@ -269,7 +259,7 @@ implementation
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   function TTestRun.get_Failed: Boolean;
   begin
-    result := (fTestsFailed + fTestsError) > 0;
+    result := (fAccumulator.Fail + fAccumulator.Error) > 0;
   end;
 
 
@@ -284,20 +274,6 @@ implementation
       raise Exception.Create('Test run has not yet finished');
 
     result := fFinishTime;
-  end;
-
-
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  function TTestRun.get_Result(const aIndex: Integer): TTestResult;
-  begin
-    result := TTestResult(fResults[aIndex]);
-  end;
-
-
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  function TTestRun.get_ResultCount: Integer;
-  begin
-    result := fResults.Count;
   end;
 
 
@@ -400,54 +376,38 @@ implementation
   const
     STATE_LABEL: array[TResultState] of String = ('PASSED', 'FAILED', 'skipped', 'ERROR');
   var
-    state: TResultState;
+    effectiveResult: TResultState;
+    expectedResult: TResultState;
     testName: String;
-    expectedError: Boolean;
     reason: String;
   begin
     fTestName := aTestName;
     try
-      Inc(fTestsCount);
       Inc(fTestIndex);
 
-      state := aResult;
+      effectiveResult := aResult;
+      expectedResult  := rsPass;
       if IsAborted then
-        state := rsSkip;
+        effectiveResult := rsSkip;
 
-      case state of
-        rsFail  : Inc(fTestsFailed);
-        rsPass  : Inc(fTestsPassed);
-        rsSkip  : Inc(fTestsSkipped);
-        rsError : Inc(fTestsError);
-      end;
+      if Assigned(fSelfTest) then
+        expectedResult := fSelfTest.ExpectedResult
+      else if Assigned(fExpectedException) then
+        expectedResult := rsError;
 
       testName  := GetTestName;
       reason    := aReason;
 
-      if (state = rsError) then
-      begin
-        expectedError := (fExpectedResult = rsError)
-                     and (fExpectedErrorClass = aException.ClassType)
-                     and ((fExpectedErrorMessage = '') or (fExpectedErrorMessage = aException.Message));
+      result := TTestResult.Create(testName, fTypeName, fMethodName, fTestIndex, effectiveResult, expectedResult, reason);
 
-        if expectedError then
-          reason := reason + ' (Expected exception)'
-        else
-          fExpectedResult := rsPass;
-      end
-      else
-        expectedError := FALSE;
-
-      result := TTestResult.Create(testName, fTypeName, fMethodName, fTestIndex, fExpectedResult, state, reason);
+      if effectiveResult = expectedResult then
+        result.State := rsPass;
 
       fResults.Add(result);
 
-      if (state = fExpectedResult)  and (expectedError or (state <> rsError)) then
-        state := rsPass
-      else if state = rsPass then
-        state := rsFail;
+      Accumulators.Execute(result);
 
-      if NOT (fVerboseOutput or fCelebrateSuccess or (state in [rsFail, rsError])) then
+      if NOT (fVerboseOutput or fCelebrateSuccess or (result.State in [rsFail, rsError])) then
         EXIT;
 
       EmitTypeName;
@@ -455,25 +415,17 @@ implementation
       fLineFeedBeforeTypeNameOrSummary := TRUE;
 
       Write('    + ');
-      if (state = aResult) then
+      if (expectedResult = rsPass) then
       begin
-        WriteLn(STATE_LABEL[state] + ': ' + testName);
-        if state in [rsFail, rsError] then
+        WriteLn(STATE_LABEL[aResult] + ': ' + testName);
+        if aResult in [rsFail, rsError] then
           WriteLn('      [' + reason + ']');
       end
       else
-        WriteLn(STATE_LABEL[aResult] + ' (=> ' + STATE_LABEL[state] + '): ' + testName);
+        WriteLn(STATE_LABEL[result.ActualState] + ' (' + STATE_LABEL[result.ExpectedState] + ' was expected): ' + testName);
 
     finally
-      fTestName             := '';
-      fExpectedErrorClass   := NIL;
-      fExpectedErrorMessage := '';
-
-      if (fExpectedFailures > 0) then
-        Dec(fExpectedFailures);
-
-      if fExpectedFailures = 0 then
-        fExpectedResult := rsPass;
+      fTestName := '';
     end;
   end;
 
@@ -505,42 +457,6 @@ implementation
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  procedure TTestRun.CheckExpectedStates;
-  var
-    i: Integer;
-    result: TTestResult;
-  begin
-    for i := 0 to Pred(ResultCount) do
-    begin
-      result := Results[i];
-
-      if (result.ExpectedState = rsPass) then
-        CONTINUE;
-
-      case result.ActualState of
-        rsPass  : Dec(fTestsPassed);
-        rsFail  : Dec(fTestsFailed);
-        rsSkip  : Dec(fTestsSkipped);
-        rsError : Dec(fTestsError);
-      end;
-
-      if result.ActualState = result.ExpectedState then
-      begin
-        Inc(fTestsPassed);
-        result.State := rsPass;
-      end
-      else if result.ActualState = rsFail then
-      begin
-        Inc(fTestsFailed);
-        result.State := rsFail;
-      end
-      else if result.ActualState = rsError then
-        Inc(fTestsError);
-    end;
-  end;
-
-
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTestRun.Complete;
   begin
     if fIsFinished then
@@ -553,28 +469,33 @@ implementation
     fIsFinished := TRUE;
     fFinishTime := Now;
 
-    CheckExpectedStates;
     try
-      if fTestsCount = 0 then
+      if fLineFeedBeforeTypeNameOrSummary then
+        WriteLn;
+
+      if Results.Count = 0 then
       begin
         WriteLn('WARNING: No tests performed.');
         EXIT;
       end;
 
-      if fLineFeedBeforeTypeNameOrSummary then
-        WriteLn;
-
       WriteLn(Format('Total Tests = %d, Passed = %d, Failed = %d, Skipped = %d, Errors = %d',
-                     [fTestsCount, fTestsPassed, fTestsFailed, fTestsSkipped, fTestsError]));
+                     [Results.Count, Results.Pass, Results.Fail, Results.Skip, Results.Error]));
 
       SaveResults;
 
     finally
-      if (DebugHook > 0) or HasCmdLineOption('wait') then
-        ReadLn;
-
-      if (fTestsFailed + fTestsError > 0) then
+      if Failed then
+      begin
+        WriteLn('Test run FAILED');
         ExitCode := 1;
+      end;
+
+      if (DebugHook > 0) or HasCmdLineOption('wait') then
+      begin
+        WriteLn('Press ENTER to terminate process.');
+        ReadLn;
+      end;
     end;
   end;
 
@@ -590,6 +511,7 @@ implementation
   end;
 
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTestRun.EmitTypeName;
   begin
     if (fPreviousTypeName <> fTypeName) then
@@ -604,8 +526,10 @@ implementation
   end;
 
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   procedure TTestRun.ExpectingException(const aExceptionClass: TClass;
-                                        const aMessage: String);
+                                        const aMessage: String;
+                                        const aExactClass: Boolean);
   {
     Sets details of an expected exception.  If the next test that is performed
      raises an exception that matches these details then this will be
@@ -620,14 +544,38 @@ implementation
            for general use.
   }
   begin
-    fExpectedResult       := rsError;
-    fExpectedErrorClass   := aExceptionClass;
-    fExpectedErrorMessage := aMessage;
+    if Assigned(fExpectedException) then
+      raise ESmoketestError.Create('Invalid attempt to configure multiple exception tests in this method');
+
+    fExpectedException := TExpectedException.Create(aExceptionClass, aExactClass, aMessage);
   end;
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  procedure TTestRun.ExpectingToFail(aCount: Integer);
+  procedure TTestRun.ExpectingNoException;
+  {
+    Sets details of an expected exception.  If the next test that is performed
+     raises an exception that matches these details then this will be
+     acknowledged as the expected result (i.e. a PASS) rather than an error.
+
+    These details are cleared and the expected result reset to Pass by the
+     execution of a test.  That is, setting details of an expected exception
+     applies only for the immediately following test.
+
+    NOTE: This method is intended only to be called by the tests implemented
+           in the smoketest selftest project.  It is NOT designed or intended
+           for general use.
+  }
+  begin
+    if Assigned(fExpectedException) then
+      raise ESmoketestError.Create('Invalid attempt to configure multiple exception tests in this method');
+
+    fExpectedException := TExpectedException.CreateNoneExpected;
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  procedure TTestRun.ExpectingToError;
   {
     Sets the expected result to Fail.  If the next test that is performed
      fails then this can be acknowledged as the expected result (i.e. a PASS)
@@ -642,12 +590,27 @@ implementation
            for general use.
   }
   begin
-    fExpectedFailures := aCount;
+    fSelfTest := TSelfTestContext.Create(rsError);
+  end;
 
-    if aCount <> 0 then
-      fExpectedResult := rsFail
-    else
-      fExpectedResult := rsPass;
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  procedure TTestRun.ExpectingToFail;
+  {
+    Sets the expected result to Fail.  If the next test that is performed
+     fails then this can be acknowledged as the expected result (i.e. a PASS)
+     rather than an actual failure.
+
+    The expected result will be reset to Pass by the execution of a test.
+     That is, setting the expected result to Fail applies only for the
+     immediately following test.
+
+    NOTE: This method is intended only to be called by the tests implemented
+           in the smoketest selftest project.  It is NOT designed or intended
+           for general use.
+  }
+  begin
+    fSelfTest := TSelfTestContext.Create(rsFail);
   end;
 
 
@@ -656,9 +619,15 @@ implementation
   var
     eo: TObject;
     e: Exception;
+    reason: String;
     msg: String;
+    testname: String;
+    state: TResultState;
   begin
-    e := aException;
+    e         := aException;
+    testname  := '';
+    msg       := '';
+    state     := rsError;
 
     if NOT Assigned(e) then
     begin
@@ -671,11 +640,29 @@ implementation
       eo := e;
 
     if Assigned(e) then
-      msg := e.Message
-    else
-      msg := '';
+      msg := e.Message;
 
-    result := AddResult('', rsError, Format('Raised exception [%s: %s]', [eo.ClassName, msg]), e);
+    if msg = '' then
+      msg := '<no exception message>';
+
+    if Assigned(fExpectedException) then
+    begin
+      if fExpectedException.Matches(eo) then
+      begin
+        testname := fExpectedException.TestName;
+        reason   := Format('Raised expected exception %s [%s]', [eo.ClassName, msg]);
+        state    := rsPass;
+      end
+      else
+      begin
+        reason  := Format('Expecting %s exception, raised %s [%s]', [fExpectedException.ExceptionClass.ClassName, eo.ClassName, msg]);
+        state   := rsFail;  // We were expecting an exception but not the one we got - this results in a FAIL rather than an ERROR
+      end;
+    end
+    else
+      reason  := Format('Exception: %s [%s]', [eo.ClassName, msg]);
+
+    result := AddResult(testname, state, Format(reason, [eo.ClassName, msg]), e);
   end;
 
 
@@ -984,6 +971,7 @@ implementation
       if methods.Count = 0 then
       begin
         WriteLn(Format('WARNING: Test class %s implements no test methods', [fTypeName]));
+        fLineFeedBeforeTypeNameOrSummary := TRUE;
         EXIT;
       end;
 
@@ -1001,34 +989,45 @@ implementation
           TMethod(method).Data := test;
           TMethod(method).Code := test.MethodAddress(methods[i]);
 
-          resultCountBeforeMethodRan := fTestsCount;
+          resultCountBeforeMethodRan := Results.Count;
           try
+            PerformMethod(setupMethod, 'Setup ' + methods[i], 4);
             try
-              PerformMethod(setupMethod, 'Setup ' + methods[i], 4);
-              try
-                fExpectedFailures := 0;
-                fExpectedResult   := rsPass;
+              if (fVerboseOutput) then
+                EmitMethodName;
 
-                if (fVerboseOutput) then
-                  EmitMethodName;
+              try
+                if Assigned(fExpectedException) then asm int 3 end;
+                if Assigned(fSelfTest) then asm int 3 end;
 
                 method;
 
-                if Assigned(fExpectedErrorClass) then
-                  TestException(fMethodName, fExpectedErrorClass, FALSE, fExpectedErrorMessage);
+                if Assigned(fExpectedException) then
+                begin
+                  if fExpectedException.NoneExpected then
+                    TestPassed('No exception raised')
+                  else
+                    TestFailed(fExpectedException.TestName, 'Expected exception was not raised');
+                end;
 
-              finally
-                PerformMethod(teardownMethod, 'Teardown ' + methods[i], 4);
+              except
+                on e: Exception do
+                  TestError(e);
               end;
 
-            except
-              on e: Exception do
-                TestError(e);
+            finally
+              fExpectedException  := NIL;
+              fSelfTest           := NIL;
+
+              PerformMethod(teardownMethod, 'Teardown ' + methods[i], 4);
             end;
 
           finally
-            if fTestsExpected and (fTestsCount = resultCountBeforeMethodRan) then
+            if fTestsExpected and (Results.Count = resultCountBeforeMethodRan) then
+            begin
               WriteLn(Format('WARNING: Test method %s.%s did not perform any tests', [fTypeName, fMethodName]));
+              fLineFeedBeforeTypeNameOrSummary := TRUE;
+            end;
 
             SetTestMethod('');
           end;

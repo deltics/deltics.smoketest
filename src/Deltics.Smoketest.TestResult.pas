@@ -57,7 +57,7 @@ interface
       fActualState: TResultState;
       fExpectedState: TResultState;
     public
-      constructor Create(const aTestName: String; const aTypeName: String; const aMethodName: String; const aTestIndex: Integer; const aExpectedState: TResultState; const aActualState: TResultState; const aErrorMessage: String);
+      constructor Create(const aTestName: String; const aTypeName: String; const aMethodName: String; const aTestIndex: Integer; const aState: TResultState; const aExpectedState: TResultState; const aErrorMessage: String);
       property TestIndex: Integer read fTestIndex;
       property TestName: String read fTestName;
       property TypeName: String read fTypeName;
@@ -68,6 +68,7 @@ interface
       property ExpectedState: TResultState read fExpectedState;
     end;
 
+
 implementation
 
 { TTestResult ------------------------------------------------------------------------------------ }
@@ -77,20 +78,20 @@ implementation
                                  const aTypeName: String;
                                  const aMethodName: String;
                                  const aTestIndex: Integer;
+                                 const aState: TResultState;
                                  const aExpectedState: TResultState;
-                                 const aActualState: TResultState;
                                  const aErrorMessage: String);
   begin
     inherited Create;
 
-    fActualState    := aActualState;
+    fState          := aState;
+    fActualState    := aState;
     fExpectedState  := aExpectedState;
 
     fTestIndex      := aTestIndex;
     fTestName       := aTestName;
     fTypeName       := aTypeName;
     fMethodName     := aMethodName;
-    fState          := aActualState;
     fErrorMessage   := aErrorMessage;
   end;
 

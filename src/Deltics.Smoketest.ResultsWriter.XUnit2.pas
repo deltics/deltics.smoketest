@@ -1,5 +1,42 @@
+{
+  * MIT LICENSE *
 
-{$i Deltics.Smoketest.inc}
+  Copyright © 2019 Jolyon Smith
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy of
+   this software and associated documentation files (the "Software"), to deal in
+   the Software without restriction, including without limitation the rights to
+   use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+   of the Software, and to permit persons to whom the Software is furnished to do
+   so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+
+  * GPL and Other Licenses *
+
+  The FSF deem this license to be compatible with version 3 of the GPL.
+   Compatability with other licenses should be verified by reference to those
+   other license terms.
+
+
+  * Contact Details *
+
+  Original author : Jolyon Direnko-Smith
+  e-mail          : jsmith@deltics.co.nz
+  github          : deltics/deltics.smoketest
+}
+
+{$i deltics.smoketest.inc}
 
   unit Deltics.Smoketest.ResultsWriter.XUnit2;
 
@@ -39,7 +76,8 @@ implementation
 
   uses
     Classes,
-    SysUtils;
+    SysUtils,
+    Deltics.Smoketest.Accumulators;
 
 
 { TXUnit2Writer ---------------------------------------------------------------------------------- }
@@ -52,6 +90,7 @@ implementation
     y, m, d, h, n, s, z: Word;
     result: TTestResult;
     state: String;
+    results: IAccumulator;
   begin
     output := TStringList.Create;
     try
@@ -74,6 +113,8 @@ implementation
       DecodeDate(TestRun.StartTime, y, m, d);
       DecodeTime(TestRun.StartTime, h, n, s, z);
 
+      results := TestRun.Results;
+
       output.Add(Format('  <assembly name="%s" test-framework="Smoketest" environment="%s" '
                         + 'run-date="%d-%.2d-%.2d" run-time="%.2d:%.2d:%.2d" '
                         + 'time="%.3f" '
@@ -82,18 +123,16 @@ implementation
                          TestRun.Environment,
                          y, m, d, h, n, s,
                          TestRun.RunTime / 1000,
-                         TestRun.TestCount, TestRun.TestsPassed,
-                          TestRun.TestsFailed, TestRun.TestsSkipped, TestRun.TestsError]));
+                         results.Count, results.Pass, results.Fail, results.Skip, results.Error]));
 
       output.Add(Format('    <collection name="Default" time="%.3f" '
                           + 'total="%d" passed="%d" failed="%d" skipped="%d">',
                           [TestRun.RunTime / 1000,
-                           TestRun.TestCount, TestRun.TestsPassed, TestRun.TestsFailed,
-                            TestRun.TestsSkipped]));
+                           results.Count, results.Pass, results.Fail, results.Skip]));
 
-      for i := 0 to Pred(TestRun.ResultCount) do
+      for i := 0 to Pred(results.Count) do
       begin
-        result := TestRun.Results[i];
+        result := results[i];
 
         case result.State of
           rsPass  : state := 'Pass';

@@ -48,7 +48,7 @@ interface
     RTTI,
   {$endif}
     Classes,
-    Deltics.Smoketest.Assertions.AssertFactory,
+    Deltics.Smoketest.Assertions.Factory,
     Deltics.Smoketest.Utils;
 
   type
@@ -60,6 +60,12 @@ interface
       fAssertValueNameArgs: array of TVarRec;
     protected
       procedure AbortTestRun;
+
+      function Assert(const aTest: String; const aResult: Boolean; const aReason: String = ''): Boolean; overload; deprecated;
+      function AssertBaseException(const aExceptionBaseClass: TClass; const aTestName: String = ''): Boolean; deprecated;
+      function AssertException(const aExceptionClass: TClass; const aTestName: String = ''): Boolean; deprecated;
+      function AssertNoException(const aTestName: String = ''): Boolean; deprecated;
+
       function Test: IExceptionAssertions; overload;
       function Test(const aValueName: String): AssertFactory; overload;
       function Test(const aValueName: String; aValueNameArgs: array of const): AssertFactory; overload;
@@ -106,6 +112,104 @@ implementation
 
 
 { TTest ------------------------------------------------------------------------------------------ }
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TTest.Assert(const aTest: String;
+                        const aResult: Boolean;
+                        const aReason: String): Boolean;
+  begin
+    result := aResult;
+    if result then
+      TestRun.TestPassed(aTest)
+    else
+      TestRun.TestFailed(aTest, aReason);
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TTest.AssertBaseException(const aExceptionBaseClass: TClass;
+                                     const aTestName: String): Boolean;
+  var
+    e: TObject;
+    testName: String;
+  begin
+    result   := FALSE;
+    testName := aTestName;
+
+    if testName = '' then
+      testName := 'Raised ' + aExceptionBaseClass.ClassName;
+
+    e := ExceptObject;
+    if NOT Assigned(e) then
+    begin
+      TestRun.TestFailed(testName, 'No exception raised');
+      EXIT;
+    end;
+
+    result := (e is aExceptionBaseClass);
+    if result then
+      TestRun.TestPassed(testName)
+    else
+      TestRun.TestFailed(testName, 'Unexpected exception: ' + e.ClassName);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TTest.AssertException(const aExceptionClass: TClass;
+                                 const aTestName: String): Boolean;
+  var
+    e: TObject;
+    testName: String;
+  begin
+    result := FALSE;
+
+    testName := aTestName;
+
+    if testName = '' then
+      testName := 'Raised ' + aExceptionClass.ClassName;
+
+    e := ExceptObject;
+    if NOT Assigned(e) then
+    begin
+      TestRun.TestFailed(testName, 'No exception raised');
+      EXIT;
+    end;
+
+    result := (e.ClassType = aExceptionClass);
+    if result then
+      TestRun.TestPassed(testName)
+    else
+      TestRun.TestFailed(testName, 'Unexpected exception: ' + e.ClassName);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TTest.AssertNoException(const aTestName: String): Boolean;
+  var
+    eo: TObject;
+    e: Exception absolute eo;
+    testName: String;
+    msg: String;
+  begin
+    eo := ExceptObject;
+
+    if testName = '' then
+      testName := 'No exception raised';
+
+    result := NOT Assigned(eo);
+    if result then
+    begin
+      TestRun.TestPassed(testName);
+      EXIT;
+    end;
+
+    msg := Format('No exception was expected but %s was raised', [eo.ClassName]);
+    if e is Exception then
+      msg := msg + Format(' with message %s', [e.Message]);
+
+    TestRun.TestFailed(testName, msg);
+  end;
+
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TTest.Test: IExceptionAssertions;
@@ -208,7 +312,6 @@ implementation
       aList.Add(String(method.Name));
     end;
   end;
-
 {$endif}
 
 
