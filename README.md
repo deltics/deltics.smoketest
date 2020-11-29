@@ -1,12 +1,32 @@
+# New in 2.1.0
+2.1.0 is a **BIG** update to Smoketest!
+
+A lot of the work in 2.1 took place 'in the engine room', simplifying aspects of the implementation relating to the writing of self-tests for the framework itself, resulting in a framework that allows tests to register 'accumulators' which can collect test results as they occur, allowing for subsequent tests to perform tests over those test results.
+
+The biggest change apparent in the creation of tests (i.e. for users of the framework) is the introduction of fluent assertions and a massively simplified syntax for testing for exceptions (or not, as the case may be).
+
+In summary:
+
+- Updated for Delphi 10.4
+- Fluent Assertions
+- MASSIVELY simplified exception testing
+- Accumulators framework (simplified self-test mechanisms among other things)
+- Default behaviour is now to wait for user confirmation ("Hit ENTER") at the end of a test run, when running under the debugger
+- Bug fixes
+
+Further details on these changes are below.
+
+
 # Introduction 
-Smoketest is a lightweight testing framework.  If Smoketest had ever been released under a proper versioning scheme (as 1.0.0+), then this is version 2.x - a major, breaking change.  If it were a movie franchise then this would be a re-boot or re-imagining.
+Smoketest is a lightweight testing framework.  If Smoketest had ever been released under a proper versioning scheme (as 1.0.0+), then version 2.x was a major, breaking change.  If it were a movie franchise then it would be the **(Nolan/Bale's) Batman Begins** to **(Burton/Keaton's) Batman**; a re-boot or re-imagining.
 
 The goal for this re-imagining was to create a unit testing framework free of any dependencies on anything other than the core Delphi RTL, enabling it to be simply and easily consumed in the widest possible variety of Delphi projects and all Delphi versions from 7 to current.  The emphasis is on simplicity, ease of use and efficiency.
 
-The simplest possible test suite would be:
+The two examples that follow illustrate a very simple test, first using 2.0 style Assert()s then in the fluent-style assertions introduced in 2.1:
 
 ```
   {$apptype CONSOLE}
+
   program MyTests;
 
   uses Deltics.Smoketest;
@@ -22,7 +42,43 @@ The simplest possible test suite would be:
     begin
       a := 2;
       b := 2;
+
+      // This test uses 2.0.x style assert calls
+
       Assert('a + b = 4', (a + b) = 4);
+    end;
+
+  begin
+    TestRun.Test(TMyTest);
+  end.
+```
+
+_NOTE: The above assertion style is deprecated in 2.1 and will be removed in a future version._
+
+The example below demonstrates fluent assertions which are the supported style going forward from 2.1:
+
+```
+  {$apptype CONSOLE}
+
+  program MyTests;
+
+  uses Deltics.Smoketest;
+
+  type
+    TMyTest = class(TTest)
+      procedure TestSimpleAddition;
+    end;
+
+    procedure TMyTest.TestSimpleAddition;
+    var
+      a, b: Integer;
+    begin
+      a := 2;
+      b := 2;
+
+      // This test uses 2.1+ style fluent-assertions
+
+      Test('a + b').Assert(a + b).Equals(4);
     end;
 
   begin
@@ -36,7 +92,7 @@ Basic output is provided to the console during execution of the tests followed b
 **Only CONSOLE test suites are supported currently.**
 
 [_New in 2.1.0_]
-To reduce the amount of 'noise' in the console output, the option `-silentSuccesses` (or the short form: `-ss`) may be passed on the command line to the test run.  With this option specified only _failed_ tests and _errors_ will be output to the console.  Passed tests are not output to the console.  This option affects only console output for individual tests.  It does not affect the totals in the test run summary output to the console at the end of a run, nor does it affect the output of any results writers.
+To reduce the amount of 'noise' in the console output, only test failures or errors are reported to the console by default.  For full output, including passed tests, specify `-celebrateSuccess` (or the short form: `-cs`) on the command line to the test run.  This does not affect the totals in the test run summary output to the console at the end of a run, nor does it affect the output of any results writers.
 
 
 ## Saving Test Results To File
@@ -49,45 +105,142 @@ The result output framework requires you to specify on the command line of the t
 In future multiple formats may be specified to capture results for a single test run in multiple files of different formats.  At present only `xunit2` is supported.
 
 
-## Writing Tests
+# Writing Tests
 
-### Fluent Assertions
+## Fluent Assertions
 [_New in 2.1.0_]
-Currently basic fluent assertions are provided for all string types (Ansi, Wide and Unicode where relevant) as well as integers.  The importance of the 2.1 release was in stabilising the approach to implementing these assertions in the framework.  Over time these existing assertions will be extended and support for additional types introduced.
 
-Fluent assertions start with an overloaded `Assert()` method taking just two parameters.  The first is the name for the test and the second is the value on which some assertion will be tested, e.g. for testing values of `Integer` type:  
+Currently basic fluent assertions are provided for booleans and all string types (Ansi, Wide and Unicode where relevant) as well as integers and some basic assertions for dates and datetimes.  The importance of the 2.1 release was in stabilising the approach to implementing these assertions in the framework.  Over time these existing assertions will be extended and support for additional types introduced.
 
-    Assert(aTestName: String;  aValue: Integer);
+Fluent assertions start with `Test()` call which accepts a name or description of the value or expression being tested.
+This is then followed by a call to the overloaded `Assert()` method, taking a single parameter which is the value to be tested (or the result of some expression).
+
+    Test(aName: String).Assert(aValue: Integer);
 
 On its own, a call to such an `Assert` method achieves nothing except return an interface with assertion methods appropriate to the type of the value involved.  In the above case, this would be an `IntegerAssertions` interface.  A test is performed when one of the assertion methods on this interface is called.  The most basic is an equality test, so for example if we have some value `TestCount` that we expect to have a value of `3`:
 
-    Assert('Expected number of tests recorded at this point', TestCount).Equals(3);
+    Test('Expected number of tests in Result').Assert(Result.Count).Equals(3);
+
+Unlike the 2.0.x assert mechanism, fluent assertion methods derive an explanation for any test failure automatically.  As a result, the value provided to the initial `Test()` method can usually be less verbose, simply identifying the value or expression under test.  So the previous example might be written more simply as:
+
+    Test('Result.Count').Assert(Result.Count).Equals(3);
+
+And the derived failure reason might present something similar to:
+
+    'Result.Count (5) does not equal 3'
+
+
+## AssertionResult: Conditional Flows Based on Test Results
 
 All assertion methods return an `AssertionResult` which provides details of the results for that individual assertion.  In most cases this result can be ignored, but where necessary these details can be used to determine whether or not to abort the test run:
 
-    criticalValue := 17;
-     
-    if Assert('Some value critical to the test run', criticalValue).Equals(42).Failed then
+    if Test('Result.Count').Assert(Result.Count).Equals(3).Failed then
       TestRun.Abort;
 
-As mentioned above, fluent assertion methods derive an explanation for any test failure automatically.  In the above example the derived failure reason would be similar to:
 
-    'Value is expected to be 42 but is 17'
-    
+## AssertionResult: Customised Failure Reasons
+
 As well as providing the test result outcome, the `AssertionResult` allows you to override the automatically derived test failure reason if desired:
 
-    Assert('Some value critical to the test run', criticalValue).Equals(42).WithFailureReason('There is no meaning');
+    Assert('Some value critical to the test run', criticalValue).Equals(42).FailsBecause('42 is required for this test to have meaning');
 
-The `WithFailureReason` method itself returns the same `AssertionResult` so you can continue to test the result if required:
+The `FailsBecause` method itself returns the same `AssertionResult` so you can continue to test the result if required:
 
-    if Assert('Some value critical to the test run', criticalValue).Equals(42).WithFailureReason('There is no meaning').Failed then
+    if Assert('Some value critical to the test run', criticalValue).Equals(42).FailsBecause('42 is required for this test to have meaning').Failed then
       TestRun.Abort;
 
-The initial basic `Assert` methods are still available, but fluent assertions can in most cases eliminate the need to code "reason for failure" messages as these can be derived automatically by the fluent assertions themselves.
+## AssertionResult: FailsBecause() Token Substitution
+The string provided to `FailsBecause` can use tokens to subsitute values relevant to the test.  The tokens that are supported vary according to the particular assertion involved.
 
-### Testing for Exceptions
+All assertions support `value` and `valueName` tokens to substitute the value that was supplied to the `Assert()` method and the name supplied to the `Test()` method, respectively.  Tokens are identified in the reason string by surrounding `{}` braces:
 
-Currently the mechanisms for performing tests are very basic, comprising only of an `Assert` and `AssertException` method.  An example of `Assert` appears above.  `AssertException` is used to test for expected exceptions:
+    foo := 6;
+    Test('foo').Assert(foo).Equals(12).FailsBecause('{valueName} has value {value}');
+
+Results in a test failure reason of: `foo has value 6`
+
+`valueWithName` is also supported by all assertions and is equivalent to: `{valueName} ({value})'.
+
+An `Equals()` assertion will typically support a token for the expected value.  That is, the value supplied to the `Equals()` call:
+
+    foo := 6;
+    Test('foo').Assert(foo).Equals(12).FailsBecause('{valueWithName} was supposed to be {expected}');
+
+Results in a test failure reason of: `foo (6) was supposed to be 12`
+
+Refer to the documentation for each assertion for details of the specified tokens supported.  (_At time of writing that documentation is on the roadmap.  For the time being you will need to examine the source to determine the supported tokens.  Sorry_)
+
+
+# Testing for Exceptions
+[_New in 2.1.0_]
+
+A new, less verbose mechanism for testing for expected exceptions is introduced in 2.1.0.  This mechanism uses a version of the `Test()` method which accepts no parameters.  This parameterless `Test` method returns `ExceptionAssertions` and can only be used to test for exceptions.
+
+Three methods are provided by `ExceptionAssertions`:
+
+- RaisesExceptionOf
+- RaisesException
+- RaisesNoException
+
+## RaisesExceptionOf
+`Test.RaisesExceptionOf(aExceptionOrBaseClass: TClass[; aMessage: String])` indicates that the test method is expected to raise an unhandled exception of the specified class or an exception that is a sub-class of that specified class.  An optional message may be provided.
+
+If an exception is raised of an appropriate, expected class it is considered a successful test only if the message on the raised exception _exactly_ matches the specified message **or** no such message is specified.
+
+```
+    procedure TMyTestClass.SomeTestMethod;
+    begin
+      Test.RaisesExceptionOf(Exception);
+
+      raise EInvalidOp.Create('This test will pass!');
+    end;
+```
+
+In the above example the test passes because `EInvalidOp` is a sub-class of the specified exception class, `Exception`.
+
+## RaisesException
+`Test.RaisesException(aExceptionClass: TClass[; aMessage: String])` indicates that the test method is expected to raise an unhandled exception of the _exact_ class specified.  An optional message may be provided.  This behaves in exactly the same way as `RaisesExceptionOf` except that the expected exception to be raised must be of the specific class that is specified.
+
+```
+    procedure TMyTestClass.SomeTestMethod;
+    begin
+      Test.RaisesException(Exception);
+
+      raise EInvalidOp.Create('This test will FAIL because EInvalidOp <> Exception!');
+    end;
+```
+
+However, if no exception class is specified then `RaisesException([aMessage: String])` is exactly equivalent to calling `RaisesExceptionOf()` and specifying the `Exception` class.
+
+```
+    procedure TMyTestClass.SomeTestMethod;
+    begin
+      Test.RaisesException;
+
+      raise EInvalidOp.Create('This test will pass!');
+    end;
+```
+
+## RaisesNoException
+`Test.RaisesNoException` indicates that the test method is expected to complete without any unhandled exceptions being raised.  This is if perhaps only limited use but avoids having to use an `Assert(TRUE)` to indicate that an exception free flow to completion of the method is all that is required to consitute a successful test in some circumstances.
+
+
+### NOTE
+_Only one exception test can be specified.  An attempt to specify an additional exception test (or RaisesNoException) will cause an `ESmoketestError` to be raised, indicating improper use of the framework._
+
+
+## Exceptions and Test Outcomes
+- Test method exits with an unhandled exception and no exception of any type was expected: An ERROR result is recorded.
+- Test method exits with an unhandled exception which does _not_ match a specified, expected exception: A FAIL result is recorded.
+- Test method exits with an unhandled exception which matches a specified, expected exception: A PASS result is recorded.
+- Test method exits with no unhandled exception when some exception was expected: A FAIL result is recorded.
+- Test method exits with no unhandled exception and a `RaisesNoException` test was specified: A PASS result is recorded (_even if no other `Assert()`s were performed in that test method_).
+
+
+## DEPRECATED: AssertException / AssertBaseException
+The `AssertException` and `AssertBaseException` mechanism is deprecated as of 2.1.0.  It is still supported but will be removed in a future version.  New tests should use the new mechanism and any existing tests should be converted to it.
+
+`AssertException` is used to test for expected exceptions:
 
 ```
   procedure TMyTest.TestDivisonByZeroError;
@@ -120,22 +273,7 @@ Notice that `AssertException` will pass only if the caught exception matches the
 
 Both `AssertException` and `AssertBaseException` will construct a name for the test automatically based on the parameters and the context.  Alternatively an explicit test name may be provided as a second parameter.
 
-
-### AssertNoException
-[_New in 2.1.0_]
-
-This addition address the need to ensure that an operation does not raise any exception.  It is used in the same way as the existing `AssertException` and `AssertBaseException` methods, with two calls in a `try..except` clause, one in the `try` body and the other in the `except` section:
-
-    try
-      PerformSomeOperation;
-      AssertNoException;
-    except
-      AssertNoException;
-    end;
-
-In this case, the call in the `try` body will result in a _passed_ test, whilst if the call in the `except` section is reached then this will generate a _failed_ test.
-
-**NOTE:** _Exception related assertions do not currently return an `AssertionResult`_.
+**NOTE:** _Exception related assertions do not return an `AssertionResult`_.
 
 
 # Getting Started - Duget Package
@@ -143,14 +281,14 @@ To use this library simply add `deltics.smoketest` to your project .duget file a
 
 
 # Build and Test
-The build pipeline for this package compiles a set of self-tests with every version of Delphi from 7 thru 10.3.  These tests use Smoketest to test itself.
+The build pipeline for this package compiles a set of self-tests with every version of Delphi from 7 thru 10.4.  These tests use Smoketest to test itself.
 
 
 # Roadmap
 
 With no specific timeline in mind and in no particular order, some goals for this project include:
 
-- Restoration of the fluent testing Api similar to the original Smoketest
+- Additional type supported by fluent assertions
+- A guide to introducing custom fluent assertions to extend the framework with project specific types
 - Additional results writer formats
-- Documentation and examples
-
+- Further documentation and examples
