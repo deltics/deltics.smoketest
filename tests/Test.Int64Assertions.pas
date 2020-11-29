@@ -1,12 +1,51 @@
+{
+  * MIT LICENSE *
+
+  Copyright © 2020 Jolyon Smith
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy of
+   this software and associated documentation files (the "Software"), to deal in
+   the Software without restriction, including without limitation the rights to
+   use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+   of the Software, and to permit persons to whom the Software is furnished to do
+   so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+
+  * GPL and Other Licenses *
+
+  The FSF deem this license to be compatible with version 3 of the GPL.
+   Compatability with other licenses should be verified by reference to those
+   other license terms.
+
+
+  * Contact Details *
+
+  Original author : Jolyon Direnko-Smith
+  e-mail          : jsmith@deltics.co.nz
+  github          : deltics/deltics.smoketest
+}
+
+{$i deltics.smoketest.inc}
 
   unit Test.Int64Assertions;
+
 
 interface
 
   uses
     Deltics.Smoketest,
-    Deltics.Smoketest.Assertions.Int64,
-    Test.SelfTest;
+    SelfTest;
 
 
   type
@@ -51,7 +90,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TInt64AssertionTests.BetweenFailsWhenValueIsOutsideLowerAndUpperBounds;
   begin
-    AllAssertsExpectedToFail;
+    Test.IsExpectedToFail;
+
     Assert(Int64(-1)).Between(0, 41);
     Assert(Int64(42)).Between(0, 41);
     Assert(Int64(-42)).Between(-41, 41);
@@ -75,7 +115,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TInt64AssertionTests.BetweenRaisesEInvalidTestWhenLowerAndUpperBoundsAreEqual;
   begin
-    ExpectingException(EInvalidTest);
+    Test.RaisesException(EInvalidTest);
+
     Assert(Int64(42)).Between(42, 42);
   end;
 
@@ -83,7 +124,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TInt64AssertionTests.BetweenRaisesEInvalidTestWhenLowerAndUpperBoundsDifferByOne;
   begin
-    ExpectingException(EInvalidTest);
+    Test.RaisesException(EInvalidTest);
+
     Assert(Int64(42)).Between(42, 43);
   end;
 
@@ -91,7 +133,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TInt64AssertionTests.EqualsFailsWhenValueIsNotEqual;
   begin
-    AllAssertsExpectedToFail;
+    Test.IsExpectedToFail;
+
     Assert(Int64(42)).Equals(0);
   end;
 
@@ -106,7 +149,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TInt64AssertionTests.GreaterThanFailsWhenValueIsEqual;
   begin
-    AllAssertsExpectedToFail;
+    Test.IsExpectedToFail;
+
     Assert(Int64(42)).GreaterThan(42);
   end;
 
@@ -114,7 +158,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TInt64AssertionTests.GreaterThanFailsWhenValueIsLesser;
   begin
-    AllAssertsExpectedToFail;
+    Test.IsExpectedToFail;
+
     Assert(Int64(-1)).GreaterThan(0);
     Assert(Int64(42)).GreaterThan(43);
     Assert(High(Int64) - 1).GreaterThan(High(Int64));
@@ -125,7 +170,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TInt64AssertionTests.GreaterThanOrEqualFailsWhenValueIsLesser;
   begin
-    AllAssertsExpectedToFail;
+    Test.IsExpectedToFail;
+
     Assert(Int64(-1)).GreaterThanOrEquals(0);
     Assert(Int64(42)).GreaterThanOrEquals(43);
     Assert(High(Int64) - 1).GreaterThanOrEquals(High(Int64));
@@ -166,7 +212,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TInt64AssertionTests.LessThanFailsWhenValueIsEqual;
   begin
-    AllAssertsExpectedToFail;
+    Test.IsExpectedToFail;
+
     Assert(Int64(42)).LessThan(42);
   end;
 
@@ -174,7 +221,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TInt64AssertionTests.LessThanFailsWhenValueIsGreater;
   begin
-    AllAssertsExpectedToFail;
+    Test.IsExpectedToFail;
+
     Assert(Int64(0)).LessThan(-1);
     Assert(Int64(43)).LessThan(42);
     Assert(High(Int64)).LessThan(High(Int64) - 1);
@@ -185,7 +233,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TInt64AssertionTests.LessThanOrEqualFailsWhenValueIsGreater;
   begin
-    AllAssertsExpectedToFail;
+    Test.IsExpectedToFail;
+
     Assert(Int64(0)).LessThanOrEquals(-1);
     Assert(Int64(42)).LessThanOrEquals(41);
     Assert(High(Int64)).LessThanOrEquals(High(Int64) - 1);
@@ -226,7 +275,7 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TInt64AssertionTests.InRangeFailsWhenValueIsOutsideRange;
   begin
-    AllAssertsExpectedToFail;
+    Test.IsExpectedToFail;
 
     Assert(Int64(-42)).InRange(-1, -41);
     Assert(Int64(-42)).InRange(-43, -100);
@@ -273,7 +322,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TInt64AssertionTests.InRangeRaisesEInvalidTestWhenLowerAndUpperBoundsAreEqual;
   begin
-    ExpectingException(EInvalidTest);
+    Test.RaisesException(EInvalidTest);
+
     Assert(Int64(42)).InRange(42, 42);
   end;
 
@@ -281,7 +331,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TInt64AssertionTests.IsNegativeFailsWhenValueIsZeroOrPositive;
   begin
-    AllAssertsExpectedToFail;
+    Test.IsExpectedToFail;
+
     Assert(Int64(0)).IsNegative;
     Assert(Int64(1)).IsNegative;
     Assert(High(Int64)).IsNegative;
@@ -299,7 +350,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TInt64AssertionTests.IsPositiveFailsWhenValueIsZeroOrNegatve;
   begin
-    AllAssertsExpectedToFail;
+    Test.IsExpectedToFail;
+
     Assert(Int64(0)).IsPositive;
     Assert(Int64(-1)).IsPositive;
     Assert(Low(Int64)).IsPositive;

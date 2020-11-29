@@ -1,12 +1,51 @@
+{
+  * MIT LICENSE *
+
+  Copyright © 2020 Jolyon Smith
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy of
+   this software and associated documentation files (the "Software"), to deal in
+   the Software without restriction, including without limitation the rights to
+   use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+   of the Software, and to permit persons to whom the Software is furnished to do
+   so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+
+  * GPL and Other Licenses *
+
+  The FSF deem this license to be compatible with version 3 of the GPL.
+   Compatability with other licenses should be verified by reference to those
+   other license terms.
+
+
+  * Contact Details *
+
+  Original author : Jolyon Direnko-Smith
+  e-mail          : jsmith@deltics.co.nz
+  github          : deltics/deltics.smoketest
+}
+
+{$i deltics.smoketest.inc}
 
   unit Test.IntegerAssertions;
+
 
 interface
 
   uses
     Deltics.Smoketest,
-    Deltics.Smoketest.Assertions.Integers,
-    Test.SelfTest;
+    SelfTest;
 
 
   type
@@ -46,12 +85,14 @@ implementation
   uses
     SysUtils;
 
+
 { TIntegerAssertionTests }
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TIntegerAssertionTests.BetweenFailsWhenValueIsOutsideLowerAndUpperBounds;
   begin
-    AllAssertsExpectedToFail;
+    Test.IsExpectedToFail;
+
     Assert(-1).Between(0, 41);
     Assert(42).Between(0, 41);
     Assert(-42).Between(-41, 41);
@@ -75,7 +116,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TIntegerAssertionTests.BetweenRaisesEInvalidTestWhenLowerAndUpperBoundsAreEqual;
   begin
-    ExpectingException(EInvalidTest);
+    Test.RaisesException(EInvalidTest);
+
     Assert(42).Between(42, 42);
   end;
 
@@ -83,7 +125,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TIntegerAssertionTests.BetweenRaisesEInvalidTestWhenLowerAndUpperBoundsDifferByOne;
   begin
-    ExpectingException(EInvalidTest);
+    Test.RaisesException(EInvalidTest);
+
     Assert(42).Between(42, 43);
   end;
 
@@ -91,7 +134,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TIntegerAssertionTests.EqualsFailsWhenValueIsNotEqual;
   begin
-    AllAssertsExpectedToFail;
+    Test.IsExpectedToFail;
+
     Assert(42).Equals(0);
   end;
 
@@ -106,7 +150,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TIntegerAssertionTests.GreaterThanFailsWhenValueIsEqual;
   begin
-    AllAssertsExpectedToFail;
+    Test.IsExpectedToFail;
+
     Assert(42).GreaterThan(42);
   end;
 
@@ -114,7 +159,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TIntegerAssertionTests.GreaterThanFailsWhenValueIsLesser;
   begin
-    AllAssertsExpectedToFail;
+    Test.IsExpectedToFail;
+
     Assert(-1).GreaterThan(0);
     Assert(42).GreaterThan(43);
     Assert(MaxInt - 1).GreaterThan(MaxInt);
@@ -125,7 +171,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TIntegerAssertionTests.GreaterThanOrEqualFailsWhenValueIsLesser;
   begin
-    AllAssertsExpectedToFail;
+    Test.IsExpectedToFail;
+
     Assert(-1).GreaterThanOrEquals(0);
     Assert(42).GreaterThanOrEquals(43);
     Assert(MaxInt - 1).GreaterThanOrEquals(MaxInt);
@@ -166,7 +213,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TIntegerAssertionTests.LessThanFailsWhenValueIsEqual;
   begin
-    AllAssertsExpectedToFail;
+    Test.IsExpectedToFail;
+
     Assert(42).LessThan(42);
   end;
 
@@ -174,7 +222,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TIntegerAssertionTests.LessThanFailsWhenValueIsGreater;
   begin
-    AllAssertsExpectedToFail;
+    Test.IsExpectedToFail;
+
     Assert(0).LessThan(-1);
     Assert(43).LessThan(42);
     Assert(MaxInt).LessThan(MaxInt - 1);
@@ -185,7 +234,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TIntegerAssertionTests.LessThanOrEqualFailsWhenValueIsGreater;
   begin
-    AllAssertsExpectedToFail;
+    Test.IsExpectedToFail;
+
     Assert(0).LessThanOrEquals(-1);
     Assert(42).LessThanOrEquals(41);
     Assert(MaxInt).LessThanOrEquals(MaxInt - 1);
@@ -226,7 +276,7 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TIntegerAssertionTests.InRangeFailsWhenValueIsOutsideRange;
   begin
-    AllAssertsExpectedToFail;
+    Test.IsExpectedToFail;
 
     Assert(-42).InRange(-1, -41);
     Assert(-42).InRange(-43, -100);
@@ -273,7 +323,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TIntegerAssertionTests.InRangeRaisesEInvalidTestWhenLowerAndUpperBoundsAreEqual;
   begin
-    ExpectingException(EInvalidTest);
+    Test.RaisesException(EInvalidTest);
+
     Assert(42).InRange(42, 42);
   end;
 
@@ -281,7 +332,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TIntegerAssertionTests.IsNegativeFailsWhenValueIsZeroOrPositive;
   begin
-    AllAssertsExpectedToFail;
+    Test.IsExpectedToFail;
+
     Assert(0).IsNegative;
     Assert(1).IsNegative;
     Assert(MaxInt).IsNegative;
@@ -299,7 +351,8 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TIntegerAssertionTests.IsPositiveFailsWhenValueIsZeroOrNegatve;
   begin
-    AllAssertsExpectedToFail;
+    Test.IsExpectedToFail;
+
     Assert(0).IsPositive;
     Assert(-1).IsPositive;
     Assert(-MaxInt).IsPositive;
