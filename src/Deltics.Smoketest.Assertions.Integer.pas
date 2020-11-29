@@ -38,43 +38,44 @@
 
 {$i deltics.smoketest.inc}
 
-  unit Deltics.Smoketest.Assertions.Date;
+  unit Deltics.Smoketest.Assertions.Integer;
 
 
 interface
 
   uses
-  {$ifdef __DELPHI2007}
-    Controls,
-  {$endif}
     Deltics.Smoketest.Assertions;
 
 
   type
-    DateAssertions = interface
-    ['{B4C93E4C-7CFA-4328-A822-2EFE063A45FB}']
-      function Equals(const aExpected: TDate): AssertionResult;
-      function GreaterThan(const aExpected: TDate): AssertionResult;
-      function GreaterThanOrEquals(const aExpected: TDate): AssertionResult;
-      function LessThan(const aExpected: TDate): AssertionResult;
-      function LessThanOrEquals(const aExpected: TDate): AssertionResult;
-      function Between(const aLowerBound, aUpperBound: TDate): AssertionResult;
-      function InRange(const aMin, aMax: TDate): AssertionResult;
+    IntegerAssertions = interface
+    ['{46F67D92-BD65-4D8D-B9B6-65203BC1DF41}']
+      function Equals(const aExpected: Integer): AssertionResult;
+      function GreaterThan(const aExpected: Integer): AssertionResult;
+      function GreaterThanOrEquals(const aExpected: Integer): AssertionResult;
+      function LessThan(const aExpected: Integer): AssertionResult;
+      function LessThanOrEquals(const aExpected: Integer): AssertionResult;
+      function Between(const aLowerBound, aUpperBound: Integer): AssertionResult;
+      function InRange(const aMin, aMax: Integer): AssertionResult;
+      function IsNegative: AssertionResult;
+      function IsPositive: AssertionResult;
     end;
 
 
-    TDateAssertions = class(TAssertions, DateAssertions)
+    TIntegerAssertions = class(TAssertions, IntegerAssertions)
     private
-      fValue: TDate;
-      function Equals(const aExpected: TDate): AssertionResult; reintroduce;
-      function GreaterThan(const aLimit: TDate): AssertionResult;
-      function GreaterThanOrEquals(const aMin: TDate): AssertionResult;
-      function LessThan(const aLimit: TDate): AssertionResult;
-      function LessThanOrEquals(const aMax: TDate): AssertionResult;
-      function Between(const aLowerBound, aUpperBound: TDate): AssertionResult;
-      function InRange(const aMin, aMax: TDate): AssertionResult;
+      fValue: Integer;
+      function Equals(const aExpected: Integer): AssertionResult; reintroduce;
+      function GreaterThan(const aLimit: Integer): AssertionResult;
+      function GreaterThanOrEquals(const aMin: Integer): AssertionResult;
+      function LessThan(const aLimit: Integer): AssertionResult;
+      function LessThanOrEquals(const aMax: Integer): AssertionResult;
+      function Between(const aLowerBound, aUpperBound: Integer): AssertionResult;
+      function InRange(const aMin, aMax: Integer): AssertionResult;
+      function IsNegative: AssertionResult;
+      function IsPositive: AssertionResult;
     public
-      constructor Create(const aTestName: String; aValue: TDate);
+      constructor Create(const aTestName: String; aValue: Integer);
     end;
 
 
@@ -84,7 +85,7 @@ implementation
     SysUtils;
 
 
-  procedure Swap(var a, b: TDate);
+  procedure Swap(var a, b: Integer);
   begin
     a := a + b;
     b := a - b;
@@ -92,33 +93,33 @@ implementation
   end;
 
 
-{ TDateAssertions ---------------------------------------------------------------------------- }
+{ TIntegerAssertions ----------------------------------------------------------------------------- }
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  constructor TDateAssertions.Create(const aTestName: String;
-                                               aValue: TDate);
+  constructor TIntegerAssertions.Create(const aTestName: String;
+                                              aValue: Integer);
   begin
-    inherited Create(aTestName, DateToStr(aValue));
+    inherited Create(aTestName, IntToStr(aValue));
 
     fValue := aValue;
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TDateAssertions.Between(const aLowerBound, aUpperBound: TDate): AssertionResult;
+  function TIntegerAssertions.Between(const aLowerBound, aUpperBound: Integer): AssertionResult;
   var
-    lbound, ubound: TDate;
+    lbound, ubound: Integer;
   begin
     if Abs(aLowerBound - aUpperBound) < 2 then
-      raise EInvalidTest.CreateFmt('Invalid lower (%d) and upper (%d) bounds to Assert(TDate).Between.  There must be a difference greater than 1 between the lower and upper bounds.', [aLowerBound, aUpperBound]);
+      raise EInvalidTest.CreateFmt('Invalid lower (%d) and upper (%d) bounds to Assert(Integer).Between.  There must be a difference greater than 1 between the lower and upper bounds.', [aLowerBound, aUpperBound]);
 
     lbound := aLowerBound;
     ubound := aUpperBound;
     if lbound > ubound then
       Swap(lbound, ubound);
 
-    FormatToken('lowerBound', DateToStr(lbound));
-    FormatToken('upperBound', DateToStr(ubound));
+    FormatToken('lowerBound', IntToStr(lbound));
+    FormatToken('upperBound', IntToStr(ubound));
 
     Description := Format('{valueWithName} is between {lowerBound} and {upperBound} (excl.)');
     Failure     := Format('{valueWithName} is not between {lowerBound} and {upperBound} (excl.)');
@@ -128,9 +129,9 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TDateAssertions.Equals(const aExpected: TDate): AssertionResult;
+  function TIntegerAssertions.Equals(const aExpected: Integer): AssertionResult;
   begin
-    FormatExpected(DateToStr(aExpected));
+    FormatExpected(IntToStr(aExpected));
 
     Description := Format('{valueName} = {expected}');
     Failure     := Format('{valueWithName} does not = {expected}');
@@ -140,9 +141,9 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TDateAssertions.GreaterThan(const aLimit: TDate): AssertionResult;
+  function TIntegerAssertions.GreaterThan(const aLimit: Integer): AssertionResult;
   begin
-    FormatToken('limit', DateToStr(aLimit));
+    FormatToken('limit', IntToStr(aLimit));
 
     Description := Format('{valueWithName} > {limit}');
     Failure     := Format('{valueWithName} is not > {limit}');
@@ -152,9 +153,9 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TDateAssertions.GreaterThanOrEquals(const aMin: TDate): AssertionResult;
+  function TIntegerAssertions.GreaterThanOrEquals(const aMin: Integer): AssertionResult;
   begin
-    FormatToken('min', DateToStr(aMin));
+    FormatToken('min', IntToStr(aMin));
 
     Description := Format('{valueWithName} >= {min}');
     Failure     := Format('{valueWithName} is not >= {min}');
@@ -164,9 +165,9 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TDateAssertions.LessThan(const aLimit: TDate): AssertionResult;
+  function TIntegerAssertions.LessThan(const aLimit: Integer): AssertionResult;
   begin
-    FormatToken('limit', DateToStr(aLimit));
+    FormatToken('limit', IntToStr(aLimit));
 
     Description := Format('{valueWithName} < {limit}');
     Failure     := Format('{valueWithName} is not < {limit}');
@@ -176,9 +177,9 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TDateAssertions.LessThanOrEquals(const aMax: TDate): AssertionResult;
+  function TIntegerAssertions.LessThanOrEquals(const aMax: Integer): AssertionResult;
   begin
-    FormatToken('max', DateToStr(aMax));
+    FormatToken('max', IntToStr(aMax));
 
     Description := Format('{valueWithName} <= {max}');
     Failure     := Format('{valueWithName} is not <= {max}');
@@ -188,25 +189,45 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TDateAssertions.InRange(const aMin, aMax: TDate): AssertionResult;
+  function TIntegerAssertions.InRange(const aMin, aMax: Integer): AssertionResult;
   var
-    min, max: TDate;
+    min, max: Integer;
   begin
     if aMin = aMax then
-      raise EInvalidTest.CreateFmt('Min (%d) and Max (%d) bounds to Assert(TDate).InRange are equal.  Did you mean to use Assert.Equals() ?', [aMin, aMax]);
+      raise EInvalidTest.CreateFmt('Min (%d) and Max (%d) bounds to Assert(Integer).InRange are equal.  Did you mean to use Assert.Equals() ?', [aMin, aMax]);
 
     min := aMin;
     max := aMax;
     if min > max then
       Swap(min, max);
 
-    FormatToken('min', DateToStr(min));
-    FormatToken('max', DateToStr(max));
+    FormatToken('min', IntToStr(min));
+    FormatToken('max', IntToStr(max));
 
     Description := Format('{valueWithName} is in the range {min} .. {max} (incl.)');
     Failure     := Format('{valueWithName} is not in the range {min} .. {max} (incl.)');
 
     result := Assert((fValue >= min) and (fValue <= max));
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TIntegerAssertions.IsNegative: AssertionResult;
+  begin
+    Description := Format('{valueWithName} is negative (< 0)');
+    Failure     := Format('{valueWithName} is not negative (< 0)');
+
+    result := Assert(fValue < 0);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TIntegerAssertions.IsPositive: AssertionResult;
+  begin
+    Description := Format('{valueWithName} is positive (> 0)');
+    Failure     := Format('{valueWithName} is not positive (> 0)');
+
+    result := Assert(fValue > 0);
   end;
 
 

@@ -1,7 +1,7 @@
 {
   * MIT LICENSE *
 
-  Copyright © 2019 Jolyon Smith
+  Copyright © 2020 Jolyon Smith
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of
    this software and associated documentation files (the "Software"), to deal in
@@ -63,8 +63,8 @@ interface
     ['{86F9B5C1-FA31-416A-84FE-FFD21BCE7BBA}']
       function get_Failed: Boolean;
       function get_Passed: Boolean;
-      function WithFailureReason(const aReason: String): AssertionResult; overload;
-      function WithFailureReason(const aReason: String; aArgs: array of const): AssertionResult; overload;
+      function FailsBecause(const aReason: String): AssertionResult; overload;
+      function FailsBecause(const aReason: String; aArgs: array of const): AssertionResult; overload;
       property Failed: Boolean read get_Failed;
       property Passed: Boolean read get_Passed;
     end;
@@ -82,8 +82,8 @@ interface
       function get_Failed: Boolean;
       function get_Passed: Boolean;
       function ReplaceTokensIn(const aString: String): String;
-      function WithFailureReason(const aReason: String): AssertionResult; overload;
-      function WithFailureReason(const aReason: String; aArgs: array of const): AssertionResult; overload;
+      function FailsBecause(const aReason: String): AssertionResult; overload;
+      function FailsBecause(const aReason: String; aArgs: array of const): AssertionResult; overload;
     protected
       function Assert(const aResult: Boolean): AssertionResult; overload;
       function Assert(const aResult: Boolean; const aMessage: String): AssertionResult; overload;
@@ -233,15 +233,15 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TAssertions.WithFailureReason(const aReason: String;
-                                               aArgs: array of const): AssertionResult;
+  function TAssertions.FailsBecause(const aReason: String;
+                                          aArgs: array of const): AssertionResult;
   begin
-    result := WithFailureReason(Format(ReplaceTokensIn(aReason), aArgs));
+    result := FailsBecause(Format(ReplaceTokensIn(aReason), aArgs));
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TAssertions.WithFailureReason(const aReason: String): AssertionResult;
+  function TAssertions.FailsBecause(const aReason: String): AssertionResult;
   begin
     fTestResult.ErrorMessage := ReplaceTokensIn(aReason);
   end;
