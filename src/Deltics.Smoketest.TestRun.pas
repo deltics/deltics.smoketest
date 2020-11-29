@@ -1,4 +1,4 @@
-{
+﻿{
   * MIT LICENSE *
 
   Copyright © 2019 Jolyon Smith
@@ -997,9 +997,6 @@ implementation
                 EmitMethodName;
 
               try
-                if Assigned(fExpectedException) then asm int 3 end;
-                if Assigned(fSelfTest) then asm int 3 end;
-
                 method;
 
                 if Assigned(fExpectedException) then
