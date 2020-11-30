@@ -1,6 +1,6 @@
 mode: ContinuousDeployment
 increment: None
-next-version: 2.0.3
+next-version: 2.1.0
 branches:
   master:
     mode: ContinuousDelivery
@@ -13,3 +13,4 @@ branches:
   feature:
     regex: feature[/-]?
     tag: alpha
+    increment: Minor

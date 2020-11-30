@@ -20,4 +20,4 @@ pool:
 jobs:
 - template: build.yml@congress
   parameters:
-    project: selftest
+    project: test

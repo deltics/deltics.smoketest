@@ -1,7 +1,45 @@
+{
+  * MIT LICENSE *
 
-{$i Deltics.Smoketest.inc}
+  Copyright © 2019 Jolyon Smith
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy of
+   this software and associated documentation files (the "Software"), to deal in
+   the Software without restriction, including without limitation the rights to
+   use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+   of the Software, and to permit persons to whom the Software is furnished to do
+   so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+
+  * GPL and Other Licenses *
+
+  The FSF deem this license to be compatible with version 3 of the GPL.
+   Compatability with other licenses should be verified by reference to those
+   other license terms.
+
+
+  * Contact Details *
+
+  Original author : Jolyon Direnko-Smith
+  e-mail          : jsmith@deltics.co.nz
+  github          : deltics/deltics.smoketest
+}
+
+{$i deltics.smoketest.inc}
 
   unit Deltics.Smoketest.Test;
+
 
 interface
 
@@ -9,30 +47,53 @@ interface
   {$ifdef DELPHI2010__}
     RTTI,
   {$endif}
-    Classes;
+    Classes,
+    Deltics.Smoketest.Assertions.Factory,
+    Deltics.Smoketest.Utils;
 
   type
     {$M+}
     TTest = class
+    private
+      fAssertValueName: String;
+      fAssertValueNameTemplate: String;
+      fAssertValueNameArgs: array of TVarRec;
     protected
       procedure AbortTestRun;
-      function Assert(const aTest: String; const aResult: Boolean; const aReason: String = ''): Boolean;
-      function AssertBaseException(const aExceptionBaseClass: TClass; const aTestName: String = ''): Boolean;
-      function AssertException(const aExceptionClass: TClass; const aTestName: String = ''): Boolean;
-    public
+
+      function Assert(const aTest: String; const aResult: Boolean; const aReason: String = ''): Boolean; overload; deprecated;
+      function AssertBaseException(const aExceptionBaseClass: TClass; const aTestName: String = ''): Boolean; deprecated;
+      function AssertException(const aExceptionClass: TClass; const aTestName: String = ''): Boolean; deprecated;
+      function AssertNoException(const aTestName: String = ''): Boolean; deprecated;
+
+      function Test: IExceptionAssertions; overload;
+      function Test(const aValueName: String): AssertFactory; overload;
+      function Test(const aValueName: String; aValueNameArgs: array of const): AssertFactory; overload;
       procedure GetTestMethods(var aList: TStringList);
+      property AssertValueName: String read fAssertValueName;
     end;
     {$M-}
     TTestClass = class of TTest;
 
 
+  const
+    METHOD_NAME = '{methodName}';
+    TEST_NAME   = '{testName}';
+
+
+
 implementation
 
   uses
+  {$ifdef DELPHI2006__}
+    {$ifNdef DELPHI2010__}
+      Windows,
+    {$endif}
+  {$endif}
     SysUtils,
     TypInfo,
-    Deltics.Smoketest.TestRun,
-    Deltics.Smoketest.Utils;
+    Deltics.Smoketest.TestResult,
+    Deltics.Smoketest.TestRun;
 
 
   // Test classes have privileged access to protected members of the TestRun
@@ -45,15 +106,12 @@ implementation
     TestRun: TTestRunHelper;
 
 
+  const
+    NO_NAME = '';
+
+
 
 { TTest ------------------------------------------------------------------------------------------ }
-
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  procedure TTest.AbortTestRun;
-  begin
-    TestRun.Abort;
-  end;
-
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   function TTest.Assert(const aTest: String;
@@ -96,7 +154,7 @@ implementation
   end;
 
 
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TTest.AssertException(const aExceptionClass: TClass;
                                  const aTestName: String): Boolean;
   var
@@ -125,7 +183,85 @@ implementation
   end;
 
 
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TTest.AssertNoException(const aTestName: String): Boolean;
+  var
+    eo: TObject;
+    e: Exception absolute eo;
+    testName: String;
+    msg: String;
+  begin
+    eo := ExceptObject;
+
+    if testName = '' then
+      testName := 'No exception raised';
+
+    result := NOT Assigned(eo);
+    if result then
+    begin
+      TestRun.TestPassed(testName);
+      EXIT;
+    end;
+
+    msg := Format('No exception was expected but %s was raised', [eo.ClassName]);
+    if e is Exception then
+      msg := msg + Format(' with message %s', [e.Message]);
+
+    TestRun.TestFailed(testName, msg);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TTest.Test: IExceptionAssertions;
+  begin
+    result := Test('Exception', []) as IExceptionAssertions;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TTest.Test(const aValueName: String): AssertFactory;
+  begin
+    result := Test(aValueName, []);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TTest.Test(const aValueName: String;
+                            aValueNameArgs: array of const): AssertFactory;
+  var
+    i: Integer;
+    templateWithValueTokenObfuscated: String;
+  begin
+    fAssertValueNameTemplate := aValueName;
+
+    SetLength(fAssertValueNameArgs, Length(aValueNameArgs));
+
+    if Length(fAssertValueNameArgs) > 0 then
+    begin
+      for i := 0 to High(aValueNameArgs) do
+        fAssertValueNameArgs[i] := aValueNameArgs[i];
+
+      templateWithValueTokenObfuscated := StringReplace(fAssertValueNameTemplate, '{value}', '@@value@@', [rfReplaceAll, rfIgnoreCase]);
+
+      fAssertValueName := Interpolate(templateWithValueTokenObfuscated, fAssertValueNameArgs);
+      fAssertValueName := StringReplace(fAssertValueName, '@@value@@', '{value}', [rfReplaceAll, rfIgnoreCase]);
+    end
+    else
+      fAssertValueName := fAssertValueNameTemplate;
+
+    result := TAssertFactory.Create(fAssertValueName);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TTest.AbortTestRun;
+  begin
+    TestRun.Abort;
+  end;
+
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TTest.GetTestMethods(var aList: TStringList);
   {
     Sets the contents of a supplied stringlist to the list of published
@@ -177,6 +313,12 @@ implementation
     end;
   end;
 {$endif}
+
+
+
+
+
+
 
 
 initialization

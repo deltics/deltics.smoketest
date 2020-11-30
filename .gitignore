@@ -72,3 +72,4 @@ __duget/
 tests/*.dof
 tests/*.bdsproj
 tests/*.dproj
+tests/test.res
