@@ -1,4 +1,4 @@
-{
+﻿{
   * MIT LICENSE *
 
   Copyright © 2019 Jolyon Smith
@@ -59,7 +59,7 @@ interface
     TTestRun = class
     private
       fCmdLineArgs: TStringList;
-      fCelebrateSuccess: Boolean;
+      fShowAllResults: Boolean;
       fVerboseOutput: Boolean;
       fLineFeedBeforeTypeNameOrSummary: Boolean;
 
@@ -230,8 +230,8 @@ implementation
     for i := 0 to ParamCount do
       fCmdLineArgs.Add(ParamStr(i));
 
-    fCelebrateSuccess := HasCmdLineOption('celebrateSuccess') or HasCmdLineOption('cs');
-    fVerboseOutput    := HasCmdLineOption('verbose') or HasCmdLineOption('v');
+    fVerboseOutput  := HasCmdLineOption('verbose') or HasCmdLineOption('v');
+    fShowAllResults := fVerboseOutput or HasCmdLineOption('showAllResults') or HasCmdLineOption('a');
 
     fAccumulator := Accumulators.Register(TStateAccumulator);
   end;
@@ -407,7 +407,7 @@ implementation
 
       Accumulators.Execute(result);
 
-      if NOT (fVerboseOutput or fCelebrateSuccess or (result.State in [rsFail, rsError])) then
+      if NOT (fShowAllResults or (result.State in [rsFail, rsError])) then
         EXIT;
 
       EmitTypeName;

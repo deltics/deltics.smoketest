@@ -92,7 +92,8 @@ Basic output is provided to the console during execution of the tests followed b
 **Only CONSOLE test suites are supported currently.**
 
 [_New in 2.1.0_]
-To reduce the amount of 'noise' in the console output, only test failures or errors are reported to the console by default.  For full output, including passed tests, specify `-celebrateSuccess` (or the short form: `-cs`) on the command line to the test run.  This does not affect the totals in the test run summary output to the console at the end of a run, nor does it affect the output of any results writers.
+
+To reduce the amount of 'noise' in the console output, only test failures or errors are reported to the console by default.  For full output, including passed tests, specify `-showAllResults` (or the short form: `-a`) on the command line when executing the test exe.  This does not affect the totals in the test run summary output to the console at the end of a run, nor does it affect the output of any results writers.
 
 
 ## Saving Test Results To File
@@ -100,7 +101,9 @@ Smoketest 2.x provides a framework that supports multiple different formats for 
 
 The result output framework requires you to specify on the command line of the test suite, the name of any format you wish to output followed by the filename to be output in that format.  The format name for xUnit 2 format results is `xunit2` so for a test suite compiled as `mytests.exe` to have Smoketest output results in that format to a file called `results.xml` use the following command line:
 
+```
     mytests.exe -xunit2:results.xml
+```
 
 In future multiple formats may be specified to capture results for a single test run in multiple files of different formats.  At present only `xunit2` is supported.
 
@@ -115,56 +118,76 @@ Currently basic fluent assertions are provided for booleans and all string types
 Fluent assertions start with `Test()` call which accepts a name or description of the value or expression being tested.
 This is then followed by a call to the overloaded `Assert()` method, taking a single parameter which is the value to be tested (or the result of some expression).
 
+```
     Test(aName: String).Assert(aValue: Integer);
+```
 
 On its own, a call to such an `Assert` method achieves nothing except return an interface with assertion methods appropriate to the type of the value involved.  In the above case, this would be an `IntegerAssertions` interface.  A test is performed when one of the assertion methods on this interface is called.  The most basic is an equality test, so for example if we have some value `TestCount` that we expect to have a value of `3`:
 
-    Test('Expected number of tests in Result').Assert(Result.Count).Equals(3);
-
-Unlike the 2.0.x assert mechanism, fluent assertion methods derive an explanation for any test failure automatically.  As a result, the value provided to the initial `Test()` method can usually be less verbose, simply identifying the value or expression under test.  So the previous example might be written more simply as:
-
+```
     Test('Result.Count').Assert(Result.Count).Equals(3);
+```
 
-And the derived failure reason might present something similar to:
+Unlike the 2.0.x assert mechanism, fluent assertion methods derive an explanation for any test failure automatically.  Without fluent assertions, the test name was often quite lengthy as it needed to express the intent of a test as well as identifying the value being tested.  With fluent assertions, the intent of the test is expressed in the description of the test derived from the fluent assertion itself.  As a result, the value provided to the initial `Test()` method can usually be less verbose, often simply identifying the value or expression under test.  As an example, the derived failure reason for the example above might present something similar to:
 
-    'Result.Count (5) does not equal 3'
-
+```
+    Result.Count (5) does not equal 3
+```
 
 ## AssertionResult: Conditional Flows Based on Test Results
 
 All assertion methods return an `AssertionResult` which provides details of the results for that individual assertion.  In most cases this result can be ignored, but where necessary these details can be used to determine whether or not to abort the test run:
 
+```
     if Test('Result.Count').Assert(Result.Count).Equals(3).Failed then
       TestRun.Abort;
-
+```
 
 ## AssertionResult: Customised Failure Reasons
 
 As well as providing the test result outcome, the `AssertionResult` allows you to override the automatically derived test failure reason if desired:
 
-    Assert('Some value critical to the test run', criticalValue).Equals(42).FailsBecause('42 is required for this test to have meaning');
+```
+    Test('Result.Count').Assert(Result.Count).Equals(42).FailsBecause('There should be {expected} results in {valueName}, but the number counted was {value}');
+```
+
+Would result in a failure reason similar to:
+
+```
+    There should be 42 results in Result.Count, but the number counted was 41
+```
 
 The `FailsBecause` method itself returns the same `AssertionResult` so you can continue to test the result if required:
 
-    if Assert('Some value critical to the test run', criticalValue).Equals(42).FailsBecause('42 is required for this test to have meaning').Failed then
+```
+    if Test('Result.Count').Assert(Result.Count).Equals(42).FailsBecause('reasons...').Failed then
       TestRun.Abort;
+```
 
 ## AssertionResult: FailsBecause() Token Substitution
-The string provided to `FailsBecause` can use tokens to subsitute values relevant to the test.  The tokens that are supported vary according to the particular assertion involved.
+As illustrated in the customised failure reason above, the string provided to `FailsBecause` can include tokens to subsitute values used in the assertion.  The tokens that are supported vary according to the particular assertion involved.
 
 All assertions support `value` and `valueName` tokens to substitute the value that was supplied to the `Assert()` method and the name supplied to the `Test()` method, respectively.  Tokens are identified in the reason string by surrounding `{}` braces:
 
+```
     foo := 6;
     Test('foo').Assert(foo).Equals(12).FailsBecause('{valueName} has value {value}');
+```
 
-Results in a test failure reason of: `foo has value 6`
+Results in a test failure reason of:
+
+```
+    foo has value 6
+```
 
 `valueWithName` is also supported by all assertions and is equivalent to: `{valueName} ({value})'.
 
 An `Equals()` assertion will typically support a token for the expected value.  That is, the value supplied to the `Equals()` call:
 
+```
     foo := 6;
     Test('foo').Assert(foo).Equals(12).FailsBecause('{valueWithName} was supposed to be {expected}');
+```
 
 Results in a test failure reason of: `foo (6) was supposed to be 12`
 
@@ -233,8 +256,8 @@ _Only one exception test can be specified.  An attempt to specify an additional 
 - Test method exits with an unhandled exception and no exception of any type was expected: An ERROR result is recorded.
 - Test method exits with an unhandled exception which does _not_ match a specified, expected exception: A FAIL result is recorded.
 - Test method exits with an unhandled exception which matches a specified, expected exception: A PASS result is recorded.
-- Test method exits with no unhandled exception when some exception was expected: A FAIL result is recorded.
-- Test method exits with no unhandled exception and a `RaisesNoException` test was specified: A PASS result is recorded (_even if no other `Assert()`s were performed in that test method_).
+- Test method exits with **no** unhandled exception when _some_ exception was expected: A FAIL result is recorded.
+- Test method exits with **no** unhandled exception and a _`RaisesNoException`_ test was specified: A PASS result is recorded (_even if no other `Assert()`s were performed in that test method_).
 
 
 ## DEPRECATED: AssertException / AssertBaseException
@@ -288,7 +311,7 @@ The build pipeline for this package compiles a set of self-tests with every vers
 
 With no specific timeline in mind and in no particular order, some goals for this project include:
 
-- Additional type supported by fluent assertions
-- A guide to introducing custom fluent assertions to extend the framework with project specific types
+- Additional type support for fluent assertions
+- A mechanism and guide for introducing custom fluent assertions (to support project specific type assertions)
 - Additional results writer formats
 - Further documentation and examples
