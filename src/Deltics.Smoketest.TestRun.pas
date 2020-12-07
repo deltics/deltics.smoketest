@@ -1,4 +1,4 @@
-﻿{
+{
   * MIT LICENSE *
 
   Copyright © 2019 Jolyon Smith
