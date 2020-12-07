@@ -1,4 +1,4 @@
-{
+﻿{
   * MIT LICENSE *
 
   Copyright © 2019 Jolyon Smith
@@ -1064,7 +1064,11 @@ initialization
   TestRun := TTestRun.Create;
 
 finalization
-  if Assigned(TestRun) and NOT TestRun.IsFinished then
-    TestRun.Complete;
+  try
+    if Assigned(TestRun) and NOT TestRun.IsFinished then
+      TestRun.Complete;
 
+  finally
+    TestRun.Free;
+  end;
 end.
