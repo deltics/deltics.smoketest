@@ -1,7 +1,7 @@
 {
   * MIT LICENSE *
 
-  Copyright © 2020 Jolyon Smith
+  Copyright Â© 2020 Jolyon Smith
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of
    this software and associated documentation files (the "Software"), to deal in
@@ -53,6 +53,9 @@ interface
       procedure ExactExceptionSatisfiesTestForThatExceptionClass;
       procedure ExceptionSatisfiesTestForGeneralisedException;
       procedure ExceptionThatDoesNotSatisfyTestForGeneralisedExceptionCausesTestToFail;
+      procedure TestExceptionPassesIfRaisedExceptionMessageMatchesTheRequiredText;
+      procedure TestExceptionPassesIfRaisedExceptionMessageContainsTheRequiredText;
+      procedure TestExceptionFailsIfRaisedExceptionDoesNotContainTheRequiredText;
       procedure TestThatExpectsAnExceptionFailsWhenNoneIsRaised;
     end;
 
@@ -64,8 +67,6 @@ implementation
   uses
     SysUtils,
     Deltics.Smoketest.TestRun;
-
-
 
 
 { ExceptionHandling tests ------------------------------------------------------------------------ }
@@ -104,6 +105,34 @@ implementation
     Test.IsExpectedToFail;
 
     Test.RaisesExceptionOf(Exception);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TExceptionHandlingTests.TestExceptionFailsIfRaisedExceptionDoesNotContainTheRequiredText;
+  begin
+    Test.IsExpectedToFail;
+    Test.RaisesException(Exception, 'is the');
+
+    raise Exception.Create('This message text');
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TExceptionHandlingTests.TestExceptionPassesIfRaisedExceptionMessageContainsTheRequiredText;
+  begin
+    Test.RaisesException(Exception, 'message text');
+
+    raise Exception.Create('This message text');
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TExceptionHandlingTests.TestExceptionPassesIfRaisedExceptionMessageMatchesTheRequiredText;
+  begin
+    Test.RaisesException(Exception, 'This message text');
+
+    raise Exception.Create('This message text');
   end;
 
 

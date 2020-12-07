@@ -114,7 +114,6 @@ interface
       procedure ExpectingToError;
       procedure ExpectingToFail;
       function TestError(const aException: Exception = NIL): TTestResult;
-      function TestException(const aValueName: String; aExceptionClass: TClass; aBaseException: Boolean; const aMessage: String): Boolean;
       function TestFailed(const aTestName: String; const aReason: String): TTestResult;
       function TestPassed(const aTestName: String): TTestResult;
 
@@ -391,9 +390,7 @@ implementation
         effectiveResult := rsSkip;
 
       if Assigned(fSelfTest) then
-        expectedResult := fSelfTest.ExpectedResult
-      else if Assigned(fExpectedException) then
-        expectedResult := rsError;
+        expectedResult := fSelfTest.ExpectedResult;
 
       testName  := GetTestName;
       reason    := aReason;
@@ -623,6 +620,8 @@ implementation
     msg: String;
     testname: String;
     state: TResultState;
+    expectedMessage: String;
+    actualMessage: String;
   begin
     e         := aException;
     testname  := '';
@@ -647,96 +646,35 @@ implementation
 
     if Assigned(fExpectedException) then
     begin
+      testname := fExpectedException.TestName;
+
       if fExpectedException.Matches(eo) then
       begin
-        testname := fExpectedException.TestName;
         reason   := Format('Raised expected exception %s [%s]', [eo.ClassName, msg]);
         state    := rsPass;
       end
       else
       begin
-        reason  := Format('Expecting %s exception, raised %s [%s]', [fExpectedException.ExceptionClass.ClassName, eo.ClassName, msg]);
-        state   := rsFail;  // We were expecting an exception but not the one we got - this results in a FAIL rather than an ERROR
+        if NOT fExpectedException.MatchesClass(eo) then
+          reason  := Format('Expecting %s exception but raised %s'#13,
+                            [fExpectedException.ExceptionClass.ClassName, eo.ClassName]);
+
+        expectedMessage := fExpectedException.Message;
+        if Assigned(e) then
+          actualMessage := e.Message
+        else
+          actualMessage := '';
+
+        if (expectedMessage <> '') and NOT fExpectedException.MatchesMessage(actualMessage) then
+          reason  := reason + Format('Expected message ''%s'' is not contained in ''%s''', [fExpectedException.Message, actualMessage]);
+
+        state := rsFail;  // We were expecting an exception but not the one we got - this results in a FAIL rather than an ERROR
       end;
     end
     else
       reason  := Format('Exception: %s [%s]', [eo.ClassName, msg]);
 
     result := AddResult(testname, state, Format(reason, [eo.ClassName, msg]), e);
-  end;
-
-
-  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TTestrun.TestException(const aValueName: String;
-                                        aExceptionClass: TClass;
-                                        aBaseException: Boolean;
-                                  const aMessage: String): Boolean;
-  var
-    eo: TObject;
-    e: Exception absolute eo;
-    testName: String;
-    failure: String;
-    messageTested: Boolean;
-    messageOk: Boolean;
-  begin
-    result := FALSE;
-
-    testName := aValueName + ' raises ' + aExceptionClass.ClassName;
-
-    if aBaseException then
-      testName := testName + ' (or subclass)';
-
-    eo := ExceptObject;
-    if NOT Assigned(eo) then
-    begin
-      TestRun.TestFailed(testName, 'No exception was raised');
-      EXIT;
-    end;
-
-    messageTested := FALSE;
-    messageOk     := TRUE;
-    if (aMessage <> '') then
-    begin
-      if (eo is Exception) then
-      begin
-        messageOk     := AnsiSameText(e.Message, aMessage);
-        messageTested := TRUE;
-      end
-      else
-        WriteLn('WARNING: Expected exception message could not be tested as ' + eo.ClassName + ' does not derive from Exception');
-    end;
-
-    if aBaseException then
-      result := (e is aExceptionClass) and messageOk
-    else
-      result := (eo.ClassType = aExceptionClass) and messageOk;
-
-    if NOT result then
-    begin
-      failure := 'Expected ' + aExceptionClass.ClassName;
-
-      if aBaseException then
-        failure := failure + ' (or subclass)';
-
-      if aMessage <> '' then
-        failure := failure + ' with message ''' + aMessage + '''';
-
-      if eo.ClassType <> aExceptionClass then
-      begin
-        failure := failure + ' but ' + eo.ClassName + ' was raised';
-        if messageTested and NOT messageOk then
-          failure := failure + ' and';
-      end
-      else if messageTested then
-        failure := failure + ' but';
-
-      if NOT messageOk then
-        failure := failure + ' message was ''' + e.Message + '''';
-
-      TestRun.TestFailed(testName, failure);
-    end
-    else
-      TestRun.TestPassed(testName);
   end;
 
 
@@ -1064,7 +1002,11 @@ initialization
   TestRun := TTestRun.Create;
 
 finalization
-  if Assigned(TestRun) and NOT TestRun.IsFinished then
-    TestRun.Complete;
+  try
+    if Assigned(TestRun) and NOT TestRun.IsFinished then
+      TestRun.Complete;
 
+  finally
+    TestRun.Free;
+  end;
 end.

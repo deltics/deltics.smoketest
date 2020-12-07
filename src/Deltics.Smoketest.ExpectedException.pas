@@ -1,7 +1,7 @@
 {
   * MIT LICENSE *
 
-  Copyright © 2020 Jolyon Smith
+  Copyright Â© 2020 Jolyon Smith
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of
    this software and associated documentation files (the "Software"), to deal in
@@ -56,6 +56,8 @@ interface
       function get_NoneExpected: Boolean;
       function get_TestName: String;
       function Matches(const aException: TObject): Boolean;
+      function MatchesClass(const aException: TObject): Boolean;
+      function MatchesMessage(const aMessage: String): Boolean;
 
       property ExceptionClass: TClass read get_ExceptionClass;
       property ClassIsExact: Boolean read get_ClassIsExact;
@@ -78,6 +80,8 @@ interface
       function get_NoneExpected: Boolean;
       function get_TestName: String;
       function Matches(const aException: TObject): Boolean;
+      function MatchesClass(const aException: TObject): Boolean;
+      function MatchesMessage(const aMessage: String): Boolean;
     public
       constructor Create(const aExceptionClass: TClass; const aIsExact: Boolean; const aMessage: String);
       constructor CreateNoneExpected;
@@ -140,6 +144,12 @@ implementation
 
   function TExpectedException.get_TestName: String;
   begin
+    if fNoneExpected then
+    begin
+      result := 'No exception is raised';
+      EXIT;
+    end;
+
     if Assigned(fExceptionClass) then
     begin
       result := 'Raises ' + fExceptionClass.ClassName;
@@ -148,23 +158,44 @@ implementation
     end
     else
       result := 'Raises an exception';
+
+    if fMessage <> '' then
+      result := result + ' with message containing ''' + fMessage + '''.';
   end;
 
 
   function TExpectedException.Matches(const aException: TObject): Boolean;
   var
-    msg: String;
+    e: Exception absolute aException;
   begin
-    if aException is Exception then
-      msg := Exception(aException).Message
+    if (aException is Exception) then
+      result := MatchesClass(aException) and MatchesMessage(e.Message)
     else
-      msg := '';
+      result := MatchesClass(aException) and (fMessage = '');
+  end;
 
+
+  function TExpectedException.MatchesClass(const aException: TObject): Boolean;
+  begin
     result := (fExceptionClass = NIL);
-
     result := result or (fClassIsExact and (fExceptionClass = aException.ClassType));
     result := result or (NOT fClassIsExact and aException.ClassType.InheritsFrom(fExceptionClass));
-    result := result and ((fMessage = '') or (fMessage = msg));
+  end;
+
+
+  function TExpectedException.MatchesMessage(const aMessage: String): Boolean;
+  var
+    expected: String;
+    actual: String;
+  begin
+    result := (fMessage = '');
+    if result then
+      EXIT;
+
+    expected  := LowerCase(fMessage);
+    actual    := LowerCase(aMessage);
+
+    result := Pos(expected, actual) > 0;
   end;
 
 
