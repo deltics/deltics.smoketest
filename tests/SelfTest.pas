@@ -68,6 +68,7 @@ interface
     TSelfTest = class(TTest)
     protected
       function Test: ISelfTest; overload;
+    {$ifdef DELPHI7} {$WARNINGS OFF} {$endif}
       function Assert(aValue: Boolean): Boolean; overload;
       function Assert(aValue: Integer): IntegerAssertions; overload;
       function Assert(aValue: Int64): Int64Assertions; overload;
@@ -83,6 +84,7 @@ interface
       function AssertDate(const aValue: TDate): DateAssertions; overload;
       function AssertDatetime(const aValue: TDateTime): DateTimeAssertions; overload;
     {$endif}
+    {$ifdef DELPHI7} {$WARNINGS ON} {$endif}
     end;
 
 
