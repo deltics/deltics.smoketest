@@ -52,6 +52,7 @@ interface
     Deltics.Smoketest.Assertions.DateTime,
     Deltics.Smoketest.Assertions.Int64,
     Deltics.Smoketest.Assertions.Integer,
+    Deltics.Smoketest.Assertions.Pointer,
     Deltics.Smoketest.Assertions.AnsiString,
     Deltics.Smoketest.Assertions.UnicodeString,
     Deltics.Smoketest.Assertions.WideString;
@@ -77,6 +78,7 @@ interface
       function AssertDate(const aValue: TDate): DateAssertions; overload;
       function AssertDatetime(const aValue: TDateTime): DateTimeAssertions; overload;
     {$endif}
+      function Assert(const aValue: Pointer): PointerAssertions; overload;
       function Assert(const aValue: Int64): Int64Assertions; overload;
       function Assert(const aValue: Integer): IntegerAssertions; overload;
       function Assert(const aValue: AnsiString): AnsiStringAssertions; overload;
@@ -105,6 +107,7 @@ interface
       function AssertDate(const aValue: TDate): DateAssertions; overload;
       function AssertDatetime(const aValue: TDateTime): DateTimeAssertions; overload;
     {$endif}
+      function Assert(const aValue: Pointer): PointerAssertions; overload;
       function Assert(const aValue: Int64): Int64Assertions; overload;
       function Assert(const aValue: Integer): IntegerAssertions; overload;
       function Assert(const aValue: AnsiString): AnsiStringAssertions; overload;
@@ -237,6 +240,13 @@ implementation
 {$endif}
   begin
     result := TDateTimeAssertions.Create(ValueName, aValue);
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TAssertFactory.Assert(const aValue: Pointer): PointerAssertions;
+  begin
+    result := TPointerAssertions.Create(ValueName, aValue);
   end;
 
 
