@@ -3,7 +3,7 @@
 
 program test;
 
-  uses
+uses
   Deltics.Smoketest in '..\src\Deltics.Smoketest.pas',
   Deltics.Smoketest.Accumulators in '..\src\Deltics.Smoketest.Accumulators.pas',
   Deltics.Smoketest.Accumulators.ActualStateAccumulator in '..\src\Deltics.Smoketest.Accumulators.ActualStateAccumulator.pas',
