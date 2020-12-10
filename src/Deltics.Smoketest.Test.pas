@@ -114,9 +114,11 @@ implementation
 { TTest ------------------------------------------------------------------------------------------ }
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  {$ifdef DELPHI7} {$WARNINGS OFF} {$endif}
   function TTest.Assert(const aTest: String;
                         const aResult: Boolean;
                         const aReason: String): Boolean;
+  {$ifdef DELPHI7} {$WARNINGS ON} {$endif}
   begin
     result := aResult;
     if result then
@@ -127,8 +129,10 @@ implementation
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  {$ifdef DELPHI7} {$WARNINGS OFF} {$endif}
   function TTest.AssertBaseException(const aExceptionBaseClass: TClass;
                                      const aTestName: String): Boolean;
+  {$ifdef DELPHI7} {$WARNINGS ON} {$endif}
   var
     e: TObject;
     testName: String;
@@ -155,8 +159,10 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  {$ifdef DELPHI7} {$WARNINGS OFF} {$endif}
   function TTest.AssertException(const aExceptionClass: TClass;
                                  const aTestName: String): Boolean;
+  {$ifdef DELPHI7} {$WARNINGS ON} {$endif}
   var
     e: TObject;
     testName: String;
@@ -184,7 +190,9 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  {$ifdef DELPHI7} {$WARNINGS OFF} {$endif}
   function TTest.AssertNoException(const aTestName: String): Boolean;
+  {$ifdef DELPHI7} {$WARNINGS ON} {$endif}
   var
     eo: TObject;
     e: Exception absolute eo;
