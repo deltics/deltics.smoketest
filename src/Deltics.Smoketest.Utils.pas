@@ -244,6 +244,8 @@ interface
 
   function GuidsAreEqual(const a, b: TGUID): Boolean;
 
+  function BinToHex(const aBuf: Pointer; const aSize: Integer): String;
+
 
 
 implementation
@@ -652,6 +654,28 @@ implementation
     result := CompareMem(@a, @b, sizeof(a));
   end;
 
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function BinToHex(const aBuf: Pointer; const aSize: Integer): String;
+  const
+    DIGITS: String = '0123456789abcdef';
+  var
+    i: Integer;
+    c: PByte;
+    ci: Integer;
+  begin
+    SetLength(result, aSize * 2);
+
+    c := aBuf;
+    for i := aSize downto 1 do
+    begin
+      ci := i * 2;
+      result[ci - 1]  := DIGITS[(c^ and $F0) shr 4 + 1];
+      result[ci]      := DIGITS[(c^ and $0F) + 1];
+      Inc(c);
+    end;
+  end;
 
 
 end.
