@@ -49,6 +49,7 @@ interface
 
   type
     TUtilsTests = class(TTest)
+      procedure BinToHexEncodesCorrectly;
       procedure XmlEncodedAttrEncodesCorrectly;
     end;
 
@@ -60,6 +61,17 @@ implementation
 
 
 { TUtilsTests }
+
+  procedure TUtilsTests.BinToHexEncodesCorrectly;
+  var
+    buf: Int64;
+    s: String;
+  begin
+    buf := $0a0b0c0dfeff1234;
+    s   := BinToHex(@buf, sizeof(BUF));
+
+    Test('BinToHex(@$0a0b0c0dfeff1234)').Assert(s).Equals('0a0b0c0dfeff1234');  end;
+
 
   procedure TUtilsTests.XmlEncodedAttrEncodesCorrectly;
   begin

@@ -15,6 +15,7 @@ uses
   Deltics.Smoketest.Assertions.AnsiString in '..\src\Deltics.Smoketest.Assertions.AnsiString.pas',
   Deltics.Smoketest.Assertions.Int64 in '..\src\Deltics.Smoketest.Assertions.Int64.pas',
   Deltics.Smoketest.Assertions.Integer in '..\src\Deltics.Smoketest.Assertions.Integer.pas',
+  Deltics.Smoketest.Assertions.Pointer in '..\src\Deltics.Smoketest.Assertions.Pointer.pas',
   Deltics.Smoketest.Assertions.UnicodeString in '..\src\Deltics.Smoketest.Assertions.UnicodeString.pas',
   Deltics.Smoketest.Assertions.WideString in '..\src\Deltics.Smoketest.Assertions.WideString.pas',
   Deltics.Smoketest.ExpectedException in '..\src\Deltics.Smoketest.ExpectedException.pas',
@@ -32,6 +33,7 @@ uses
   Test.DeprecatedAssert in 'Test.DeprecatedAssert.pas',
   Test.ExceptionHandling in 'Test.ExceptionHandling.pas',
   Test.IntegerAssertions in 'Test.IntegerAssertions.pas',
+  Test.PointerAssertions in 'Test.PointerAssertions.pas',
   Test.StringAssertions in 'Test.StringAssertions.pas',
   Test.DateAssertions in 'Test.DateAssertions.pas',
   Test.Int64Assertions in 'Test.Int64Assertions.pas',
@@ -52,4 +54,5 @@ begin
   TestRun.Test(TDateAssertionTests);
   TestRun.Test(TIntegerAssertionTests);
   TestRun.Test(TInt64AssertionTests);
+  TestRun.Test(TPointerAssertionTests);
 end.
