@@ -99,7 +99,11 @@ implementation
     Description := Format('{valueName} = {expected}');
     Failure     := Format('{valueWithName} does not = {expected}');
 
+  {$ifdef DELPHI7}
     result := Assert(fValue = aExpected);
+  {$else}
+    result := Assert(CompareMem(@fValue, @aExpected, sizeof(TGuid)));
+  {$endif}
   end;
 
 
@@ -118,7 +122,11 @@ implementation
     Description := Format('{valueName} does not = {expected}');
     Failure     := Format('{valueWithName} = {expected}');
 
+  {$ifdef DELPHI7}
     result := Assert(fValue <> NullGuid);
+  {$else}
+    result := Assert(NOT CompareMem(@fValue, @NullGuid, sizeof(TGuid)));
+  {$endif}
   end;
 
 
