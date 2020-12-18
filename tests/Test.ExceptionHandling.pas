@@ -1,4 +1,4 @@
-﻿{
+{
   * MIT LICENSE *
 
   Copyright © 2020 Jolyon Smith
@@ -211,7 +211,7 @@ implementation
       raise EConvertError.Create('This is the wrong exception, the message is irrelevant');
 
     except
-      Test.RaisedException(EListError);
+      Test.RaisedException(EInvalidCast);
     end;
   end;
 
@@ -256,7 +256,7 @@ implementation
       raise EConvertError.Create('This is the wrong exception, the message is irrelevant');
 
     except
-      Test.RaisedExceptionOf(EListError);
+      Test.RaisedExceptionOf(EInvalidCast);
     end;
   end;
 
