@@ -1,4 +1,4 @@
-{
+﻿{
   * MIT LICENSE *
 
   Copyright © 2019 Jolyon Smith
@@ -157,11 +157,13 @@ implementation
     {$endif}
   {$endif}
     Deltics.Smoketest.Accumulators.StateAccumulator,
+    Deltics.Smoketest.Assertions.Factory,
     Deltics.Smoketest.ResultsWriter,
     Deltics.Smoketest.Utils;
 
 
   type
+    Accumulators = class(Deltics.Smoketest.Accumulators.Accumulators);
     TTestHelper = class(TTest); // For access to protected GetTestMethods
 
 
@@ -648,7 +650,16 @@ implementation
     begin
       testname := fExpectedException.TestName;
 
-      if fExpectedException.Matches(eo) then
+      if (eo is ENoExceptionRaised) then
+      begin
+        reason := 'Expected exception ' + eo.ClassName;
+        if fExpectedException.Message <> '' then
+          reason := reason + ' with message ''' + fExpectedException.Message + '''';
+
+        reason := reason + ' was NOT raised';
+        state  := rsFail;
+      end
+      else if fExpectedException.Matches(eo) then
       begin
         reason   := Format('Raised expected exception %s [%s]', [eo.ClassName, msg]);
         state    := rsPass;
@@ -670,6 +681,8 @@ implementation
 
         state := rsFail;  // We were expecting an exception but not the one we got - this results in a FAIL rather than an ERROR
       end;
+
+      fExpectedException := NIL;
     end
     else
       reason  := Format('Exception: %s [%s]', [eo.ClassName, msg]);
