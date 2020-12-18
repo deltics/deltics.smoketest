@@ -211,7 +211,7 @@ implementation
       raise EConvertError.Create('This is the wrong exception, the message is irrelevant');
 
     except
-      Test.RaisedException(EArgumentException);
+      Test.RaisedException(EListError);
     end;
   end;
 
@@ -256,7 +256,7 @@ implementation
       raise EConvertError.Create('This is the wrong exception, the message is irrelevant');
 
     except
-      Test.RaisedExceptionOf(EArgumentException);
+      Test.RaisedExceptionOf(EListError);
     end;
   end;
 
