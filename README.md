@@ -1,5 +1,14 @@
+# New in 2.3.0 / 2.2.0
+
+2.2.0 and 2.3.0 were incremental releases adding Assert()s for further types:
+
+* 2.2.0 Introduced: PointerAssertions 
+* 2.3.0 Introduced: GuidAssertions
+
+Fixes to address compiler warnings in Delphi 7 builds from deprecated methods (for the older non-fluent Assert() tests) are also incorporated as of 2.1.2 and of course these later versions also.
+
 # New in 2.1.0
-2.1.0 is a **BIG** update to Smoketest!
+2.1.0 was a **BIG** update to Smoketest!
 
 A lot of the work in 2.1 took place 'in the engine room', simplifying aspects of the implementation relating to the writing of self-tests for the framework itself, resulting in a framework that allows tests to register 'accumulators' which can collect test results as they occur, allowing for subsequent tests to perform tests over those test results.
 
