@@ -19,6 +19,7 @@
             "src\\Deltics.Smoketest.Accumulators.StateAccumulator.pas",
             "src\\Deltics.Smoketest.Assertions.pas",
             "src\\Deltics.Smoketest.Assertions.Factory.pas",
+            "src\\Deltics.Smoketest.Assertions.Guid.pas",
             "src\\Deltics.Smoketest.Assertions.Date.pas",
             "src\\Deltics.Smoketest.Assertions.Datetime.pas",
             "src\\Deltics.Smoketest.Assertions.Int64.pas",

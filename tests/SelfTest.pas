@@ -52,6 +52,7 @@ interface
     Deltics.Smoketest.Assertions.Int64,
     Deltics.Smoketest.Assertions.Integer,
     Deltics.Smoketest.Assertions.Pointer,
+    Deltics.Smoketest.Assertions.Guid,
     Deltics.Smoketest.Assertions.Date,
     Deltics.Smoketest.Assertions.DateTime,
     Deltics.Smoketest.Assertions.AnsiString,
@@ -73,6 +74,7 @@ interface
       function Assert(aValue: Boolean): Boolean; overload;
       function Assert(aValue: Integer): IntegerAssertions; overload;
       function Assert(aValue: Int64): Int64Assertions; overload;
+      function Assert(aValue: TGuid): GuidAssertions; overload;
       function Assert(aValue: Pointer): PointerAssertions; overload;
       function Assert(aValue: AnsiString): AnsiStringAssertions; overload;
     {$ifdef UNICODE}
@@ -157,6 +159,13 @@ implementation
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TSelfTest.Assert(aValue: Int64): Int64Assertions;
+  begin
+    result := Test('test').Assert(aValue);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TSelfTest.Assert(aValue: TGuid): GuidAssertions;
   begin
     result := Test('test').Assert(aValue);
   end;
