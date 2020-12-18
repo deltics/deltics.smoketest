@@ -1,4 +1,4 @@
-{
+﻿{
   * MIT LICENSE *
 
   Copyright © 2020 Jolyon Smith
@@ -57,6 +57,13 @@ interface
       procedure TestExceptionPassesIfRaisedExceptionMessageContainsTheRequiredText;
       procedure TestExceptionFailsIfRaisedExceptionDoesNotContainTheRequiredText;
       procedure TestThatExpectsAnExceptionFailsWhenNoneIsRaised;
+      procedure MultipleExceptionTestsCanBePerformedUsingTryExcept;
+      procedure FailedToRaiseExceptionFailsTheTestWhenExpectedExceptionIsNotRaised;
+      procedure RaisedExceptionFailsWhenExceptionOfWrongClassIsRaised;
+      procedure RaisedExceptionFailsWhenExceptionRaisedOfExpectedClassHasWrongMessage;
+      procedure RaisedExceptionOfStillFailsWhenFailedToRaiseExceptionRaisesENoExceptionRaised;
+      procedure RaisedExceptionOfFailsWhenExceptionOfWrongClassIsRaised;
+      procedure RaisedExceptionOfFailsWhenExceptionRaisedOfExpectedClassHasWrongMessage;
     end;
 
 
@@ -133,6 +140,124 @@ implementation
     Test.RaisesException(Exception, 'This message text');
 
     raise Exception.Create('This message text');
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TExceptionHandlingTests.MultipleExceptionTestsCanBePerformedUsingTryExcept;
+  var
+    acc: IAccumulator;
+  begin
+    acc := Accumulators.New;
+    try
+      raise Exception.Create('This exception is detected');
+
+    except
+      Test.RaisedException(Exception, 'This exception is detected');
+    end;
+
+    try
+      raise Exception.Create('This exception is also detected');
+
+    except
+      Test.RaisedException(Exception, 'This exception is also detected');
+    end;
+
+    try
+      raise Exception.Create('The message on this exception is not important');
+
+    except
+      Test.RaisedException(Exception);
+    end;
+
+    Accumulators.Detach(acc);
+
+    Test('Exception tests performed').Assert(acc.Count).Equals(3);
+    Test('Exception tests pass').Assert(acc.Pass).Equals(3);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TExceptionHandlingTests.FailedToRaiseExceptionFailsTheTestWhenExpectedExceptionIsNotRaised;
+  begin
+    Test.IsExpectedToFail;
+    try
+      Test.FailedToRaiseException;
+
+    except
+      Test.RaisedException(Exception);
+    end;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TExceptionHandlingTests.RaisedExceptionFailsWhenExceptionRaisedOfExpectedClassHasWrongMessage;
+  begin
+    Test.IsExpectedToFail;
+    try
+      raise Exception.Create('This exception has the wrong message');
+
+    except
+      Test.RaisedException(Exception, 'This exception has a specific message');
+    end;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TExceptionHandlingTests.RaisedExceptionFailsWhenExceptionOfWrongClassIsRaised;
+  begin
+    Test.IsExpectedToFail;
+    try
+      raise EConvertError.Create('This is the wrong exception, the message is irrelevant');
+
+    except
+      Test.RaisedException(EArgumentException);
+    end;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TExceptionHandlingTests.RaisedExceptionOfStillFailsWhenFailedToRaiseExceptionRaisesENoExceptionRaised;
+  begin
+    Test.IsExpectedToFail;
+    try
+      // This test is significant because FailedToRaiseException will itself raise an
+      //  ENoExceptionRaised exception, which derives from Exception, and this test
+      //  is using RaisedExceptionOf(Exception) so the ENoExceptionRaised should
+      //  ordinarily cause this test to PASS.  However, the ENoExceptionRaised class
+      //  is treated as a special case by Smoketest, and this test should still FAIL.
+
+      Test.FailedToRaiseException;
+
+    except
+      Test.RaisedExceptionOf(Exception);
+    end;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TExceptionHandlingTests.RaisedExceptionOfFailsWhenExceptionRaisedOfExpectedClassHasWrongMessage;
+  begin
+    Test.IsExpectedToFail;
+    try
+      raise Exception.Create('This exception has the wrong message');
+
+    except
+      Test.RaisedExceptionOf(Exception, 'This exception has a specific message');
+    end;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TExceptionHandlingTests.RaisedExceptionOfFailsWhenExceptionOfWrongClassIsRaised;
+  begin
+    Test.IsExpectedToFail;
+    try
+      raise EConvertError.Create('This is the wrong exception, the message is irrelevant');
+
+    except
+      Test.RaisedExceptionOf(EArgumentException);
+    end;
   end;
 
 
