@@ -48,6 +48,7 @@ interface
   {$ifdef __DELPHI2007}
     Controls,
   {$endif}
+    SysUtils,
     Deltics.Smoketest.Assertions.Date,
     Deltics.Smoketest.Assertions.DateTime,
     Deltics.Smoketest.Assertions.Guid,
@@ -62,9 +63,19 @@ interface
   type
     IExceptionAssertions = interface
     ['{3DDF7260-CD25-40DA-9D47-C6C4683F4F49}']
-      procedure RaisesExceptionOf(const aExceptionBaseClass: TClass; const aExceptionMessage: String = '');
+      procedure FailedToRaiseException;
+      procedure RaisedExceptionOf(const aExceptionBaseClass: TClass; const aExceptionMessage: String = ''); overload;
+      procedure RaisedExceptionOf(const aExceptionBaseClass: TClass; const aExceptionMessage: String; aArgs: array of const); overload;
+      procedure RaisedException(const aExceptionClass: TClass; const aExceptionMessage: String = ''); overload;
+      procedure RaisedException(const aExceptionClass: TClass; const aExceptionMessage: String; aArgs: array of const); overload;
+      procedure RaisedException(const aExceptionMessage: String = ''); overload;
+      procedure RaisedException(const aExceptionMessage: String; aArgs: array of const); overload;
+      procedure RaisesExceptionOf(const aExceptionBaseClass: TClass; const aExceptionMessage: String = ''); overload;
+      procedure RaisesExceptionOf(const aExceptionBaseClass: TClass; const aExceptionMessage: String; aArgs: array of const); overload;
       procedure RaisesException(const aExceptionClass: TClass; const aExceptionMessage: String = ''); overload;
+      procedure RaisesException(const aExceptionClass: TClass; const aExceptionMessage: String; aArgs: array of const); overload;
       procedure RaisesException(const aExceptionMessage: String = ''); overload;
+      procedure RaisesException(const aExceptionMessage: String; aArgs: array of const); overload;
       procedure RaisesNoException;
     end;
 
@@ -119,20 +130,34 @@ interface
       function Assert(const aValue: UnicodeString): UnicodeStringAssertions; overload;
     {$endif}
     public // IExceptionAssertions
-      procedure RaisesExceptionOf(const aExceptionOrBaseClass: TClass; const aExceptionMessage: String = '');
+      procedure FailedToRaiseException;
+      procedure RaisedExceptionOf(const aExceptionBaseClass: TClass; const aExceptionMessage: String = ''); overload;
+      procedure RaisedExceptionOf(const aExceptionBaseClass: TClass; const aExceptionMessage: String; aArgs: array of const); overload;
+      procedure RaisedException(const aExceptionClass: TClass; const aExceptionMessage: String = ''); overload;
+      procedure RaisedException(const aExceptionClass: TClass; const aExceptionMessage: String; aArgs: array of const); overload;
+      procedure RaisedException(const aExceptionMessage: String = ''); overload;
+      procedure RaisedException(const aExceptionMessage: String; aArgs: array of const); overload;
+      procedure RaisesExceptionOf(const aExceptionBaseClass: TClass; const aExceptionMessage: String = ''); overload;
+      procedure RaisesExceptionOf(const aExceptionBaseClass: TClass; const aExceptionMessage: String; aArgs: array of const); overload;
       procedure RaisesException(const aExceptionClass: TClass; const aExceptionMessage: String = ''); overload;
+      procedure RaisesException(const aExceptionClass: TClass; const aExceptionMessage: String; aArgs: array of const); overload;
       procedure RaisesException(const aExceptionMessage: String = ''); overload;
+      procedure RaisesException(const aExceptionMessage: String; aArgs: array of const); overload;
       procedure RaisesNoException;
     end;
     TAssertFactoryClass = class of TAssertFactory;
 
+
+    ENoExceptionRaised = class(Exception)
+    private
+      constructor Create; reintroduce;
+    end;
 
 
 implementation
 
   uses
     Contnrs,
-    SysUtils,
     TypInfo,
     Deltics.Smoketest.TestRun,
     Deltics.Smoketest.Utils;
@@ -156,6 +181,14 @@ implementation
   // For convenience we'll keep a ready-reference to the type-cast TestRun
   var
     TestRun: TTestRunHelper;
+
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  constructor ENoExceptionRaised.Create;
+  begin
+    inherited Create('');
+  end;
 
 
 
@@ -300,18 +333,94 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  procedure TAssertFactory.RaisesExceptionOf(const aExceptionOrBaseClass: TClass;
-                                                const aExceptionMessage: String);
+  procedure TAssertFactory.FailedToRaiseException;
   begin
-    TestRun.ExpectingException(aExceptionOrBaseClass, aExceptionMessage, FALSE);
+    raise ENoExceptionRaised.Create;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TAssertFactory.RaisedException(const aExceptionClass: TClass;
+                                           const aExceptionMessage: String;
+                                                 aArgs: array of const);
+  begin
+    RaisedException(aExceptionClass, Interpolate(aExceptionMessage, aArgs));
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TAssertFactory.RaisedException(const aExceptionClass: TClass;
+                                           const aExceptionMessage: String);
+  begin
+    TestRun.ExpectingException(aExceptionClass, aExceptionMessage, TRUE);
+    TestRun.TestError;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TAssertFactory.RaisedException(const aExceptionMessage: String;
+                                                 aArgs: array of const);
+  begin
+    RaisedException(Exception, Interpolate(aExceptionMessage, aArgs));
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TAssertFactory.RaisedException(const aExceptionMessage: String);
+  begin
+    RaisedException(Exception, aExceptionMessage);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TAssertFactory.RaisedExceptionOf(const aExceptionBaseClass: TClass;
+                                             const aExceptionMessage: String);
+  begin
+    TestRun.ExpectingException(aExceptionBaseClass, aExceptionMessage, FALSE);
+    TestRun.TestError;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TAssertFactory.RaisedExceptionOf(const aExceptionBaseClass: TClass;
+                                             const aExceptionMessage: String;
+                                                   aArgs: array of const);
+  begin
+    RaisedExceptionOf(aExceptionBaseClass, Interpolate(aExceptionMessage, aArgs));
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TAssertFactory.RaisesExceptionOf(const aExceptionBaseClass: TClass;
+                                             const aExceptionMessage: String);
+  begin
+    TestRun.ExpectingException(aExceptionBaseClass, aExceptionMessage, FALSE);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TAssertFactory.RaisesExceptionOf(const aExceptionBaseClass: TClass;
+                                             const aExceptionMessage: String;
+                                                   aArgs: array of const);
+  begin
+    TestRun.ExpectingException(aExceptionBaseClass, Interpolate(aExceptionMessage, aArgs), FALSE);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TAssertFactory.RaisesException(const aExceptionClass: TClass;
-                                                     const aExceptionMessage: String);
+                                           const aExceptionMessage: String);
   begin
     TestRun.ExpectingException(aExceptionClass, aExceptionMessage, TRUE);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TAssertFactory.RaisesException(const aExceptionClass: TClass;
+                                           const aExceptionMessage: String;
+                                                 aArgs: array of const);
+  begin
+    TestRun.ExpectingException(aExceptionClass, Interpolate(aExceptionMessage, aArgs), TRUE);
   end;
 
 
@@ -319,6 +428,14 @@ implementation
   procedure TAssertFactory.RaisesException(const aExceptionMessage: String);
   begin
     TestRun.ExpectingException(Exception, aExceptionMessage, FALSE);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TAssertFactory.RaisesException(const aExceptionMessage: String;
+                                                 aArgs: array of const);
+  begin
+    TestRun.ExpectingException(Exception, Interpolate(aExceptionMessage, aArgs), FALSE);
   end;
 
 
