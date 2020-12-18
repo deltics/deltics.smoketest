@@ -106,9 +106,11 @@ interface
 
 
     Accumulators = class
-    public
+    protected
       class procedure Execute(const aResult: TTestResult);
+    public
       class procedure Detach(const aAccumulator: IAccumulator);
+      class function New: IAccumulator;
       class function Register(const aClass: TAccumulatorClass): IAccumulator;
     end;
 
@@ -120,6 +122,7 @@ implementation
 
   uses
     SysUtils,
+    Deltics.Smoketest.Accumulators.ActualStateAccumulator,
     Deltics.Smoketest.Utils;
 
 
@@ -160,6 +163,12 @@ implementation
 
     for i := 0 to Pred(Length(remaining)) do
       _Accumulators[i] := remaining[i];
+  end;
+
+
+  class function Accumulators.New: IAccumulator;
+  begin
+    result := Register(TActualStateAccumulator);
   end;
 
 
