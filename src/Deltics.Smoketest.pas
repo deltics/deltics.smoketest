@@ -44,6 +44,7 @@
 interface
 
   uses
+    Deltics.Smoketest.Accumulators,
     Deltics.Smoketest.Test,
     Deltics.Smoketest.TestRun,
     Deltics.Smoketest.Utils;
@@ -51,8 +52,10 @@ interface
   // Elevate the scope of the TTest class so that test class implementation units
   //  need only reference Deltics.Smoketest.
   type
+    Accumulators  = Deltics.Smoketest.Accumulators.Accumulators;
     TTest         = Deltics.Smoketest.Test.TTest;
     EInvalidTest  = Deltics.Smoketest.Utils.EInvalidTest;
+    IAccumulator  = Deltics.Smoketest.Accumulators.IAccumulator;
 
   const
     METHOD_NAME = Deltics.Smoketest.Test.METHOD_NAME;
