@@ -605,6 +605,16 @@ implementation
   var
     i, j: Integer;
     c: Char;
+    surrogatePair: Boolean;
+    codepoint: Cardinal;
+
+    function PairToCodePoint(hi, lo: WideChar): Cardinal;
+    const
+      LEAD_OFFSET       = $D800 - ($10000 shr 10);
+      SURROGATE_OFFSET  = $10000 - ($D800 shl 10) - $DC00;
+    begin
+      result := (Word(hi) shl 10) + Word(lo) + SURROGATE_OFFSET;
+    end;
 
     procedure Append(const aString: String);
     var
@@ -621,14 +631,30 @@ implementation
     end;
 
   begin
+    surrogatePair := FALSE;
     SetLength(result, Length(aValue) * 2);
 
     j := 0;
     for i := 1 to Length(aValue) do
     begin
-      c := aValue[i];
+      if surrogatePair then
+      begin
+        codepoint := PairToCodePoint(c, aValue[i]);
+        Append('&#' + BinToHex(@codepoint, 4) + ';');
+        CONTINUE;
+      end
+      else
+        c := aValue[i];
 
-      case c of
+      if (Ord(c) > 127) then
+      begin
+        surrogatePair := (Word(c) >= $d800) and (Word(c) <= $dbff);
+        if surrogatePair then
+          CONTINUE;
+
+        Append('&#' + BinToHex(@c, 2) + ';');
+      end
+      else case c of
         TAB : Append('&#x9;');
         LF  : Append('&#xA;');
         CR  : Append('&#xD;');
