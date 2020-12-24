@@ -649,8 +649,11 @@ implementation
     {$ifdef UNICODE}
       if surrogatePair then
       begin
+        surrogatePair := FALSE;
+
         codepoint := PairToCodePoint(c, aValue[i]);
-        Append('&#' + BinToHex(@codepoint, 4) + ';');
+        Append('&#x' + BinToHex(@codepoint, 4) + ';');
+
         CONTINUE;
       end
       else
@@ -667,7 +670,7 @@ implementation
           CONTINUE;
       {$endif}
 
-        Append('&#' + BinToHex(@c, sizeof(char)) + ';');
+        Append('&#x' + BinToHex(@c, sizeof(char)) + ';');
       end
       else case c of
         TAB : Append('&#x9;');

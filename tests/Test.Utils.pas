@@ -79,7 +79,7 @@ implementation
 
   procedure TUtilsTests.XmlEncodedAttrEncodesSymbolsCorrectly;
   begin
-    Test('XmlEncodedAttr(''©2020'')').Assert(XmlEncodedAttr('©2020')).Equals({$ifdef UNICODE}'&#00a9;2020'{$else}'&#a9;2020'{$endif});
+    Test('XmlEncodedAttr(''©2020'')').Assert(XmlEncodedAttr('©2020')).Equals({$ifdef UNICODE}'&#x00a9;2020'{$else}'&#xa9;2020'{$endif});
     Test('XmlEncodedAttr(''1 < 2'')').Assert(XmlEncodedAttr('1 < 2')).Equals('1 &lt; 2');
     Test('XmlEncodedAttr(''1 > 2'')').Assert(XmlEncodedAttr('1 > 2')).Equals('1 &gt; 2');
     Test('XmlEncodedAttr(''1 <= 2'')').Assert(XmlEncodedAttr('1 <= 2')).Equals('1 &lt;= 2');
@@ -98,7 +98,7 @@ implementation
     CODEPOINT = '0001d11e';
     CLEF      = WideChar($d834) + WideChar($dd1e);
   begin
-    Test('XmlEncodedAttr(''' + CLEF + ''')').Assert(XmlEncodedAttr(CLEF)).Equals('&#' + CODEPOINT + ';');
+    Test('XmlEncodedAttr(''' + CLEF + ''')').Assert(XmlEncodedAttr(CLEF)).Equals('&#x' + CODEPOINT + ';');
   end;
 {$endif}
 
