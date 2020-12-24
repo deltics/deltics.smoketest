@@ -250,6 +250,10 @@ interface
 
 implementation
 
+  uses
+    Windows;
+
+
   resourcestring
     rsfENoPublishedMethods  = '%s has no published methods';
     rsfEMethodIndex         = 'Invalid published method index (%d) for %s';
@@ -605,16 +609,19 @@ implementation
   var
     i, j: Integer;
     c: Char;
+
+  {$ifdef UNICODE}
     surrogatePair: Boolean;
     codepoint: Cardinal;
 
-    function PairToCodePoint(hi, lo: WideChar): Cardinal;
+    function PairToCodePoint(hi, lo: Char): Cardinal;
     const
       LEAD_OFFSET       = $D800 - ($10000 shr 10);
       SURROGATE_OFFSET  = $10000 - ($D800 shl 10) - $DC00;
     begin
       result := (Word(hi) shl 10) + Word(lo) + SURROGATE_OFFSET;
     end;
+  {$endif}
 
     procedure Append(const aString: String);
     var
@@ -631,12 +638,15 @@ implementation
     end;
 
   begin
+  {$ifdef UNICODE}
     surrogatePair := FALSE;
+  {$endif}
     SetLength(result, Length(aValue) * 2);
 
     j := 0;
     for i := 1 to Length(aValue) do
     begin
+    {$ifdef UNICODE}
       if surrogatePair then
       begin
         codepoint := PairToCodePoint(c, aValue[i]);
@@ -645,14 +655,19 @@ implementation
       end
       else
         c := aValue[i];
+    {$else}
+      c := aValue[i];
+    {$endif}
 
       if (Ord(c) > 127) then
       begin
+      {$ifdef UNICODE}
         surrogatePair := (Word(c) >= $d800) and (Word(c) <= $dbff);
         if surrogatePair then
           CONTINUE;
+      {$endif}
 
-        Append('&#' + BinToHex(@c, 2) + ';');
+        Append('&#' + BinToHex(@c, sizeof(char)) + ';');
       end
       else case c of
         TAB : Append('&#x9;');

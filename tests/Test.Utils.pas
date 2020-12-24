@@ -50,7 +50,10 @@ interface
   type
     TUtilsTests = class(TTest)
       procedure BinToHexEncodesCorrectly;
-      procedure XmlEncodedAttrEncodesCorrectly;
+      procedure XmlEncodedAttrEncodesSymbolsCorrectly;
+    {$ifdef UNICODE}
+      procedure XmlEncodedAttrEncodesSupplementaryCharactersCorrectly;
+    {$endif}
     end;
 
 
@@ -70,17 +73,13 @@ implementation
     buf := $0a0b0c0dfeff1234;
     s   := BinToHex(@buf, sizeof(BUF));
 
-    Test('BinToHex(@$0a0b0c0dfeff1234)').Assert(s).Equals('0a0b0c0dfeff1234');  end;
+    Test('BinToHex(@$0a0b0c0dfeff1234)').Assert(s).Equals('0a0b0c0dfeff1234');
+  end;
 
 
-  procedure TUtilsTests.XmlEncodedAttrEncodesCorrectly;
-  const
-    CODEPOINT     = '0001d11e';
-    SURROGATEPAIR = WideChar($d834) + WideChar($dd1e);
-
+  procedure TUtilsTests.XmlEncodedAttrEncodesSymbolsCorrectly;
   begin
-    Test('XmlEncodedAttr(''<SURROGATE_PAIR>'')').Assert(XmlEncodedAttr(SURROGATEPAIR)).Equals('&#' + CODEPOINT + ';');
-    Test('XmlEncodedAttr(''©2020'')').Assert(XmlEncodedAttr('©2020')).Equals('&#00a9;2020');
+    Test('XmlEncodedAttr(''©2020'')').Assert(XmlEncodedAttr('©2020')).Equals({$ifdef UNICODE}'&#00a9;2020'{$else}'&#a9;2020'{$endif});
     Test('XmlEncodedAttr(''1 < 2'')').Assert(XmlEncodedAttr('1 < 2')).Equals('1 &lt; 2');
     Test('XmlEncodedAttr(''1 > 2'')').Assert(XmlEncodedAttr('1 > 2')).Equals('1 &gt; 2');
     Test('XmlEncodedAttr(''1 <= 2'')').Assert(XmlEncodedAttr('1 <= 2')).Equals('1 &lt;= 2');
@@ -93,6 +92,15 @@ implementation
   end;
 
 
+{$ifdef UNICODE}
+  procedure TUtilsTests.XmlEncodedAttrEncodesSupplementaryCharactersCorrectly;
+  const
+    CODEPOINT = '0001d11e';
+    CLEF      = WideChar($d834) + WideChar($dd1e);
+  begin
+    Test('XmlEncodedAttr(''' + CLEF + ''')').Assert(XmlEncodedAttr(CLEF)).Equals('&#' + CODEPOINT + ';');
+  end;
+{$endif}
 
 
 end.
