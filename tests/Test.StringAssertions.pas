@@ -55,23 +55,204 @@ interface
       procedure AnsiStringEqualsTextPassesWhenStringsAreExactMatch;
       procedure AnsiStringEqualsTextPassesWhenStringsDifferOnlyInCase;
       procedure AnsiStringEqualsTextFailsWhenStringsDifferByMoreThanCase;
+      procedure AnsiStringContainsFailsWhenStringDoesNotContainSubstring;
+      procedure AnsiStringContainsFailsWhenStringContainsSubstringInDifferentCase;
+      procedure AnsiStringContainsPassesWhenStringContainsSubstringInSameCase;
+      procedure AnsiStringContainsTextFailsWhenStringDoesNotContainSubstring;
+      procedure AnsiStringContainsTextPassesWhenStringContainsSubstringInDifferentCase;
+      procedure AnsiStringContainsTextPassesWhenStringContainsSubstringInSameCase;
+      procedure AnsiStringDoesNotContainFailsWhenStringContainsSubstringInSameCase;
+      procedure AnsiStringDoesNotContainPassesWhenStringContainsSubstringInDifferentCase;
+      procedure AnsiStringDoesNotContainPassesWhenStringDoesNotContainsSubstring;
+      procedure AnsiStringDoesNotContainTextFailsWhenStringContainsSubstringInSameCase;
+      procedure AnsiStringDoesNotContainTextFailsWhenStringContainsSubstringInDifferentCase;
+      procedure AnsiStringDoesNotContainTextPassesWhenStringDoesNotContainsSubstring;
+      procedure AnsiStringIsEmptyFailsWhenStringIsNotEmpty;
+      procedure AnsiStringIsEmptyPassesWhenStringIsEmpty;
+      procedure AnsiStringIsNotEmptyFailsWhenStringIsEmpty;
+      procedure AnsiStringIsNotEmptyPassesWhenStringIsNotEmpty;
     {$ifdef UNICODE}
       procedure UnicodeStringEqualsPassesWhenStringsAreExactMatch;
       procedure UnicodeStringEqualsFailsWhenStringsAreNotAnExactMatch;
       procedure UnicodeStringEqualsTextPassesWhenStringsAreExactMatch;
       procedure UnicodeStringEqualsTextPassesWhenStringsDifferOnlyInCase;
       procedure UnicodeStringEqualsTextFailsWhenStringsDifferByMoreThanCase;
+      procedure UnicodeStringContainsFailsWhenStringDoesNotContainSubstring;
+      procedure UnicodeStringContainsFailsWhenStringContainsSubstringInDifferentCase;
+      procedure UnicodeStringContainsPassesWhenStringContainsSubstringInSameCase;
+      procedure UnicodeStringContainsTextFailsWhenStringDoesNotContainSubstring;
+      procedure UnicodeStringContainsTextPassesWhenStringContainsSubstringInDifferentCase;
+      procedure UnicodeStringContainsTextPassesWhenStringContainsSubstringInSameCase;
+      procedure UnicodeStringDoesNotContainFailsWhenStringContainsSubstringInSameCase;
+      procedure UnicodeStringDoesNotContainPassesWhenStringContainsSubstringInDifferentCase;
+      procedure UnicodeStringDoesNotContainPassesWhenStringDoesNotContainsSubstring;
+      procedure UnicodeStringDoesNotContainTextFailsWhenStringContainsSubstringInSameCase;
+      procedure UnicodeStringDoesNotContainTextFailsWhenStringContainsSubstringInDifferentCase;
+      procedure UnicodeStringDoesNotContainTextPassesWhenStringDoesNotContainsSubstring;
+      procedure UnicodeStringIsEmptyFailsWhenStringIsNotEmpty;
+      procedure UnicodeStringIsEmptyPassesWhenStringIsEmpty;
+      procedure UnicodeStringIsNotEmptyFailsWhenStringIsEmpty;
+      procedure UnicodeStringIsNotEmptyPassesWhenStringIsNotEmpty;
     {$endif}
       procedure WideStringEqualsPassesWhenStringsAreExactMatch;
       procedure WideStringEqualsFailsWhenStringsAreNotAnExactMatch;
       procedure WideStringEqualsTextPassesWhenStringsAreExactMatch;
       procedure WideStringEqualsTextPassesWhenStringsDifferOnlyInCase;
       procedure WideStringEqualsTextFailsWhenStringsDifferByMoreThanCase;
+      procedure WideStringContainsFailsWhenStringDoesNotContainSubstring;
+      procedure WideStringContainsFailsWhenStringContainsSubstringInDifferentCase;
+      procedure WideStringContainsPassesWhenStringContainsSubstringInSameCase;
+      procedure WideStringContainsTextFailsWhenStringDoesNotContainSubstring;
+      procedure WideStringContainsTextPassesWhenStringContainsSubstringInDifferentCase;
+      procedure WideStringContainsTextPassesWhenStringContainsSubstringInSameCase;
+      procedure WideStringDoesNotContainFailsWhenStringContainsSubstringInSameCase;
+      procedure WideStringDoesNotContainPassesWhenStringContainsSubstringInDifferentCase;
+      procedure WideStringDoesNotContainPassesWhenStringDoesNotContainsSubstring;
+      procedure WideStringDoesNotContainTextFailsWhenStringContainsSubstringInSameCase;
+      procedure WideStringDoesNotContainTextFailsWhenStringContainsSubstringInDifferentCase;
+      procedure WideStringDoesNotContainTextPassesWhenStringDoesNotContainsSubstring;
+      procedure WideStringIsEmptyFailsWhenStringIsNotEmpty;
+      procedure WideStringIsEmptyPassesWhenStringIsEmpty;
+      procedure WideStringIsNotEmptyFailsWhenStringIsEmpty;
+      procedure WideStringIsNotEmptyPassesWhenStringIsNotEmpty;
     end;
 
 
 
 implementation
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.AnsiStringContainsFailsWhenStringContainsSubstringInDifferentCase;
+  const
+    A: AnsiString = 'the fox';
+    B: AnsiString = 'FOX';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).Contains(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.AnsiStringContainsFailsWhenStringDoesNotContainSubstring;
+  const
+    A: AnsiString = 'the fox';
+    B: AnsiString = 'wolf';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).Contains(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.AnsiStringContainsPassesWhenStringContainsSubstringInSameCase;
+  const
+    A: AnsiString = 'the fox';
+    B: AnsiString = 'fox';
+  begin
+    Assert(A).Contains(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.AnsiStringContainsTextFailsWhenStringDoesNotContainSubstring;
+  const
+    A: AnsiString = 'the fox';
+    B: AnsiString = 'wolf';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).ContainsText(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.AnsiStringContainsTextPassesWhenStringContainsSubstringInDifferentCase;
+  const
+    A: AnsiString = 'the fox';
+    B: AnsiString = 'FOX';
+  begin
+    Assert(A).ContainsText(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.AnsiStringContainsTextPassesWhenStringContainsSubstringInSameCase;
+  const
+    A: AnsiString = 'the fox';
+    B: AnsiString = 'fox';
+  begin
+    Assert(A).ContainsText(B);
+  end;
+
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.AnsiStringDoesNotContainFailsWhenStringContainsSubstringInSameCase;
+  const
+    A: AnsiString = 'the fox';
+    B: AnsiString = 'fox';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).DoesNotContain(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.AnsiStringDoesNotContainPassesWhenStringContainsSubstringInDifferentCase;
+  const
+    A: AnsiString = 'the fox';
+    B: AnsiString = 'FOX';
+  begin
+    Assert(A).DoesNotContain(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.AnsiStringDoesNotContainPassesWhenStringDoesNotContainsSubstring;
+  const
+    A: AnsiString = 'the fox';
+    B: AnsiString = 'wolf';
+  begin
+    Assert(A).DoesNotContain(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.AnsiStringDoesNotContainTextFailsWhenStringContainsSubstringInDifferentCase;
+  const
+    A: AnsiString = 'the fox';
+    B: AnsiString = 'FOX';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).DoesNotContain(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.AnsiStringDoesNotContainTextFailsWhenStringContainsSubstringInSameCase;
+  const
+    A: AnsiString = 'the fox';
+    B: AnsiString = 'fox';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).DoesNotContain(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.AnsiStringDoesNotContainTextPassesWhenStringDoesNotContainsSubstring;
+  const
+    A: AnsiString = 'the fox';
+    B: AnsiString = 'wolf';
+  begin
+    Assert(A).DoesNotContain(B);
+  end;
+
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TStringTests.AnsiStringEqualsFailsWhenStringsAreNotAnExactMatch;
@@ -125,6 +306,47 @@ implementation
   begin
     Assert(A).EqualsText(B);
   end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.AnsiStringIsEmptyFailsWhenStringIsNotEmpty;
+  const
+    A: AnsiString = 'foo';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).IsEmpty;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.AnsiStringIsEmptyPassesWhenStringIsEmpty;
+  const
+    A: AnsiString = '';
+  begin
+    Assert(A).IsEmpty;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.AnsiStringIsNotEmptyFailsWhenStringIsEmpty;
+  const
+    A: AnsiString = '';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).IsNotEmpty;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.AnsiStringIsNotEmptyPassesWhenStringIsNotEmpty;
+  const
+    A: AnsiString = 'foo';
+  begin
+    Assert(A).IsNotEmpty;
+  end;
+
 
 
 {$ifdef UNICODE}
@@ -181,6 +403,180 @@ implementation
     Assert(A).EqualsText(B);
   end;
 
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.UnicodeStringContainsFailsWhenStringContainsSubstringInDifferentCase;
+  const
+    A: UnicodeString = 'the fox';
+    B: UnicodeString = 'FOX';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).Contains(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.UnicodeStringContainsFailsWhenStringDoesNotContainSubstring;
+  const
+    A: UnicodeString = 'the fox';
+    B: UnicodeString = 'wolf';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).Contains(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.UnicodeStringContainsPassesWhenStringContainsSubstringInSameCase;
+  const
+    A: UnicodeString = 'the fox';
+    B: UnicodeString = 'fox';
+  begin
+    Assert(A).Contains(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.UnicodeStringContainsTextFailsWhenStringDoesNotContainSubstring;
+  const
+    A: UnicodeString = 'the fox';
+    B: UnicodeString = 'wolf';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).ContainsText(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.UnicodeStringContainsTextPassesWhenStringContainsSubstringInDifferentCase;
+  const
+    A: UnicodeString = 'the fox';
+    B: UnicodeString = 'FOX';
+  begin
+    Assert(A).ContainsText(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.UnicodeStringContainsTextPassesWhenStringContainsSubstringInSameCase;
+  const
+    A: UnicodeString = 'the fox';
+    B: UnicodeString = 'fox';
+  begin
+    Assert(A).ContainsText(B);
+  end;
+
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.UnicodeStringDoesNotContainFailsWhenStringContainsSubstringInSameCase;
+  const
+    A: UnicodeString = 'the fox';
+    B: UnicodeString = 'fox';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).DoesNotContain(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.UnicodeStringDoesNotContainPassesWhenStringContainsSubstringInDifferentCase;
+  const
+    A: UnicodeString = 'the fox';
+    B: UnicodeString = 'FOX';
+  begin
+    Assert(A).DoesNotContain(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.UnicodeStringDoesNotContainPassesWhenStringDoesNotContainsSubstring;
+  const
+    A: UnicodeString = 'the fox';
+    B: UnicodeString = 'wolf';
+  begin
+    Assert(A).DoesNotContain(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.UnicodeStringDoesNotContainTextFailsWhenStringContainsSubstringInDifferentCase;
+  const
+    A: UnicodeString = 'the fox';
+    B: UnicodeString = 'FOX';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).DoesNotContain(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.UnicodeStringDoesNotContainTextFailsWhenStringContainsSubstringInSameCase;
+  const
+    A: UnicodeString = 'the fox';
+    B: UnicodeString = 'fox';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).DoesNotContain(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.UnicodeStringDoesNotContainTextPassesWhenStringDoesNotContainsSubstring;
+  const
+    A: UnicodeString = 'the fox';
+    B: UnicodeString = 'wolf';
+  begin
+    Assert(A).DoesNotContain(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.UnicodeStringIsEmptyFailsWhenStringIsNotEmpty;
+  const
+    A: UnicodeString = 'foo';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).IsEmpty;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.UnicodeStringIsEmptyPassesWhenStringIsEmpty;
+  const
+    A: UnicodeString = '';
+  begin
+    Assert(A).IsEmpty;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.UnicodeStringIsNotEmptyFailsWhenStringIsEmpty;
+  const
+    A: UnicodeString = '';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).IsNotEmpty;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.UnicodeStringIsNotEmptyPassesWhenStringIsNotEmpty;
+  const
+    A: UnicodeString = 'foo';
+  begin
+    Assert(A).IsNotEmpty;
+  end;
+
+
 {$endif}
 
 
@@ -236,6 +632,181 @@ implementation
   begin
     Assert(A).EqualsText(B);
   end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.WideStringContainsFailsWhenStringContainsSubstringInDifferentCase;
+  const
+    A: WideString = 'the fox';
+    B: WideString = 'FOX';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).Contains(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.WideStringContainsFailsWhenStringDoesNotContainSubstring;
+  const
+    A: WideString = 'the fox';
+    B: WideString = 'wolf';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).Contains(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.WideStringContainsPassesWhenStringContainsSubstringInSameCase;
+  const
+    A: WideString = 'the fox';
+    B: WideString = 'fox';
+  begin
+    Assert(A).Contains(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.WideStringContainsTextFailsWhenStringDoesNotContainSubstring;
+  const
+    A: WideString = 'the fox';
+    B: WideString = 'wolf';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).ContainsText(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.WideStringContainsTextPassesWhenStringContainsSubstringInDifferentCase;
+  const
+    A: WideString = 'the fox';
+    B: WideString = 'FOX';
+  begin
+    Assert(A).ContainsText(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.WideStringContainsTextPassesWhenStringContainsSubstringInSameCase;
+  const
+    A: WideString = 'the fox';
+    B: WideString = 'fox';
+  begin
+    Assert(A).ContainsText(B);
+  end;
+
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.WideStringDoesNotContainFailsWhenStringContainsSubstringInSameCase;
+  const
+    A: WideString = 'the fox';
+    B: WideString = 'fox';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).DoesNotContain(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.WideStringDoesNotContainPassesWhenStringContainsSubstringInDifferentCase;
+  const
+    A: WideString = 'the fox';
+    B: WideString = 'FOX';
+  begin
+    Assert(A).DoesNotContain(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.WideStringDoesNotContainPassesWhenStringDoesNotContainsSubstring;
+  const
+    A: WideString = 'the fox';
+    B: WideString = 'wolf';
+  begin
+    Assert(A).DoesNotContain(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.WideStringDoesNotContainTextFailsWhenStringContainsSubstringInDifferentCase;
+  const
+    A: WideString = 'the fox';
+    B: WideString = 'FOX';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).DoesNotContain(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.WideStringDoesNotContainTextFailsWhenStringContainsSubstringInSameCase;
+  const
+    A: WideString = 'the fox';
+    B: WideString = 'fox';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).DoesNotContain(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.WideStringDoesNotContainTextPassesWhenStringDoesNotContainsSubstring;
+  const
+    A: WideString = 'the fox';
+    B: WideString = 'wolf';
+  begin
+    Assert(A).DoesNotContain(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.WideStringIsEmptyFailsWhenStringIsNotEmpty;
+  const
+    A: WideString = 'foo';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).IsEmpty;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.WideStringIsEmptyPassesWhenStringIsEmpty;
+  const
+    A: WideString = '';
+  begin
+    Assert(A).IsEmpty;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.WideStringIsNotEmptyFailsWhenStringIsEmpty;
+  const
+    A: WideString = '';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).IsNotEmpty;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.WideStringIsNotEmptyPassesWhenStringIsNotEmpty;
+  const
+    A: WideString = 'foo';
+  begin
+    Assert(A).IsNotEmpty;
+  end;
+
+
 
 
 
