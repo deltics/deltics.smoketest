@@ -226,8 +226,6 @@ implementation
   procedure TPointerAssertionTests.HasUnequalBytesPassesWhenPointersReferenceUnequalBytes;
   var
     a, b: Pointer;
-    i: Integer;
-    pb: PByte;
   begin
     GetMem(a, 100);
     GetMem(b, 100);
