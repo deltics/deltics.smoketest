@@ -50,20 +50,26 @@ interface
   type
     PointerAssertions = interface
     ['{46F67D92-BD65-4D8D-B9B6-65203BC1DF41}']
-      function IsAssigned: AssertionResult;
-      function IsNIL: AssertionResult;
+      function DoesNotEqual(const aExpected: Pointer): AssertionResult;
       function Equals(const aExpected: Pointer): AssertionResult;
       function EqualsBytes(const aExpected: Pointer; const aBytes: Integer): AssertionResult;
+      function HasUnequalBytes(const aExpected: Pointer; const aBytes: Integer): AssertionResult;
+      function IsAssigned: AssertionResult;
+      function IsNIL: AssertionResult;
+      function IsNotNIL: AssertionResult;
     end;
 
 
     TPointerAssertions = class(TAssertions, PointerAssertions)
     private
       fValue: Pointer;
-      function Equals(const aExpected: Pointer): AssertionResult; reintroduce;
+      function DoesNotEqual(const aExpected: Pointer): AssertionResult;
+      function Equals(const aExpected: Pointer): AssertionResult;
       function EqualsBytes(const aExpected: Pointer; const aBytes: Integer): AssertionResult;
+      function HasUnequalBytes(const aExpected: Pointer; const aBytes: Integer): AssertionResult;
       function IsAssigned: AssertionResult;
       function IsNIL: AssertionResult;
+      function IsNotNIL: AssertionResult;
     public
       constructor Create(const aTestName: String; aValue: Pointer);
     end;
@@ -91,6 +97,18 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TPointerAssertions.DoesNotEqual(const aExpected: Pointer): AssertionResult;
+  begin
+    FormatExpected(BinToHex(@aExpected, sizeof(Pointer)));
+
+    Description := Format('{valueName} does not = {expected}');
+    Failure     := Format('{valueWithName} = {expected}');
+
+    result := Assert(fValue <> aExpected);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TPointerAssertions.Equals(const aExpected: Pointer): AssertionResult;
   begin
     FormatExpected(BinToHex(@aExpected, sizeof(Pointer)));
@@ -108,10 +126,23 @@ implementation
   begin
     FormatExpected(BinToHex(aExpected, aBytes));
 
-    Description := Format('{valueName} = {expected}');
-    Failure     := Format('{valueWithName} does not = {expected}');
+    Description := Format('{valueName} has bytes equal to [{expected}]');
+    Failure     := Format('{valueWithName} does not have bytes equal to [{expected}]');
 
     result := Assert(CompareMem(fValue, aExpected, aBytes));
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TPointerAssertions.HasUnequalBytes(const aExpected: Pointer;
+                                              const aBytes: Integer): AssertionResult;
+  begin
+    FormatExpected(BinToHex(aExpected, aBytes));
+
+    Description := Format('{valueName} does not have bytes equal to [{expected}]');
+    Failure     := Format('{valueWithName} has equal bytes [{expected}]');
+
+    result := Assert(NOT CompareMem(fValue, aExpected, aBytes));
   end;
 
 
@@ -131,9 +162,18 @@ implementation
     Description := Format('{valueWithName} is NIL');
     Failure     := Format('{valueWithName} is not NIL');
 
-    result := Assert(NOT Assigned(fValue));
+    result := Assert(fValue = NIL);
   end;
 
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TPointerAssertions.IsNotNIL: AssertionResult;
+  begin
+    Description := Format('{valueWithName} is NOT NIL');
+    Failure     := Format('{valueWithName} is NIL');
+
+    result := Assert(fValue <> NIL);
+  end;
 
 
 
