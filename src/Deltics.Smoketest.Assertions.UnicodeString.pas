@@ -50,17 +50,30 @@ interface
   type
     UnicodeStringAssertions = interface
     ['{780F8AAC-ACA4-406E-8C44-F4EB45475848}']
+      function Contains(const aSubstring: UnicodeString): AssertionResult; overload;
+      function ContainsText(const aSubstring: UnicodeString): AssertionResult; overload;
+      function DoesNotContain(const aSubstring: UnicodeString): AssertionResult; overload;
+      function DoesNotContainText(const aSubstring: UnicodeString): AssertionResult; overload;
       function Equals(const aExpected: UnicodeString): AssertionResult;
       function EqualsText(const aExpected: UnicodeString): AssertionResult;
+      function IsEmpty: AssertionResult;
+      function IsNotEmpty: AssertionResult;
     end;
 
 
     TUnicodeStringAssertions = class(TAssertions, UnicodeStringAssertions)
     private
       fValue: UnicodeString;
+    private
+      function Contains(const aSubstring: UnicodeString): AssertionResult; overload;
+      function ContainsText(const aSubstring: UnicodeString): AssertionResult; overload;
+      function DoesNotContain(const aSubstring: UnicodeString): AssertionResult; overload;
+      function DoesNotContainText(const aSubstring: UnicodeString): AssertionResult; overload;
+      function Equals(const aExpected: UnicodeString): AssertionResult; reintroduce;
+      function EqualsText(const aExpected: UnicodeString): AssertionResult;
+      function IsEmpty: AssertionResult;
+      function IsNotEmpty: AssertionResult;
     public
-      function Equals(const aExpected: UnicodeString):AssertionResult; reintroduce;
-      function EqualsText(const aExpected: UnicodeString):AssertionResult;
       constructor Create(const aTestName: String; const aValue: UnicodeString);
     end;
 
@@ -93,6 +106,54 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TUnicodeStringAssertions.Contains(const aSubstring: UnicodeString): AssertionResult;
+  begin
+    FormatExpected(AsString(aSubstring));
+
+    Description := Format('{valueName} contains {expected}');
+    Failure     := Format('{valueWithName} does not contain {expected}');
+
+    result := Assert(Pos(aSubstring, fValue) > 0);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TUnicodeStringAssertions.ContainsText(const aSubstring: UnicodeString): AssertionResult;
+  begin
+    FormatExpected(AsString(aSubstring));
+
+    Description := Format('{valueName} contains {expected} (case insensitive)');
+    Failure     := Format('{valueWithName} does not contain {expected} (case insensitive)');
+
+    result := Assert(Pos(AnsiLowercase(aSubstring), AnsiLowercase(fValue)) > 0);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TUnicodeStringAssertions.DoesNotContain(const aSubstring: UnicodeString): AssertionResult;
+  begin
+    FormatExpected(AsString(aSubstring));
+
+    Description := Format('{valueName} does not contain {expected}');
+    Failure     := Format('{valueWithName} contains {expected}');
+
+    result := Assert(Pos(aSubstring, fValue) = 0);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TUnicodeStringAssertions.DoesNotContainText(const aSubstring: UnicodeString): AssertionResult;
+  begin
+    FormatExpected(AsString(aSubstring));
+
+    Description := Format('{valueName} does not contains {expected} (case insensitive)');
+    Failure     := Format('{valueWithName} contains {expected} (case insensitive)');
+
+    result := Assert(Pos(AnsiLowercase(aSubstring), AnsiLowercase(fValue)) = 0);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TUnicodeStringAssertions.Equals(const aExpected: UnicodeString): AssertionResult;
   begin
     FormatExpected(AsString(aExpected));
@@ -113,6 +174,26 @@ implementation
     Failure     := Format('{valueWithName} is not the same text as {expected}');
 
     result := Assert(AnsiSameText(fValue, aExpected));
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TUnicodeStringAssertions.IsEmpty: AssertionResult;
+  begin
+    Description := Format('{valueName} is empty');
+    Failure     := Format('{valueWithName} is not empty');
+
+    result := Assert(fValue = '');
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TUnicodeStringAssertions.IsNotEmpty: AssertionResult;
+  begin
+    Description := Format('{valueName} is not empty');
+    Failure     := Format('{valueWithName} is empty');
+
+    result := Assert(fValue <> '');
   end;
 
 
