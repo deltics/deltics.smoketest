@@ -232,7 +232,8 @@ implementation
     try
       CopyMemory(b, a, 100);
 
-      Byte(b^) := Byte(b^) shl 1;
+      // Flip all bits in the first byte of b^
+      Byte(b^) := not Byte(b^);
 
       Assert(b).HasUnequalBytes(a, 100);
 
