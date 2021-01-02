@@ -64,7 +64,7 @@ interface
     private
       fValue: Pointer;
       function DoesNotEqual(const aExpected: Pointer): AssertionResult;
-      function Equals(const aExpected: Pointer): AssertionResult;
+      function Equals(const aExpected: Pointer): AssertionResult; reintroduce;
       function EqualsBytes(const aExpected: Pointer; const aBytes: Integer): AssertionResult;
       function HasUnequalBytes(const aExpected: Pointer; const aBytes: Integer): AssertionResult;
       function IsAssigned: AssertionResult;
