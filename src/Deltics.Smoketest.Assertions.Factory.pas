@@ -105,6 +105,8 @@ interface
     TAssertFactory = class(TInterfacedObject, AssertFactory, IExceptionAssertions)
     private
       fValueName: String;
+      procedure CheckException;
+      procedure CheckNoException;
     protected
       property ValueName: String read fValueName;
       function QueryInterface(const aIID: TGUID; out aIntf): HRESULT; reintroduce; stdcall;
@@ -340,6 +342,22 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TAssertFactory.CheckException;
+  begin
+    if ExceptObject = NIL then
+      raise EInvalidTest.Create('RaisedException() called with no exception object in context.  Did you mean Test.RaisesException ?');
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TAssertFactory.CheckNoException;
+  begin
+    if ExceptObject <> NIL then
+      raise EInvalidTest.Create('RaisesException() called with exception object in context.  Did you mean Test.RaisedException ?');
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TAssertFactory.RaisedException(const aExceptionClass: TClass;
                                            const aExceptionMessage: String;
                                                  aArgs: array of const);
@@ -352,6 +370,7 @@ implementation
   procedure TAssertFactory.RaisedException(const aExceptionClass: TClass;
                                            const aExceptionMessage: String);
   begin
+    CheckException;
     TestRun.ExpectingException(aExceptionClass, aExceptionMessage, TRUE);
     TestRun.TestError;
   end;
@@ -376,6 +395,7 @@ implementation
   procedure TAssertFactory.RaisedExceptionOf(const aExceptionBaseClass: TClass;
                                              const aExceptionMessage: String);
   begin
+    CheckException;
     TestRun.ExpectingException(aExceptionBaseClass, aExceptionMessage, FALSE);
     TestRun.TestError;
   end;
@@ -394,6 +414,7 @@ implementation
   procedure TAssertFactory.RaisesExceptionOf(const aExceptionBaseClass: TClass;
                                              const aExceptionMessage: String);
   begin
+    CheckNoException;
     TestRun.ExpectingException(aExceptionBaseClass, aExceptionMessage, FALSE);
   end;
 
@@ -403,6 +424,7 @@ implementation
                                              const aExceptionMessage: String;
                                                    aArgs: array of const);
   begin
+    CheckNoException;
     TestRun.ExpectingException(aExceptionBaseClass, Interpolate(aExceptionMessage, aArgs), FALSE);
   end;
 
@@ -411,6 +433,7 @@ implementation
   procedure TAssertFactory.RaisesException(const aExceptionClass: TClass;
                                            const aExceptionMessage: String);
   begin
+    CheckNoException;
     TestRun.ExpectingException(aExceptionClass, aExceptionMessage, TRUE);
   end;
 
@@ -420,6 +443,7 @@ implementation
                                            const aExceptionMessage: String;
                                                  aArgs: array of const);
   begin
+    CheckNoException;
     TestRun.ExpectingException(aExceptionClass, Interpolate(aExceptionMessage, aArgs), TRUE);
   end;
 
@@ -427,6 +451,7 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TAssertFactory.RaisesException(const aExceptionMessage: String);
   begin
+    CheckNoException;
     TestRun.ExpectingException(Exception, aExceptionMessage, FALSE);
   end;
 
@@ -435,6 +460,7 @@ implementation
   procedure TAssertFactory.RaisesException(const aExceptionMessage: String;
                                                  aArgs: array of const);
   begin
+    CheckNoException;
     TestRun.ExpectingException(Exception, Interpolate(aExceptionMessage, aArgs), FALSE);
   end;
 
@@ -442,6 +468,7 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TAssertFactory.RaisesNoException;
   begin
+    CheckNoException;
     TestRun.ExpectingNoException;
   end;
 
