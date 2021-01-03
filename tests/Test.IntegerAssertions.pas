@@ -116,7 +116,7 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TIntegerAssertionTests.BetweenRaisesEInvalidTestWhenLowerAndUpperBoundsAreEqual;
   begin
-    Test.RaisesException(EInvalidTest);
+    Test.Raises(EInvalidTest);
 
     Assert(42).Between(42, 42);
   end;
@@ -125,7 +125,7 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TIntegerAssertionTests.BetweenRaisesEInvalidTestWhenLowerAndUpperBoundsDifferByOne;
   begin
-    Test.RaisesException(EInvalidTest);
+    Test.Raises(EInvalidTest);
 
     Assert(42).Between(42, 43);
   end;
@@ -323,7 +323,7 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TIntegerAssertionTests.InRangeRaisesEInvalidTestWhenLowerAndUpperBoundsAreEqual;
   begin
-    Test.RaisesException(EInvalidTest);
+    Test.Raises(EInvalidTest);
 
     Assert(42).InRange(42, 42);
   end;
