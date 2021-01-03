@@ -1,4 +1,4 @@
-{
+﻿{
   * MIT LICENSE *
 
   Copyright © 2020 Jolyon Smith
@@ -64,6 +64,8 @@ interface
       procedure RaisedExceptionOfStillFailsWhenFailedToRaiseExceptionRaisesENoExceptionRaised;
       procedure RaisedExceptionOfFailsWhenExceptionOfWrongClassIsRaised;
       procedure RaisedExceptionOfFailsWhenExceptionRaisedOfExpectedClassHasWrongMessage;
+      procedure RaisesExceptionRaisesEInvalidTestIfCalledInExceptBlock;
+      procedure RaisedExceptionRaisesEInvalidTestIfCalledOutsideOfExceptBlock;
     end;
 
 
@@ -231,6 +233,28 @@ implementation
 
     except
       Test.RaisedExceptionOf(Exception);
+    end;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TExceptionHandlingTests.RaisedExceptionRaisesEInvalidTestIfCalledOutsideOfExceptBlock;
+  begin
+    Test.RaisesException(EInvalidTest);
+
+    Test.RaisedException(Exception);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TExceptionHandlingTests.RaisesExceptionRaisesEInvalidTestIfCalledInExceptBlock;
+  begin
+    Test.RaisesException(EInvalidTest);
+
+    try
+      raise Exception.Create('Deliberately raised exception');
+    except
+      Test.RaisesException(Exception);
     end;
   end;
 
