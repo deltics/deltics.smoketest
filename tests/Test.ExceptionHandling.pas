@@ -1,7 +1,7 @@
 {
   * MIT LICENSE *
 
-  Copyright Â© 2020 Jolyon Smith
+  Copyright © 2020 Jolyon Smith
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of
    this software and associated documentation files (the "Software"), to deal in
@@ -64,6 +64,8 @@ interface
       procedure RaisedExceptionOfStillFailsWhenFailedToRaiseExceptionRaisesENoExceptionRaised;
       procedure RaisedExceptionOfFailsWhenExceptionOfWrongClassIsRaised;
       procedure RaisedExceptionOfFailsWhenExceptionRaisedOfExpectedClassHasWrongMessage;
+      procedure RaisesExceptionRaisesEInvalidTestIfCalledInExceptBlock;
+      procedure RaisedExceptionRaisesEInvalidTestIfCalledOutsideOfExceptBlock;
     end;
 
 
@@ -119,7 +121,7 @@ implementation
   procedure TExceptionHandlingTests.TestExceptionFailsIfRaisedExceptionDoesNotContainTheRequiredText;
   begin
     Test.IsExpectedToFail;
-    Test.RaisesException(Exception, 'is the');
+    Test.Raises(Exception, 'is the');
 
     raise Exception.Create('This message text');
   end;
@@ -128,7 +130,7 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TExceptionHandlingTests.TestExceptionPassesIfRaisedExceptionMessageContainsTheRequiredText;
   begin
-    Test.RaisesException(Exception, 'message text');
+    Test.Raises(Exception, 'message text');
 
     raise Exception.Create('This message text');
   end;
@@ -137,7 +139,7 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TExceptionHandlingTests.TestExceptionPassesIfRaisedExceptionMessageMatchesTheRequiredText;
   begin
-    Test.RaisesException(Exception, 'This message text');
+    Test.Raises(Exception, 'This message text');
 
     raise Exception.Create('This message text');
   end;
@@ -153,21 +155,21 @@ implementation
       raise Exception.Create('This exception is detected');
 
     except
-      Test.RaisedException(Exception, 'This exception is detected');
+      Test.Raised(Exception, 'This exception is detected');
     end;
 
     try
       raise Exception.Create('This exception is also detected');
 
     except
-      Test.RaisedException(Exception, 'This exception is also detected');
+      Test.Raised(Exception, 'This exception is also detected');
     end;
 
     try
       raise Exception.Create('The message on this exception is not important');
 
     except
-      Test.RaisedException(Exception);
+      Test.Raised(Exception);
     end;
 
     Accumulators.Detach(acc);
@@ -185,7 +187,7 @@ implementation
       Test.FailedToRaiseException;
 
     except
-      Test.RaisedException(Exception);
+      Test.Raised(Exception);
     end;
   end;
 
@@ -198,7 +200,7 @@ implementation
       raise Exception.Create('This exception has the wrong message');
 
     except
-      Test.RaisedException(Exception, 'This exception has a specific message');
+      Test.Raised(Exception, 'This exception has a specific message');
     end;
   end;
 
@@ -211,7 +213,7 @@ implementation
       raise EConvertError.Create('This is the wrong exception, the message is irrelevant');
 
     except
-      Test.RaisedException(EInvalidCast);
+      Test.Raised(EInvalidCast);
     end;
   end;
 
@@ -231,6 +233,28 @@ implementation
 
     except
       Test.RaisedExceptionOf(Exception);
+    end;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TExceptionHandlingTests.RaisedExceptionRaisesEInvalidTestIfCalledOutsideOfExceptBlock;
+  begin
+    Test.Raises(EInvalidTest);
+
+    Test.Raised(Exception);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TExceptionHandlingTests.RaisesExceptionRaisesEInvalidTestIfCalledInExceptBlock;
+  begin
+    Test.Raises(EInvalidTest);
+
+    try
+      raise Exception.Create('Deliberately raised exception');
+    except
+      Test.Raises(Exception);
     end;
   end;
 

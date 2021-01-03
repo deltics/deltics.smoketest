@@ -115,7 +115,7 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TInt64AssertionTests.BetweenRaisesEInvalidTestWhenLowerAndUpperBoundsAreEqual;
   begin
-    Test.RaisesException(EInvalidTest);
+    Test.Raises(EInvalidTest);
 
     Assert(Int64(42)).Between(42, 42);
   end;
@@ -124,7 +124,7 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TInt64AssertionTests.BetweenRaisesEInvalidTestWhenLowerAndUpperBoundsDifferByOne;
   begin
-    Test.RaisesException(EInvalidTest);
+    Test.Raises(EInvalidTest);
 
     Assert(Int64(42)).Between(42, 43);
   end;
@@ -322,7 +322,7 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TInt64AssertionTests.InRangeRaisesEInvalidTestWhenLowerAndUpperBoundsAreEqual;
   begin
-    Test.RaisesException(EInvalidTest);
+    Test.Raises(EInvalidTest);
 
     Assert(Int64(42)).InRange(42, 42);
   end;

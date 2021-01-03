@@ -66,16 +66,20 @@ interface
       procedure FailedToRaiseException;
       procedure RaisedExceptionOf(const aExceptionBaseClass: TClass; const aExceptionMessage: String = ''); overload;
       procedure RaisedExceptionOf(const aExceptionBaseClass: TClass; const aExceptionMessage: String; aArgs: array of const); overload;
-      procedure RaisedException(const aExceptionClass: TClass; const aExceptionMessage: String = ''); overload;
-      procedure RaisedException(const aExceptionClass: TClass; const aExceptionMessage: String; aArgs: array of const); overload;
+      procedure RaisedException(const aExceptionClass: TClass; const aExceptionMessage: String = ''); overload; deprecated;
+      procedure RaisedException(const aExceptionClass: TClass; const aExceptionMessage: String; aArgs: array of const); overload; deprecated;
       procedure RaisedException(const aExceptionMessage: String = ''); overload;
       procedure RaisedException(const aExceptionMessage: String; aArgs: array of const); overload;
+      procedure Raised(const aExceptionClass: TClass; const aExceptionMessage: String = ''); overload;
+      procedure Raised(const aExceptionClass: TClass; const aExceptionMessage: String; aArgs: array of const); overload;
       procedure RaisesExceptionOf(const aExceptionBaseClass: TClass; const aExceptionMessage: String = ''); overload;
       procedure RaisesExceptionOf(const aExceptionBaseClass: TClass; const aExceptionMessage: String; aArgs: array of const); overload;
-      procedure RaisesException(const aExceptionClass: TClass; const aExceptionMessage: String = ''); overload;
-      procedure RaisesException(const aExceptionClass: TClass; const aExceptionMessage: String; aArgs: array of const); overload;
+      procedure RaisesException(const aExceptionClass: TClass; const aExceptionMessage: String = ''); overload; deprecated;
+      procedure RaisesException(const aExceptionClass: TClass; const aExceptionMessage: String; aArgs: array of const); overload; deprecated;
       procedure RaisesException(const aExceptionMessage: String = ''); overload;
       procedure RaisesException(const aExceptionMessage: String; aArgs: array of const); overload;
+      procedure Raises(const aExceptionClass: TClass; const aExceptionMessage: String = ''); overload;
+      procedure Raises(const aExceptionClass: TClass; const aExceptionMessage: String; aArgs: array of const); overload;
       procedure RaisesNoException;
     end;
 
@@ -105,6 +109,8 @@ interface
     TAssertFactory = class(TInterfacedObject, AssertFactory, IExceptionAssertions)
     private
       fValueName: String;
+      procedure CheckException;
+      procedure CheckNoException;
     protected
       property ValueName: String read fValueName;
       function QueryInterface(const aIID: TGUID; out aIntf): HRESULT; reintroduce; stdcall;
@@ -137,12 +143,16 @@ interface
       procedure RaisedException(const aExceptionClass: TClass; const aExceptionMessage: String; aArgs: array of const); overload;
       procedure RaisedException(const aExceptionMessage: String = ''); overload;
       procedure RaisedException(const aExceptionMessage: String; aArgs: array of const); overload;
+      procedure Raised(const aExceptionClass: TClass; const aExceptionMessage: String = ''); overload;
+      procedure Raised(const aExceptionClass: TClass; const aExceptionMessage: String; aArgs: array of const); overload;
       procedure RaisesExceptionOf(const aExceptionBaseClass: TClass; const aExceptionMessage: String = ''); overload;
       procedure RaisesExceptionOf(const aExceptionBaseClass: TClass; const aExceptionMessage: String; aArgs: array of const); overload;
       procedure RaisesException(const aExceptionClass: TClass; const aExceptionMessage: String = ''); overload;
       procedure RaisesException(const aExceptionClass: TClass; const aExceptionMessage: String; aArgs: array of const); overload;
       procedure RaisesException(const aExceptionMessage: String = ''); overload;
       procedure RaisesException(const aExceptionMessage: String; aArgs: array of const); overload;
+      procedure Raises(const aExceptionClass: TClass; const aExceptionMessage: String = ''); overload;
+      procedure Raises(const aExceptionClass: TClass; const aExceptionMessage: String; aArgs: array of const); overload;
       procedure RaisesNoException;
     end;
     TAssertFactoryClass = class of TAssertFactory;
@@ -340,6 +350,22 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TAssertFactory.CheckException;
+  begin
+    if ExceptObject = NIL then
+      raise EInvalidTest.Create('RaisedException() called with no exception object in context.  Did you mean Test.RaisesException ?');
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TAssertFactory.CheckNoException;
+  begin
+    if ExceptObject <> NIL then
+      raise EInvalidTest.Create('RaisesException() called with exception object in context.  Did you mean Test.RaisedException ?');
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TAssertFactory.RaisedException(const aExceptionClass: TClass;
                                            const aExceptionMessage: String;
                                                  aArgs: array of const);
@@ -352,12 +378,30 @@ implementation
   procedure TAssertFactory.RaisedException(const aExceptionClass: TClass;
                                            const aExceptionMessage: String);
   begin
+    CheckException;
     TestRun.ExpectingException(aExceptionClass, aExceptionMessage, TRUE);
     TestRun.TestError;
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TAssertFactory.Raised(const aExceptionClass: TClass;
+                                  const aExceptionMessage: String;
+                                        aArgs: array of const);
+  begin
+    Raised(aExceptionClass, Interpolate(aExceptionMessage, aArgs));
+  end;
+
+
+  procedure TAssertFactory.Raised(const aExceptionClass: TClass;
+                                  const aExceptionMessage: String);
+  begin
+    CheckException;
+    TestRun.ExpectingException(aExceptionClass, aExceptionMessage, TRUE);
+    TestRun.TestError;
+  end;
+
+
   procedure TAssertFactory.RaisedException(const aExceptionMessage: String;
                                                  aArgs: array of const);
   begin
@@ -376,6 +420,7 @@ implementation
   procedure TAssertFactory.RaisedExceptionOf(const aExceptionBaseClass: TClass;
                                              const aExceptionMessage: String);
   begin
+    CheckException;
     TestRun.ExpectingException(aExceptionBaseClass, aExceptionMessage, FALSE);
     TestRun.TestError;
   end;
@@ -394,6 +439,7 @@ implementation
   procedure TAssertFactory.RaisesExceptionOf(const aExceptionBaseClass: TClass;
                                              const aExceptionMessage: String);
   begin
+    CheckNoException;
     TestRun.ExpectingException(aExceptionBaseClass, aExceptionMessage, FALSE);
   end;
 
@@ -403,6 +449,7 @@ implementation
                                              const aExceptionMessage: String;
                                                    aArgs: array of const);
   begin
+    CheckNoException;
     TestRun.ExpectingException(aExceptionBaseClass, Interpolate(aExceptionMessage, aArgs), FALSE);
   end;
 
@@ -411,6 +458,7 @@ implementation
   procedure TAssertFactory.RaisesException(const aExceptionClass: TClass;
                                            const aExceptionMessage: String);
   begin
+    CheckNoException;
     TestRun.ExpectingException(aExceptionClass, aExceptionMessage, TRUE);
   end;
 
@@ -420,6 +468,7 @@ implementation
                                            const aExceptionMessage: String;
                                                  aArgs: array of const);
   begin
+    CheckNoException;
     TestRun.ExpectingException(aExceptionClass, Interpolate(aExceptionMessage, aArgs), TRUE);
   end;
 
@@ -427,14 +476,31 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TAssertFactory.RaisesException(const aExceptionMessage: String);
   begin
+    CheckNoException;
     TestRun.ExpectingException(Exception, aExceptionMessage, FALSE);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TAssertFactory.Raises(const aExceptionClass: TClass;
+                                  const aExceptionMessage: String;
+                                        aArgs: array of const);
+  begin
+    Raises(aExceptionClass, Interpolate(aExceptionMessage, aArgs));
+  end;
+
+
+  procedure TAssertFactory.Raises(const aExceptionClass: TClass; const aExceptionMessage: String);
+  begin
+    CheckNoException;
+    TestRun.ExpectingException(aExceptionClass, aExceptionMessage, TRUE);
+  end;
+
+
   procedure TAssertFactory.RaisesException(const aExceptionMessage: String;
                                                  aArgs: array of const);
   begin
+    CheckNoException;
     TestRun.ExpectingException(Exception, Interpolate(aExceptionMessage, aArgs), FALSE);
   end;
 
@@ -442,6 +508,7 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TAssertFactory.RaisesNoException;
   begin
+    CheckNoException;
     TestRun.ExpectingNoException;
   end;
 

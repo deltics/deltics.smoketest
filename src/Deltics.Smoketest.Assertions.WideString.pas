@@ -50,17 +50,30 @@ interface
   type
     WideStringAssertions = interface
     ['{819314CB-486C-4DDA-81CE-C2FD837888B7}']
+      function Contains(const aSubstring: WideString): AssertionResult; overload;
+      function ContainsText(const aSubstring: WideString): AssertionResult; overload;
+      function DoesNotContain(const aSubstring: WideString): AssertionResult; overload;
+      function DoesNotContainText(const aSubstring: WideString): AssertionResult; overload;
       function Equals(const aExpected: WideString): AssertionResult;
-      function EqualsText(const aExpected: WideString):AssertionResult;
+      function EqualsText(const aExpected: WideString): AssertionResult;
+      function IsEmpty: AssertionResult;
+      function IsNotEmpty: AssertionResult;
     end;
 
 
     TWideStringAssertions = class(TAssertions, WideStringAssertions)
     private
       fValue: WideString;
+    private
+      function Contains(const aSubstring: WideString): AssertionResult; overload;
+      function ContainsText(const aSubstring: WideString): AssertionResult; overload;
+      function DoesNotContain(const aSubstring: WideString): AssertionResult; overload;
+      function DoesNotContainText(const aSubstring: WideString): AssertionResult; overload;
+      function Equals(const aExpected: WideString): AssertionResult; reintroduce;
+      function EqualsText(const aExpected: WideString): AssertionResult;
+      function IsEmpty: AssertionResult;
+      function IsNotEmpty: AssertionResult;
     public
-      function Equals(const aExpected: WideString):AssertionResult; reintroduce;
-      function EqualsText(const aExpected: WideString):AssertionResult;
       constructor Create(const aTestName: String; const aValue: WideString);
     end;
 
@@ -92,6 +105,54 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TWideStringAssertions.Contains(const aSubstring: WideString): AssertionResult;
+  begin
+    FormatExpected(AsString(aSubstring));
+
+    Description := Format('{valueName} contains {expected}');
+    Failure     := Format('{valueWithName} does not contain {expected}');
+
+    result := Assert(Pos(aSubstring, fValue) > 0);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TWideStringAssertions.ContainsText(const aSubstring: WideString): AssertionResult;
+  begin
+    FormatExpected(AsString(aSubstring));
+
+    Description := Format('{valueName} contains {expected} (case insensitive)');
+    Failure     := Format('{valueWithName} does not contain {expected} (case insensitive)');
+
+    result := Assert(Pos(AnsiLowercase(aSubstring), AnsiLowercase(fValue)) > 0);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TWideStringAssertions.DoesNotContain(const aSubstring: WideString): AssertionResult;
+  begin
+    FormatExpected(AsString(aSubstring));
+
+    Description := Format('{valueName} does not contain {expected}');
+    Failure     := Format('{valueWithName} contains {expected}');
+
+    result := Assert(Pos(aSubstring, fValue) = 0);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TWideStringAssertions.DoesNotContainText(const aSubstring: WideString): AssertionResult;
+  begin
+    FormatExpected(AsString(aSubstring));
+
+    Description := Format('{valueName} does not contains {expected} (case insensitive)');
+    Failure     := Format('{valueWithName} contains {expected} (case insensitive)');
+
+    result := Assert(Pos(AnsiLowercase(aSubstring), AnsiLowercase(fValue)) = 0);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TWideStringAssertions.Equals(const aExpected: WideString): AssertionResult;
   begin
     FormatExpected(AsString(aExpected));
@@ -113,6 +174,30 @@ implementation
 
     result := Assert(AnsiSameText(fValue, aExpected));
   end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TWideStringAssertions.IsEmpty: AssertionResult;
+  begin
+    Description := Format('{valueName} is empty');
+    Failure     := Format('{valueWithName} is not empty');
+
+    result := Assert(fValue = '');
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TWideStringAssertions.IsNotEmpty: AssertionResult;
+  begin
+    Description := Format('{valueName} is not empty');
+    Failure     := Format('{valueWithName} is empty');
+
+    result := Assert(fValue <> '');
+  end;
+
+
+
+
 
 
 

@@ -58,13 +58,19 @@ interface
       procedure IsAssignedPassesWhenPointerIsAssigned;
       procedure IsNILFailsWhenPointerIsAssigned;
       procedure IsNILPassesWhenPointerIsNIL;
+      procedure DoesNotEqualFailsWhenPointersAreEqual;
+      procedure DoesNotEqualPassesWhenPointersAreNotEqual;
+      procedure HasUnequalBytesFailsWhenPointersAreEqual;
+      procedure HasUnequalBytesFailsWhenPointersReferenceTheSameBytes;
+      procedure HasUnequalBytesPassesWhenPointersReferenceUnequalBytes;
     end;
 
 
 implementation
 
   uses
-    SysUtils;
+    SysUtils,
+    Windows;
 
 
 { TPointerAssertionTests ------------------------------------------------------------------------- }
@@ -142,6 +148,100 @@ implementation
     Assert(NIL).IsNIL;
   end;
 
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TPointerAssertionTests.DoesNotEqualFailsWhenPointersAreEqual;
+  var
+    a, b: Pointer;
+  begin
+    Test.IsExpectedToFail;
+
+    GetMem(a, 100);
+    b := a;
+    try
+      Assert(b).DoesNotEqual(a);
+
+    finally
+      FreeMem(a);
+    end;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TPointerAssertionTests.DoesNotEqualPassesWhenPointersAreNotEqual;
+  var
+    a, b: Pointer;
+  begin
+    GetMem(a, 100);
+    GetMem(b, 100);
+    try
+      Assert(b).DoesNotEqual(a);
+
+    finally
+      FreeMem(b);
+      FreeMem(a);
+    end;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TPointerAssertionTests.HasUnequalBytesFailsWhenPointersAreEqual;
+  var
+    a, b: Pointer;
+  begin
+    Test.IsExpectedToFail;
+
+    GetMem(a, 100);
+    b := a;
+    try
+      Assert(b).HasUnequalBytes(a, 100);
+
+    finally
+      FreeMem(a);
+    end;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TPointerAssertionTests.HasUnequalBytesFailsWhenPointersReferenceTheSameBytes;
+  var
+    a, b: Pointer;
+  begin
+    Test.IsExpectedToFail;
+
+    GetMem(a, 100);
+    GetMem(b, 100);
+    CopyMemory(b, a, 100);
+    try
+      Assert(b).HasUnequalBytes(a, 100);
+
+    finally
+      FreeMem(b);
+      FreeMem(a);
+    end;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TPointerAssertionTests.HasUnequalBytesPassesWhenPointersReferenceUnequalBytes;
+  var
+    a, b: Pointer;
+  begin
+    GetMem(a, 100);
+    GetMem(b, 100);
+    try
+      CopyMemory(b, a, 100);
+
+      // Flip all bits in the first byte of b^
+      Byte(b^) := not Byte(b^);
+
+      Assert(b).HasUnequalBytes(a, 100);
+
+    finally
+      FreeMem(b);
+      FreeMem(a);
+    end;
+  end;
 
 
 

@@ -50,17 +50,30 @@ interface
   type
     AnsiStringAssertions = interface
     ['{62ECF808-5F81-4B5F-BF86-928B5D62B313}']
+      function Contains(const aSubstring: AnsiString): AssertionResult; overload;
+      function ContainsText(const aSubstring: AnsiString): AssertionResult; overload;
+      function DoesNotContain(const aSubstring: AnsiString): AssertionResult; overload;
+      function DoesNotContainText(const aSubstring: AnsiString): AssertionResult; overload;
       function Equals(const aExpected: AnsiString): AssertionResult;
       function EqualsText(const aExpected: AnsiString): AssertionResult;
+      function IsEmpty: AssertionResult;
+      function IsNotEmpty: AssertionResult;
     end;
 
 
     TAnsiStringAssertions = class(TAssertions, AnsiStringAssertions)
     private
       fValue: AnsiString;
+    private
+      function Contains(const aSubstring: AnsiString): AssertionResult; overload;
+      function ContainsText(const aSubstring: AnsiString): AssertionResult; overload;
+      function DoesNotContain(const aSubstring: AnsiString): AssertionResult; overload;
+      function DoesNotContainText(const aSubstring: AnsiString): AssertionResult; overload;
+      function Equals(const aExpected: AnsiString): AssertionResult; reintroduce;
+      function EqualsText(const aExpected: AnsiString): AssertionResult;
+      function IsEmpty: AssertionResult;
+      function IsNotEmpty: AssertionResult;
     public
-      function Equals(const aExpected: AnsiString):AssertionResult; reintroduce;
-      function EqualsText(const aExpected: AnsiString):AssertionResult;
       constructor Create(const aTestName: String; const aValue: AnsiString);
     end;
 
@@ -93,6 +106,54 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TAnsiStringAssertions.Contains(const aSubstring: AnsiString): AssertionResult;
+  begin
+    FormatExpected(AsString(aSubstring));
+
+    Description := Format('{valueName} contains {expected}');
+    Failure     := Format('{valueWithName} does not contain {expected}');
+
+    result := Assert(Pos(aSubstring, fValue) > 0);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TAnsiStringAssertions.ContainsText(const aSubstring: AnsiString): AssertionResult;
+  begin
+    FormatExpected(AsString(aSubstring));
+
+    Description := Format('{valueName} contains {expected} (case insensitive)');
+    Failure     := Format('{valueWithName} does not contain {expected} (case insensitive)');
+
+    result := Assert(Pos(AnsiLowercase(aSubstring), AnsiLowercase(fValue)) > 0);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TAnsiStringAssertions.DoesNotContain(const aSubstring: AnsiString): AssertionResult;
+  begin
+    FormatExpected(AsString(aSubstring));
+
+    Description := Format('{valueName} does not contain {expected}');
+    Failure     := Format('{valueWithName} contains {expected}');
+
+    result := Assert(Pos(aSubstring, fValue) = 0);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TAnsiStringAssertions.DoesNotContainText(const aSubstring: AnsiString): AssertionResult;
+  begin
+    FormatExpected(AsString(aSubstring));
+
+    Description := Format('{valueName} does not contains {expected} (case insensitive)');
+    Failure     := Format('{valueWithName} contains {expected} (case insensitive)');
+
+    result := Assert(Pos(AnsiLowercase(aSubstring), AnsiLowercase(fValue)) = 0);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TAnsiStringAssertions.Equals(const aExpected: AnsiString): AssertionResult;
   begin
     FormatExpected(AsString(aExpected));
@@ -116,5 +177,27 @@ implementation
   end;
 
 
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TAnsiStringAssertions.IsEmpty: AssertionResult;
+  begin
+    Description := Format('{valueName} is empty');
+    Failure     := Format('{valueWithName} is not empty');
+
+    result := Assert(fValue = '');
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TAnsiStringAssertions.IsNotEmpty: AssertionResult;
+  begin
+    Description := Format('{valueName} is not empty');
+    Failure     := Format('{valueWithName} is empty');
+
+    result := Assert(fValue <> '');
+  end;
+
+
+
 
 end.
+
