@@ -94,6 +94,7 @@ interface
       procedure FormatToken(const aTokenString: String; const aTokenValue: String);
       property Description: String read fDescription write fDescription;
       property Failure: String read fFailure write fFailure;
+      property TestResult: TTestResult read fTestResult;
       property ValueName: String read fValueName;
     public
       constructor Create(const aValueName: String; const aValueAsString: String);

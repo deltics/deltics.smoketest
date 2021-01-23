@@ -49,6 +49,7 @@ interface
     Controls,
   {$endif}
     SysUtils,
+    Deltics.Smoketest.Assertions.Boolean,
     Deltics.Smoketest.Assertions.Date,
     Deltics.Smoketest.Assertions.DateTime,
     Deltics.Smoketest.Assertions.Guid,
@@ -86,7 +87,7 @@ interface
 
     AssertFactory = interface(IExceptionAssertions)
     ['{5D45A072-5B9D-4ECC-AB86-AFD82E9F6911}']
-      function Assert(const aValue: Boolean): Boolean; overload;
+      function Assert(const aValue: Boolean): BooleanAssertions; overload;
     {$ifdef EnhancedOverloads}
       function Assert(const aValue: TDate): DateAssertions; overload;
       function Assert(const aValue: TDateTime): DateTimeAssertions; overload;
@@ -118,7 +119,7 @@ interface
     public
       constructor Create(const aValueName: String); virtual;
     public // AssertFactory
-      function Assert(const aValue: Boolean): Boolean; overload;
+      function Assert(const aValue: Boolean): BooleanAssertions; overload;
     {$ifdef EnhancedOverloads}
       function Assert(const aValue: TDate): DateAssertions; overload;
       function Assert(const aValue: TDateTime): DateTimeAssertions; overload;
@@ -257,13 +258,9 @@ implementation
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  function TAssertFactory.Assert(const aValue: Boolean): Boolean;
+  function TAssertFactory.Assert(const aValue: Boolean): BooleanAssertions;
   begin
-    result := aValue;
-    if result then
-      TestRun.TestPassed(ValueName)
-    else
-      TestRun.TestFailed(ValueName, ValueName + ' is not TRUE');
+    result := TBooleanAssertions.Create(ValueName, aValue);
   end;
 
 
