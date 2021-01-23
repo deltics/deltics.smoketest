@@ -49,6 +49,7 @@ interface
   {$endif}
     Deltics.Smoketest.Test,
     Deltics.Smoketest.Assertions.Factory,
+    Deltics.Smoketest.Assertions.Boolean,
     Deltics.Smoketest.Assertions.Int64,
     Deltics.Smoketest.Assertions.Integer,
     Deltics.Smoketest.Assertions.Pointer,
@@ -71,7 +72,7 @@ interface
     protected
       function Test: ISelfTest; overload;
     {$ifdef DELPHI7} {$WARNINGS OFF} {$endif}
-      function Assert(aValue: Boolean): Boolean; overload;
+      function Assert(aValue: Boolean): BooleanAssertions; overload;
       function Assert(aValue: Integer): IntegerAssertions; overload;
       function Assert(aValue: Int64): Int64Assertions; overload;
       function Assert(aValue: TGuid): GuidAssertions; overload;
@@ -144,7 +145,7 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TSelfTest.Assert(aValue: Boolean): Boolean;
+  function TSelfTest.Assert(aValue: Boolean): BooleanAssertions;
   begin
     result := Test('test').Assert(aValue);
   end;

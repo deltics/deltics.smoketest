@@ -10,6 +10,7 @@ uses
   Deltics.Smoketest.Accumulators.StateAccumulator in '..\src\Deltics.Smoketest.Accumulators.StateAccumulator.pas',
   Deltics.Smoketest.Assertions in '..\src\Deltics.Smoketest.Assertions.pas',
   Deltics.Smoketest.Assertions.Factory in '..\src\Deltics.Smoketest.Assertions.Factory.pas',
+  Deltics.Smoketest.Assertions.Boolean in '..\src\Deltics.Smoketest.Assertions.Boolean.pas',
   Deltics.Smoketest.Assertions.Date in '..\src\Deltics.Smoketest.Assertions.Date.pas',
   Deltics.Smoketest.Assertions.DateTime in '..\src\Deltics.Smoketest.Assertions.DateTime.pas',
   Deltics.Smoketest.Assertions.AnsiString in '..\src\Deltics.Smoketest.Assertions.AnsiString.pas',
