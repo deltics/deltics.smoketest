@@ -19,6 +19,7 @@ uses
   Deltics.Smoketest.Assertions.Integer in '..\src\Deltics.Smoketest.Assertions.Integer.pas',
   Deltics.Smoketest.Assertions.Pointer in '..\src\Deltics.Smoketest.Assertions.Pointer.pas',
   Deltics.Smoketest.Assertions.UnicodeString in '..\src\Deltics.Smoketest.Assertions.UnicodeString.pas',
+  Deltics.Smoketest.Assertions.Utf8String in '..\src\Deltics.Smoketest.Assertions.Utf8String.pas',
   Deltics.Smoketest.Assertions.WideString in '..\src\Deltics.Smoketest.Assertions.WideString.pas',
   Deltics.Smoketest.ExpectedException in '..\src\Deltics.Smoketest.ExpectedException.pas',
   Deltics.Smoketest.ResultsWriter in '..\src\Deltics.Smoketest.ResultsWriter.pas',
