@@ -1,7 +1,7 @@
 {
   * MIT LICENSE *
 
-  Copyright © 2020 Jolyon Smith
+  Copyright Â© 2020 Jolyon Smith
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of
    this software and associated documentation files (the "Software"), to deal in
@@ -74,10 +74,6 @@ interface
       function Test: ISelfTest; overload;
     {$ifdef DELPHI7} {$WARNINGS OFF} {$endif}
       function Assert(aValue: Boolean): BooleanAssertions; overload;
-    {$ifdef EnhancedOverloads}
-      function Assert(const aValue: TDate): DateAssertions; overload;
-      function Assert(const aValue: TDateTime): DateTimeAssertions; overload;
-    {$endif}
       function Assert(aValue: Integer): IntegerAssertions; overload;
       function Assert(aValue: Int64): Int64Assertions; overload;
       function Assert(aValue: TGuid): GuidAssertions; overload;
@@ -85,14 +81,16 @@ interface
       function Assert(aValue: AnsiString): AnsiStringAssertions; overload;
       function Assert(aValue: WideString): WideStringAssertions; overload;
     {$ifdef EnhancedOverloads}
-      function Assert(aValue: Utf8String): Utf8StringAssertions; overload;
+      function Assert(const aValue: TDate): DateAssertions; overload;
+      function Assert(const aValue: TDateTime): DateTimeAssertions; overload;
+      function Assert(const aValue: Utf8String): Utf8StringAssertions; overload;
     {$endif}
     {$ifdef UNICODE}
       function Assert(aValue: UnicodeString): UnicodeStringAssertions; overload;
     {$endif}
       function AssertDate(const aValue: TDate): DateAssertions; overload;
       function AssertDatetime(const aValue: TDateTime): DateTimeAssertions; overload;
-      function AssertUtf8(aValue: Utf8String): Utf8StringAssertions; overload;
+      function AssertUtf8(const aValue: Utf8String): Utf8StringAssertions; overload;
     {$ifdef DELPHI7} {$WARNINGS ON} {$endif}
     end;
 
@@ -222,7 +220,7 @@ implementation
   end;
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TSelfTest.Assert(aValue: Utf8String): Utf8StringAssertions;
+  function TSelfTest.Assert(const aValue: Utf8String): Utf8StringAssertions;
   begin
     result := Test('test').AssertUtf8(aValue);
   end;
@@ -244,7 +242,7 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TSelfTest.AssertUtf8(aValue: Utf8String): Utf8StringAssertions;
+  function TSelfTest.AssertUtf8(const aValue: Utf8String): Utf8StringAssertions;
   begin
     result := Test('test').AssertUtf8(aValue);
   end;
