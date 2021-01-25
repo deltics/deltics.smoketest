@@ -28,6 +28,7 @@
             "src\\Deltics.Smoketest.Assertions.Pointer.pas",
             "src\\Deltics.Smoketest.Assertions.AnsiString.pas",
             "src\\Deltics.Smoketest.Assertions.UnicodeString.pas",
+            "src\\Deltics.Smoketest.Assertions.Utf8String.pas",
             "src\\Deltics.Smoketest.Assertions.WideString.pas",
             "src\\Deltics.Smoketest.ExpectedException.pas",
             "src\\Deltics.Smoketest.ResultsWriter.pas",

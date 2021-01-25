@@ -1,7 +1,7 @@
 {
   * MIT LICENSE *
 
-  Copyright © 2020 Jolyon Smith
+  Copyright Â© 2020 Jolyon Smith
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of
    this software and associated documentation files (the "Software"), to deal in
@@ -58,6 +58,7 @@ interface
     Deltics.Smoketest.Assertions.DateTime,
     Deltics.Smoketest.Assertions.AnsiString,
     Deltics.Smoketest.Assertions.UnicodeString,
+    Deltics.Smoketest.Assertions.Utf8String,
     Deltics.Smoketest.Assertions.WideString;
 
 
@@ -78,17 +79,18 @@ interface
       function Assert(aValue: TGuid): GuidAssertions; overload;
       function Assert(aValue: Pointer): PointerAssertions; overload;
       function Assert(aValue: AnsiString): AnsiStringAssertions; overload;
-    {$ifdef UNICODE}
-      function Assert(aValue: UnicodeString): UnicodeStringAssertions; overload;
-    {$endif}
       function Assert(aValue: WideString): WideStringAssertions; overload;
     {$ifdef EnhancedOverloads}
       function Assert(const aValue: TDate): DateAssertions; overload;
       function Assert(const aValue: TDateTime): DateTimeAssertions; overload;
-    {$else}
+      function Assert(const aValue: Utf8String): Utf8StringAssertions; overload;
+    {$endif}
+    {$ifdef UNICODE}
+      function Assert(aValue: UnicodeString): UnicodeStringAssertions; overload;
+    {$endif}
       function AssertDate(const aValue: TDate): DateAssertions; overload;
       function AssertDatetime(const aValue: TDateTime): DateTimeAssertions; overload;
-    {$endif}
+      function AssertUtf8(const aValue: Utf8String): Utf8StringAssertions; overload;
     {$ifdef DELPHI7} {$WARNINGS ON} {$endif}
     end;
 
@@ -203,6 +205,7 @@ implementation
 
 
 {$ifdef EnhancedOverloads}
+
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TSelfTest.Assert(const aValue: TDate): DateAssertions;
   begin
@@ -216,8 +219,14 @@ implementation
     result := Test('test').Assert(aValue);
   end;
 
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TSelfTest.Assert(const aValue: Utf8String): Utf8StringAssertions;
+  begin
+    result := Test('test').AssertUtf8(aValue);
+  end;
 
-{$else}
+{$endif}
+
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TSelfTest.AssertDate(const aValue: TDate): DateAssertions;
   begin
@@ -230,7 +239,14 @@ implementation
   begin
     result := Test('test').AssertDatetime(aValue);
   end;
-{$endif}
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TSelfTest.AssertUtf8(const aValue: Utf8String): Utf8StringAssertions;
+  begin
+    result := Test('test').AssertUtf8(aValue);
+  end;
+
 
 
 initialization
