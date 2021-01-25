@@ -488,10 +488,10 @@ implementation
       EXIT;
     end;
 
-    len := WideCharToMultiByte(CP_ACP, 0, PWideChar(aValue), -1, NIL, 0);
+    len := WideCharToMultiByte(CP_ACP, 0, PWideChar(aValue), -1, NIL, 0, NIL, NIL);
     SetLength(result, len - 1);
 
-    WideCharToMultiByte(CP_ACP, 0, PWideChar(aValue), -1, PAnsiChar(result), len);
+    WideCharToMultiByte(CP_ACP, 0, PWideChar(aValue), -1, PAnsiChar(result), len, NIL, NIL);
   {$endif}
   end;
 
@@ -516,10 +516,10 @@ implementation
   {$ifdef UNICODE}
     result := ws;
   {$else}
-    len := WideCharToMultiByte(CP_ACP, 0, PWideChar(ws), -1, NIL, 0);
+    len := WideCharToMultiByte(CP_ACP, 0, PWideChar(ws), -1, NIL, 0, NIL, NIL);
     SetLength(result, len - 1);
 
-    WideCharToMultiByte(CP_ACP, 0, PWideChar(ws), -1, PAnsiChar(result), len);
+    WideCharToMultiByte(CP_ACP, 0, PWideChar(ws), -1, PAnsiChar(result), len, NIL, NIL);
   {$endif}
   end;
 
