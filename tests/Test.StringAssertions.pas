@@ -115,6 +115,28 @@ interface
       procedure WideStringIsEmptyPassesWhenStringIsEmpty;
       procedure WideStringIsNotEmptyFailsWhenStringIsEmpty;
       procedure WideStringIsNotEmptyPassesWhenStringIsNotEmpty;
+
+      procedure Utf8StringEqualsPassesWhenStringsAreExactMatch;
+      procedure Utf8StringEqualsFailsWhenStringsAreNotAnExactMatch;
+      procedure Utf8StringEqualsTextPassesWhenStringsAreExactMatch;
+      procedure Utf8StringEqualsTextPassesWhenStringsDifferOnlyInCase;
+      procedure Utf8StringEqualsTextFailsWhenStringsDifferByMoreThanCase;
+      procedure Utf8StringContainsFailsWhenStringDoesNotContainSubstring;
+      procedure Utf8StringContainsFailsWhenStringContainsSubstringInDifferentCase;
+      procedure Utf8StringContainsPassesWhenStringContainsSubstringInSameCase;
+      procedure Utf8StringContainsTextFailsWhenStringDoesNotContainSubstring;
+      procedure Utf8StringContainsTextPassesWhenStringContainsSubstringInDifferentCase;
+      procedure Utf8StringContainsTextPassesWhenStringContainsSubstringInSameCase;
+      procedure Utf8StringDoesNotContainFailsWhenStringContainsSubstringInSameCase;
+      procedure Utf8StringDoesNotContainPassesWhenStringContainsSubstringInDifferentCase;
+      procedure Utf8StringDoesNotContainPassesWhenStringDoesNotContainsSubstring;
+      procedure Utf8StringDoesNotContainTextFailsWhenStringContainsSubstringInSameCase;
+      procedure Utf8StringDoesNotContainTextFailsWhenStringContainsSubstringInDifferentCase;
+      procedure Utf8StringDoesNotContainTextPassesWhenStringDoesNotContainsSubstring;
+      procedure Utf8StringIsEmptyFailsWhenStringIsNotEmpty;
+      procedure Utf8StringIsEmptyPassesWhenStringIsEmpty;
+      procedure Utf8StringIsNotEmptyFailsWhenStringIsEmpty;
+      procedure Utf8StringIsNotEmptyPassesWhenStringIsNotEmpty;
     end;
 
 
@@ -808,6 +830,234 @@ implementation
 
 
 
+
+
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.Utf8StringEqualsFailsWhenStringsAreNotAnExactMatch;
+  const
+    A: Utf8String = 'abc';
+    B: Utf8String = 'def';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).Equals(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.Utf8StringEqualsPassesWhenStringsAreExactMatch;
+  const
+    A: Utf8String = 'abc';
+    B: Utf8String = 'abc';
+  begin
+    Assert(A).Equals(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.Utf8StringEqualsTextFailsWhenStringsDifferByMoreThanCase;
+  const
+    A: Utf8String = 'abc';
+    B: Utf8String = 'ABC!';
+  begin
+    Test.IsExpectedToFail;
+    Assert(A).Equals(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.Utf8StringEqualsTextPassesWhenStringsAreExactMatch;
+  const
+    A: Utf8String = 'abc';
+    B: Utf8String = 'abc';
+  begin
+    Assert(A).EqualsText(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.Utf8StringEqualsTextPassesWhenStringsDifferOnlyInCase;
+  const
+    A: Utf8String = 'abc';
+    B: Utf8String = 'ABC';
+  begin
+    Assert(A).EqualsText(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.Utf8StringContainsFailsWhenStringContainsSubstringInDifferentCase;
+  const
+    A: Utf8String = 'the fox';
+    B: Utf8String = 'FOX';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).Contains(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.Utf8StringContainsFailsWhenStringDoesNotContainSubstring;
+  const
+    A: Utf8String = 'the fox';
+    B: Utf8String = 'wolf';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).Contains(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.Utf8StringContainsPassesWhenStringContainsSubstringInSameCase;
+  const
+    A: Utf8String = 'the fox';
+    B: Utf8String = 'fox';
+  begin
+    Assert(A).Contains(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.Utf8StringContainsTextFailsWhenStringDoesNotContainSubstring;
+  const
+    A: Utf8String = 'the fox';
+    B: Utf8String = 'wolf';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).ContainsText(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.Utf8StringContainsTextPassesWhenStringContainsSubstringInDifferentCase;
+  const
+    A: Utf8String = 'the fox';
+    B: Utf8String = 'FOX';
+  begin
+    Assert(A).ContainsText(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.Utf8StringContainsTextPassesWhenStringContainsSubstringInSameCase;
+  const
+    A: Utf8String = 'the fox';
+    B: Utf8String = 'fox';
+  begin
+    Assert(A).ContainsText(B);
+  end;
+
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.Utf8StringDoesNotContainFailsWhenStringContainsSubstringInSameCase;
+  const
+    A: Utf8String = 'the fox';
+    B: Utf8String = 'fox';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).DoesNotContain(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.Utf8StringDoesNotContainPassesWhenStringContainsSubstringInDifferentCase;
+  const
+    A: Utf8String = 'the fox';
+    B: Utf8String = 'FOX';
+  begin
+    Assert(A).DoesNotContain(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.Utf8StringDoesNotContainPassesWhenStringDoesNotContainsSubstring;
+  const
+    A: Utf8String = 'the fox';
+    B: Utf8String = 'wolf';
+  begin
+    Assert(A).DoesNotContain(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.Utf8StringDoesNotContainTextFailsWhenStringContainsSubstringInDifferentCase;
+  const
+    A: Utf8String = 'the fox';
+    B: Utf8String = 'FOX';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).DoesNotContain(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.Utf8StringDoesNotContainTextFailsWhenStringContainsSubstringInSameCase;
+  const
+    A: Utf8String = 'the fox';
+    B: Utf8String = 'fox';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).DoesNotContain(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.Utf8StringDoesNotContainTextPassesWhenStringDoesNotContainsSubstring;
+  const
+    A: Utf8String = 'the fox';
+    B: Utf8String = 'wolf';
+  begin
+    Assert(A).DoesNotContain(B);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.Utf8StringIsEmptyFailsWhenStringIsNotEmpty;
+  const
+    A: Utf8String = 'foo';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).IsEmpty;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.Utf8StringIsEmptyPassesWhenStringIsEmpty;
+  const
+    A: Utf8String = '';
+  begin
+    Assert(A).IsEmpty;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.Utf8StringIsNotEmptyFailsWhenStringIsEmpty;
+  const
+    A: Utf8String = '';
+  begin
+    Test.IsExpectedToFail;
+
+    Assert(A).IsNotEmpty;
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TStringTests.Utf8StringIsNotEmptyPassesWhenStringIsNotEmpty;
+  const
+    A: Utf8String = 'foo';
+  begin
+    Assert(A).IsNotEmpty;
+  end;
 
 
 end.
