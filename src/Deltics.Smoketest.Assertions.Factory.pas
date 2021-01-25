@@ -57,7 +57,10 @@ interface
     Deltics.Smoketest.Assertions.Integer,
     Deltics.Smoketest.Assertions.Pointer,
     Deltics.Smoketest.Assertions.AnsiString,
+  {$ifdef UNICODE}
     Deltics.Smoketest.Assertions.UnicodeString,
+  {$endif}
+    Deltics.Smoketest.Assertions.Utf8String,
     Deltics.Smoketest.Assertions.WideString;
 
 
@@ -91,9 +94,6 @@ interface
     {$ifdef EnhancedOverloads}
       function Assert(const aValue: TDate): DateAssertions; overload;
       function Assert(const aValue: TDateTime): DateTimeAssertions; overload;
-    {$else}
-      function AssertDate(const aValue: TDate): DateAssertions; overload;
-      function AssertDatetime(const aValue: TDateTime): DateTimeAssertions; overload;
     {$endif}
       function Assert(const aValue: Pointer): PointerAssertions; overload;
       function Assert(const aValue: TGuid): GuidAssertions; overload;
@@ -104,6 +104,12 @@ interface
     {$ifdef UNICODE}
       function Assert(const aValue: UnicodeString): UnicodeStringAssertions; overload;
     {$endif}
+    // These type specific asserts are needed for versions that have more limited
+    //  overload discrimination but are left in versions where they are not needed
+    //  to allow tests to be written once compatible with any Delphi version
+      function AssertDate(const aValue: TDate): DateAssertions; overload;
+      function AssertDatetime(const aValue: TDateTime): DateTimeAssertions; overload;
+      function AssertUtf8(const aValue: Utf8String): Utf8StringAssertions; overload;
     end;
 
 
@@ -123,9 +129,6 @@ interface
     {$ifdef EnhancedOverloads}
       function Assert(const aValue: TDate): DateAssertions; overload;
       function Assert(const aValue: TDateTime): DateTimeAssertions; overload;
-    {$else}
-      function AssertDate(const aValue: TDate): DateAssertions; overload;
-      function AssertDatetime(const aValue: TDateTime): DateTimeAssertions; overload;
     {$endif}
       function Assert(const aValue: Pointer): PointerAssertions; overload;
       function Assert(const aValue: TGuid): GuidAssertions; overload;
@@ -133,9 +136,15 @@ interface
       function Assert(const aValue: Integer): IntegerAssertions; overload;
       function Assert(const aValue: AnsiString): AnsiStringAssertions; overload;
       function Assert(const aValue: WideString): WideStringAssertions; overload;
+    {$ifdef EnhancedOverloads}
+      function Assert(const aValue: Utf8String): Utf8StringAssertions; overload;
+    {$endif}
     {$ifdef UNICODE}
       function Assert(const aValue: UnicodeString): UnicodeStringAssertions; overload;
     {$endif}
+      function AssertDate(const aValue: TDate): DateAssertions; overload;
+      function AssertDatetime(const aValue: TDateTime): DateTimeAssertions; overload;
+      function AssertUtf8(const aValue: Utf8String): Utf8StringAssertions; overload;
     public // IExceptionAssertions
       procedure FailedToRaiseException;
       procedure RaisedExceptionOf(const aExceptionBaseClass: TClass; const aExceptionMessage: String = ''); overload;
@@ -264,26 +273,22 @@ implementation
   end;
 
 
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
 {$ifdef EnhancedOverloads}
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   function TAssertFactory.Assert(const aValue: TDate): DateAssertions;
-{$else}
-  function TAssertFactory.AssertDate(const aValue: TDate): DateAssertions;
-{$endif}
   begin
     result := TDateAssertions.Create(ValueName, aValue);
   end;
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-{$ifdef EnhancedOverloads}
   function TAssertFactory.Assert(const aValue: TDateTime): DateTimeAssertions;
-{$else}
-  function TAssertFactory.AssertDatetime(const aValue: TDateTime): DateTimeAssertions;
-{$endif}
   begin
     result := TDateTimeAssertions.Create(ValueName, aValue);
   end;
+
+{$endif}
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
@@ -327,6 +332,15 @@ implementation
     result := TWideStringAssertions.Create(ValueName, aValue);
   end;
 
+{$ifdef EnhancedOverloads}
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TAssertFactory.Assert(const aValue: Utf8String): Utf8StringAssertions;
+  begin
+    result := TUtf8StringAssertions.Create(ValueName, aValue);
+  end;
+
+{$endif}
 
 {$ifdef UNICODE}
 
@@ -337,6 +351,27 @@ implementation
   end;
 
 {$endif}
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TAssertFactory.AssertDate(const aValue: TDate): DateAssertions;
+  begin
+    result := TDateAssertions.Create(ValueName, aValue);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TAssertFactory.AssertDatetime(const aValue: TDateTime): DateTimeAssertions;
+  begin
+    result := TDateTimeAssertions.Create(ValueName, aValue);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TAssertFactory.AssertUtf8(const aValue: Utf8String): Utf8StringAssertions;
+  begin
+    result := Tutf8StringAssertions.Create(ValueName, aValue);
+  end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
