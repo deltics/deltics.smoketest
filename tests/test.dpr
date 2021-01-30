@@ -17,6 +17,7 @@ uses
   Deltics.Smoketest.Assertions.Guid in '..\src\Deltics.Smoketest.Assertions.Guid.pas',
   Deltics.Smoketest.Assertions.Int64 in '..\src\Deltics.Smoketest.Assertions.Int64.pas',
   Deltics.Smoketest.Assertions.Integer in '..\src\Deltics.Smoketest.Assertions.Integer.pas',
+  Deltics.Smoketest.Assertions.Interface_ in '..\src\Deltics.Smoketest.Assertions.Interface_.pas',
   Deltics.Smoketest.Assertions.Pointer in '..\src\Deltics.Smoketest.Assertions.Pointer.pas',
   Deltics.Smoketest.Assertions.UnicodeString in '..\src\Deltics.Smoketest.Assertions.UnicodeString.pas',
   Deltics.Smoketest.Assertions.Utf8String in '..\src\Deltics.Smoketest.Assertions.Utf8String.pas',
@@ -36,6 +37,7 @@ uses
   Test.DeprecatedAssert in 'Test.DeprecatedAssert.pas',
   Test.ExceptionHandling in 'Test.ExceptionHandling.pas',
   Test.IntegerAssertions in 'Test.IntegerAssertions.pas',
+  Test.InterfaceAssertions in 'Test.InterfaceAssertions.pas',
   Test.PointerAssertions in 'Test.PointerAssertions.pas',
   Test.StringAssertions in 'Test.StringAssertions.pas',
   Test.GuidAssertions in 'Test.GuidAssertions.pas',
@@ -44,7 +46,7 @@ uses
   Test.Utils in 'Test.Utils.pas';
 
 begin
-  TestRun.Environment     := 'Delphi ' + DELPHI_VERSION;
+  TestRun.Environment     := DELPHI_VERSION_NAME;
   TestRun.DefaultTestName := METHOD_NAME;
 
   TestRun.Test(TAssertionFactoryTests);
@@ -58,6 +60,7 @@ begin
   TestRun.Test(TGuidAssertionTests);
   TestRun.Test(TDateAssertionTests);
   TestRun.Test(TIntegerAssertionTests);
+  TestRun.Test(TInterfaceAssertionTests);
   TestRun.Test(TInt64AssertionTests);
   TestRun.Test(TPointerAssertionTests);
 end.

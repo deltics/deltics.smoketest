@@ -55,6 +55,7 @@ interface
     Deltics.Smoketest.Assertions.Guid,
     Deltics.Smoketest.Assertions.Int64,
     Deltics.Smoketest.Assertions.Integer,
+    Deltics.Smoketest.Assertions.Interface_,
     Deltics.Smoketest.Assertions.Pointer,
     Deltics.Smoketest.Assertions.AnsiString,
   {$ifdef UNICODE}
@@ -99,6 +100,7 @@ interface
       function Assert(const aValue: TGuid): GuidAssertions; overload;
       function Assert(const aValue: Int64): Int64Assertions; overload;
       function Assert(const aValue: Integer): IntegerAssertions; overload;
+      function Assert(const aValue: IUnknown): InterfaceAssertions; overload;
       function Assert(const aValue: AnsiString): AnsiStringAssertions; overload;
       function Assert(const aValue: WideString): WideStringAssertions; overload;
     {$ifdef UNICODE}
@@ -134,6 +136,7 @@ interface
       function Assert(const aValue: TGuid): GuidAssertions; overload;
       function Assert(const aValue: Int64): Int64Assertions; overload;
       function Assert(const aValue: Integer): IntegerAssertions; overload;
+      function Assert(const aValue: IUnknown): InterfaceAssertions; overload;
       function Assert(const aValue: AnsiString): AnsiStringAssertions; overload;
       function Assert(const aValue: WideString): WideStringAssertions; overload;
     {$ifdef EnhancedOverloads}
@@ -316,6 +319,13 @@ implementation
   function TAssertFactory.Assert(const aValue: Integer): IntegerAssertions;
   begin
     result := TIntegerAssertions.Create(ValueName, aValue);
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TAssertFactory.Assert(const aValue: IUnknown): InterfaceAssertions;
+  begin
+    result := TInterfaceAssertions.Create(ValueName, aValue);
   end;
 
 
