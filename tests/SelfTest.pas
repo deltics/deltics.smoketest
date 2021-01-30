@@ -1,4 +1,4 @@
-{
+﻿{
   * MIT LICENSE *
 
   Copyright © 2020 Jolyon Smith
@@ -52,6 +52,7 @@ interface
     Deltics.Smoketest.Assertions.Boolean,
     Deltics.Smoketest.Assertions.Int64,
     Deltics.Smoketest.Assertions.Integer,
+    Deltics.Smoketest.Assertions.Interface_,
     Deltics.Smoketest.Assertions.Pointer,
     Deltics.Smoketest.Assertions.Guid,
     Deltics.Smoketest.Assertions.Date,
@@ -77,6 +78,7 @@ interface
       function Assert(aValue: Integer): IntegerAssertions; overload;
       function Assert(aValue: Int64): Int64Assertions; overload;
       function Assert(aValue: TGuid): GuidAssertions; overload;
+      function Assert(aValue: IUnknown): InterfaceAssertions; overload;
       function Assert(aValue: Pointer): PointerAssertions; overload;
       function Assert(aValue: AnsiString): AnsiStringAssertions; overload;
       function Assert(aValue: WideString): WideStringAssertions; overload;
@@ -169,6 +171,13 @@ implementation
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TSelfTest.Assert(aValue: TGuid): GuidAssertions;
+  begin
+    result := Test('test').Assert(aValue);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TSelfTest.Assert(aValue: IUnknown): InterfaceAssertions;
   begin
     result := Test('test').Assert(aValue);
   end;
