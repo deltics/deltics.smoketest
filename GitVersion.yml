@@ -1,6 +1,6 @@
 mode: ContinuousDeployment
 increment: None
-next-version: 2.5.2
+next-version: 2.6.0
 branches:
   master:
     mode: ContinuousDelivery
