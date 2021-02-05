@@ -1,11 +1,27 @@
+# Build status
+
+| Master | Develop |
+|--------|---------|
+|[![Build Status](https://dev.azure.com/deltics/Congress/_apis/build/status/deltics.smoketest?repoName=deltics%2Fdeltics.smoketest&branchName=master)](https://dev.azure.com/deltics/Congress/_build/latest?definitionId=33&repoName=deltics%2Fdeltics.smoketest&branchName=master)|[![Build Status](https://dev.azure.com/deltics/Congress/_apis/build/status/deltics.smoketest?repoName=deltics%2Fdeltics.smoketest&branchName=develop)](https://dev.azure.com/deltics/Congress/_build/latest?definitionId=33&repoName=deltics%2Fdeltics.smoketest&branchName=develop)|
+
+
+# New in 2.7.0 / 2.6.0 / 2.5.0 / 2.4.0
+
+* 2.4 made refinements to methods for testing exceptions
+* 2.5 provided additional tests for String assertions (e.g. Contains, ContainsText, DoesNotContain etc) as well as introducing Boolean and Utf8String assertions
+* 2.6 introduced Interface assertions
+* 2.7 introduces Double assertions
+
+
 # New in 2.3.0 / 2.2.0
 
 2.2.0 and 2.3.0 were incremental releases adding Assert()s for further types:
 
-* 2.2.0 Introduced: PointerAssertions 
+* 2.2.0 Introduced: PointerAssertions
 * 2.3.0 Introduced: GuidAssertions
 
 Fixes to address compiler warnings in Delphi 7 builds from deprecated methods (for the older non-fluent Assert() tests) are also incorporated as of 2.1.2 and of course these later versions also.
+
 
 # New in 2.1.0
 2.1.0 was a **BIG** update to Smoketest!
@@ -16,17 +32,16 @@ The biggest change apparent in the creation of tests (i.e. for users of the fram
 
 In summary:
 
-- Updated for Delphi 10.4
+- Updated with Delphi 10.4 support
 - Fluent Assertions
-- MASSIVELY simplified exception testing
+- **hugely** streamlined exception testing
 - Accumulators framework (simplified self-test mechanisms among other things)
-- Default behaviour is now to wait for user confirmation ("Hit ENTER") at the end of a test run, when running under the debugger
+- Default behaviour when running under the debugger is now to wait for user confirmation ("Hit ENTER") at the end of a test run
 - Bug fixes
 
-Further details on these changes are below.
 
 
-# Introduction 
+# Introduction
 Smoketest is a lightweight testing framework.  If Smoketest had ever been released under a proper versioning scheme (as 1.0.0+), then version 2.x was a major, breaking change.  If it were a movie franchise then it would be the **(Nolan/Bale's) Batman Begins** to **(Burton/Keaton's) Batman**; a re-boot or re-imagining.
 
 The goal for this re-imagining was to create a unit testing framework free of any dependencies on anything other than the core Delphi RTL, enabling it to be simply and easily consumed in the widest possible variety of Delphi projects and all Delphi versions from 7 to current.  The emphasis is on simplicity, ease of use and efficiency.

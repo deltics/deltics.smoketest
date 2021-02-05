@@ -57,6 +57,7 @@ interface
     Deltics.Smoketest.Assertions.Guid,
     Deltics.Smoketest.Assertions.Date,
     Deltics.Smoketest.Assertions.DateTime,
+    Deltics.Smoketest.Assertions.Double,
     Deltics.Smoketest.Assertions.AnsiString,
     Deltics.Smoketest.Assertions.UnicodeString,
     Deltics.Smoketest.Assertions.Utf8String,
@@ -83,6 +84,7 @@ interface
       function Assert(aValue: AnsiString): AnsiStringAssertions; overload;
       function Assert(aValue: WideString): WideStringAssertions; overload;
     {$ifdef EnhancedOverloads}
+      function Assert(const aValue: Double): DoubleAssertions; overload;
       function Assert(const aValue: TDate): DateAssertions; overload;
       function Assert(const aValue: TDateTime): DateTimeAssertions; overload;
       function Assert(const aValue: Utf8String): Utf8StringAssertions; overload;
@@ -90,9 +92,10 @@ interface
     {$ifdef UNICODE}
       function Assert(aValue: UnicodeString): UnicodeStringAssertions; overload;
     {$endif}
-      function AssertDate(const aValue: TDate): DateAssertions; overload;
-      function AssertDatetime(const aValue: TDateTime): DateTimeAssertions; overload;
-      function AssertUtf8(const aValue: Utf8String): Utf8StringAssertions; overload;
+      function AssertDate(const aValue: TDate): DateAssertions;
+      function AssertDatetime(const aValue: TDateTime): DateTimeAssertions;
+      function AssertDouble(const aValue: Double): DoubleAssertions;
+      function AssertUtf8(const aValue: Utf8String): Utf8StringAssertions;
     {$ifdef DELPHI7} {$WARNINGS ON} {$endif}
     end;
 
@@ -216,6 +219,13 @@ implementation
 {$ifdef EnhancedOverloads}
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TSelfTest.Assert(const aValue: Double): DoubleAssertions;
+  begin
+    result := Test('test').Assert(aValue);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TSelfTest.Assert(const aValue: TDate): DateAssertions;
   begin
     result := Test('test').Assert(aValue);
@@ -247,6 +257,13 @@ implementation
   function TSelfTest.AssertDatetime(const aValue: TDateTime): DateTimeAssertions;
   begin
     result := Test('test').AssertDatetime(aValue);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TSelfTest.AssertDouble(const aValue: Double): DoubleAssertions;
+  begin
+    result := Test('test').AssertDouble(aValue);
   end;
 
 
