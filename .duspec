@@ -22,6 +22,7 @@
             "src\\Deltics.Smoketest.Assertions.Boolean.pas",
             "src\\Deltics.Smoketest.Assertions.Date.pas",
             "src\\Deltics.Smoketest.Assertions.Datetime.pas",
+            "src\\Deltics.Smoketest.Assertions.Double.pas",
             "src\\Deltics.Smoketest.Assertions.Guid.pas",
             "src\\Deltics.Smoketest.Assertions.Int64.pas",
             "src\\Deltics.Smoketest.Assertions.Integer.pas",
