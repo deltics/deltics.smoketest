@@ -46,25 +46,25 @@ interface
   uses
     Classes,
     Deltics.Smoketest.TestResult,
-    Deltics.Smoketest.Utils;
+    Deltics.Smoketest.Types;
 
 
   type
   {$ifNdef UNICODE}
-    AnsiString = Deltics.Smoketest.Utils.AnsiString;
-    UnicodeString = Deltics.Smoketest.Utils.UnicodeString;
+    AnsiString = Deltics.Smoketest.Types.AnsiString;
+    UnicodeString = Deltics.Smoketest.Types.UnicodeString;
   {$endif}
 
 
-    EInvalidTest = Deltics.Smoketest.Utils.EInvalidTest;
+    EInvalidTest = Deltics.Smoketest.Types.EInvalidTest;
 
 
     AssertionResult = interface
     ['{86F9B5C1-FA31-416A-84FE-FFD21BCE7BBA}']
       function get_Failed: Boolean;
       function get_Passed: Boolean;
-      function FailsBecause(const aReason: String): AssertionResult; overload;
-      function FailsBecause(const aReason: String; aArgs: array of const): AssertionResult; overload;
+      function FailsBecause(const aReason: UnicodeString): AssertionResult; overload;
+      function FailsBecause(const aReason: UnicodeString; aArgs: array of const): AssertionResult; overload;
       property Failed: Boolean read get_Failed;
       property Passed: Boolean read get_Passed;
     end;
@@ -73,31 +73,31 @@ interface
     TAssertions = class(TInterfacedObject, AssertionResult)
     private
       fTestResult: TTestResult;
-      fDescription: String;
-      fFailure: String;
+      fDescription: UnicodeString;
+      fFailure: UnicodeString;
       fFormatTokens: TStringList;
-      fValueAsString: String;
-      fValueName: String;
+      fValueAsString: UnicodeString;
+      fValueName: UnicodeString;
     private // AssertionResult
       function get_Failed: Boolean;
       function get_Passed: Boolean;
-      function ReplaceTokensIn(const aString: String): String;
-      function FailsBecause(const aReason: String): AssertionResult; overload;
-      function FailsBecause(const aReason: String; aArgs: array of const): AssertionResult; overload;
+      function ReplaceTokensIn(const aString: UnicodeString): UnicodeString;
+      function FailsBecause(const aReason: UnicodeString): AssertionResult; overload;
+      function FailsBecause(const aReason: UnicodeString; aArgs: array of const): AssertionResult; overload;
     protected
       function Assert(const aResult: Boolean): AssertionResult; overload;
-      function Assert(const aResult: Boolean; const aMessage: String): AssertionResult; overload;
-      function Assert(const aResult: Boolean; const aMessage: String; aArgs: array of const): AssertionResult; overload;
-      function Format(const aString: String): String; overload;
-      function Format(const aString: String; aArgs: array of const): String; overload;
-      procedure FormatExpected(const aTokenValue: String);
-      procedure FormatToken(const aTokenString: String; const aTokenValue: String);
-      property Description: String read fDescription write fDescription;
-      property Failure: String read fFailure write fFailure;
+      function Assert(const aResult: Boolean; const aMessage: UnicodeString): AssertionResult; overload;
+      function Assert(const aResult: Boolean; const aMessage: UnicodeString; aArgs: array of const): AssertionResult; overload;
+      function Format(const aString: UnicodeString): UnicodeString; overload;
+      function Format(const aString: UnicodeString; aArgs: array of const): UnicodeString; overload;
+      procedure FormatExpected(const aTokenValue: UnicodeString);
+      procedure FormatToken(const aTokenString: UnicodeString; const aTokenValue: UnicodeString);
+      property Description: UnicodeString read fDescription write fDescription;
+      property Failure: UnicodeString read fFailure write fFailure;
       property TestResult: TTestResult read fTestResult;
-      property ValueName: String read fValueName;
+      property ValueName: UnicodeString read fValueName;
     public
-      constructor Create(const aValueName: String; const aValueAsString: String);
+      constructor Create(const aValueName: UnicodeString; const aValueAsString: UnicodeString);
       destructor Destroy; override;
     end;
 
@@ -107,7 +107,8 @@ implementation
 
   uses
     SysUtils,
-    Deltics.Smoketest.TestRun;
+    Deltics.Smoketest.TestRun,
+    Deltics.Smoketest.Utils;
 
 
   type
@@ -119,8 +120,8 @@ implementation
 { TFluentAssertions ------------------------------------------------------------------------------ }
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  constructor TAssertions.Create(const aValueName: String;
-                                 const aValueAsString: String);
+  constructor TAssertions.Create(const aValueName: UnicodeString;
+                                 const aValueAsString: UnicodeString);
   begin
     inherited Create;
 
@@ -141,14 +142,14 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TAssertions.Format(const aString: String): String;
+  function TAssertions.Format(const aString: UnicodeString): UnicodeString;
   begin
     result := Format(aString, []);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TAssertions.Format(const aString: String; aArgs: array of const): String;
+  function TAssertions.Format(const aString: UnicodeString; aArgs: array of const): UnicodeString;
   begin
     result := ReplaceTokensIn(aString);
     result := Interpolate(result, aArgs);
@@ -156,14 +157,14 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  procedure TAssertions.FormatExpected(const aTokenValue: String);
+  procedure TAssertions.FormatExpected(const aTokenValue: UnicodeString);
   begin
     FormatToken('expected', aTokenValue);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  procedure TAssertions.FormatToken(const aTokenString, aTokenValue: String);
+  procedure TAssertions.FormatToken(const aTokenString, aTokenValue: UnicodeString);
   begin
     fFormatTokens.Values[Lowercase(aTokenString)] := aTokenValue;
   end;
@@ -184,7 +185,7 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TAssertions.ReplaceTokensIn(const aString: String): String;
+  function TAssertions.ReplaceTokensIn(const aString: UnicodeString): UnicodeString;
   var
     i: Integer;
   begin
@@ -213,7 +214,7 @@ implementation
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TAssertions.Assert(const aResult: Boolean;
-                              const aMessage: String): AssertionResult;
+                              const aMessage: UnicodeString): AssertionResult;
   begin
     result := self;
 
@@ -226,7 +227,7 @@ implementation
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TAssertions.Assert(const aResult: Boolean;
-                              const aMessage: String;
+                              const aMessage: UnicodeString;
                                     aArgs: array of const): AssertionResult;
   begin
     result := Assert(aResult, Format(ReplaceTokensIn(aMessage), aArgs));
@@ -234,7 +235,7 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TAssertions.FailsBecause(const aReason: String;
+  function TAssertions.FailsBecause(const aReason: UnicodeString;
                                           aArgs: array of const): AssertionResult;
   begin
     result := FailsBecause(Format(ReplaceTokensIn(aReason), aArgs));
@@ -242,7 +243,7 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TAssertions.FailsBecause(const aReason: String): AssertionResult;
+  function TAssertions.FailsBecause(const aReason: UnicodeString): AssertionResult;
   begin
     fTestResult.ErrorMessage := ReplaceTokensIn(aReason);
   end;

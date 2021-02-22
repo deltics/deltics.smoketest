@@ -45,21 +45,11 @@ interface
 
   uses
     Classes,
-    SysUtils;
+    SysUtils,
+    Deltics.Smoketest.Types;
 
 
   type
-    {$ifNdef UNICODE}
-      AnsiString    = String;
-      UnicodeString = WideString;
-    {$endif}
-
-    PClass = ^TClass;   // A pointer to a TClass.
-
-    ESmoketest   = class(Exception);
-    EInvalidTest    = class(ESmoketest);
-    ESmoketestError = class(ESmoketest);
-
     //## All documented in documentation for final declaration in this group
     PSafeCallException = function(Self: TObject; ExceptObject: TObject; ExceptAddr: Pointer): HResult;  // <COMBINE PDestroy>
     PAfterConstruction = procedure(Self: TObject);                                                      // <COMBINE PDestroy>
@@ -234,7 +224,10 @@ interface
 
   function AsString(const aValue: AnsiString): UnicodeString; overload;
   function AsString(const aValue: WideChar): UnicodeString; overload;
+  function AsString(const aValue: WideString): UnicodeString; overload;
+{$ifdef UNICODE}
   function AsString(const aValue: UnicodeString): UnicodeString; overload;
+{$endif}
   function Utf8AsString(const aValue: Utf8String): UnicodeString;
 
   function Enquote(const aValue: String): String;
@@ -474,11 +467,19 @@ implementation
 
 
   {-   -   -   -   -   -   -   -   -   - -   -   -   -   -   -   -   -   -   -}
-  function AsString(const aValue: UnicodeString): UnicodeString;
+  function AsString(const aValue: WideString): UnicodeString;
   begin
     result := aValue;
   end;
 
+
+{$ifdef UNICODE}
+  {-   -   -   -   -   -   -   -   -   - -   -   -   -   -   -   -   -   -   -}
+  function AsString(const aValue: UnicodeString): UnicodeString;
+  begin
+    result := aValue;
+  end;
+{$endif}
 
   {-   -   -   -   -   -   -   -   -   - -   -   -   -   -   -   -   -   -   -}
   function Utf8AsString(const aValue: Utf8String): UnicodeString;

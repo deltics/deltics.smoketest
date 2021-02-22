@@ -159,6 +159,7 @@ implementation
     Deltics.Smoketest.Accumulators.StateAccumulator,
     Deltics.Smoketest.Assertions.Factory,
     Deltics.Smoketest.ResultsWriter,
+    Deltics.Smoketest.Types,
     Deltics.Smoketest.Utils;
 
 

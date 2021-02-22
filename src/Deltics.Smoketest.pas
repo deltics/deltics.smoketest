@@ -47,6 +47,7 @@ interface
     Deltics.Smoketest.Accumulators,
     Deltics.Smoketest.Test,
     Deltics.Smoketest.TestRun,
+    Deltics.Smoketest.Types,
     Deltics.Smoketest.Utils;
 
   // Elevate the scope of the TTest class so that test class implementation units
@@ -54,7 +55,7 @@ interface
   type
     Accumulators  = Deltics.Smoketest.Accumulators.Accumulators;
     TTest         = Deltics.Smoketest.Test.TTest;
-    EInvalidTest  = Deltics.Smoketest.Utils.EInvalidTest;
+    EInvalidTest  = Deltics.Smoketest.Types.EInvalidTest;
     IAccumulator  = Deltics.Smoketest.Accumulators.IAccumulator;
 
   const

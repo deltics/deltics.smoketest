@@ -43,26 +43,30 @@
 
 interface
 
+  uses
+    Deltics.Smoketest.Types;
+
+
   type
     TResultState = (rsPass, rsFail, rsSkip, rsError);
 
     TTestResult = class
     private
       fTestIndex: Integer;
-      fTestName: String;
+      fTestName: UnicodeString;
       fTypeName: String;
       fMethodName: String;
-      fErrorMessage: String;
+      fErrorMessage: UnicodeString;
       fState: TResultState;
       fActualState: TResultState;
       fExpectedState: TResultState;
     public
-      constructor Create(const aTestName: String; const aTypeName: String; const aMethodName: String; const aTestIndex: Integer; const aState: TResultState; const aExpectedState: TResultState; const aErrorMessage: String);
+      constructor Create(const aTestName: UnicodeString; const aTypeName: String; const aMethodName: String; const aTestIndex: Integer; const aState: TResultState; const aExpectedState: TResultState; const aErrorMessage: UnicodeString);
       property TestIndex: Integer read fTestIndex;
-      property TestName: String read fTestName;
+      property TestName: UnicodeString read fTestName;
       property TypeName: String read fTypeName;
       property TestMethod: String read fMethodName;
-      property ErrorMessage: String read fErrorMessage write fErrorMessage;
+      property ErrorMessage: UnicodeString read fErrorMessage write fErrorMessage;
       property State: TResultState read fState write fState;
       property ActualState: TResultState read fActualState;
       property ExpectedState: TResultState read fExpectedState;
@@ -74,13 +78,13 @@ implementation
 { TTestResult ------------------------------------------------------------------------------------ }
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  constructor TTestResult.Create(const aTestName: String;
+  constructor TTestResult.Create(const aTestName: UnicodeString;
                                  const aTypeName: String;
                                  const aMethodName: String;
                                  const aTestIndex: Integer;
                                  const aState: TResultState;
                                  const aExpectedState: TResultState;
-                                 const aErrorMessage: String);
+                                 const aErrorMessage: UnicodeString);
   begin
     inherited Create;
 

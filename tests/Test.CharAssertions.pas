@@ -88,9 +88,9 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TCharAssertions.WideCharIsNotSurrogateIsTrueWhenCharIsNotASurrogate;
   begin
-    Assert(#$0000).IsNotSurrogate;
-    Assert(#$0001).IsNotSurrogate;
-    Assert(#$00a9).IsNotSurrogate;
+    Assert(WideChar(#$0000)).IsNotSurrogate;
+    Assert(WideChar(#$0001)).IsNotSurrogate;
+    Assert(WideChar(#$00a9)).IsNotSurrogate;
     Assert(#$d7ff).IsNotSurrogate;
     Assert(#$e000).IsNotSurrogate;
     Assert(#$888).IsNotSurrogate;

@@ -191,6 +191,7 @@ implementation
     Contnrs,
     TypInfo,
     Deltics.Smoketest.TestRun,
+    Deltics.Smoketest.Types,
     Deltics.Smoketest.Utils;
 
 
@@ -233,6 +234,7 @@ implementation
 
 
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   function TAssertFactory.QueryInterface(const aIID: TGUID;
                                          out   aIntf): HRESULT;
   var
@@ -265,6 +267,7 @@ implementation
   end;
 
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   class procedure TAssertFactory.Register(const aIID: TGUID);
   var
     reg: TAssertFactoryRegistration;
