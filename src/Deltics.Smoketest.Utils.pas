@@ -747,7 +747,7 @@ implementation
         end;
       {$endif}
 
-        Append('&#x' + BinToHex(@c, 2) + ';');
+        Append('&#x' + BinToHex(@c, sizeof(Char)) + ';');
       end
       else case c of
         TAB : Append('&#x9;');
