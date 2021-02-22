@@ -232,12 +232,10 @@ interface
   function AsQuotedString(const aValue: UnicodeString): String; overload;
 {$endif}
 
-  function AsString(const aValue: AnsiString): String; overload;
-  function AsString(const aValue: WideString): String; overload;
-  function Utf8AsString(const aValue: Utf8String): String;
-{$ifdef UNICODE}
-  function AsString(const aValue: UnicodeString): String; overload;
-{$endif}
+  function AsString(const aValue: AnsiString): UnicodeString; overload;
+  function AsString(const aValue: WideChar): UnicodeString; overload;
+  function AsString(const aValue: UnicodeString): UnicodeString; overload;
+  function Utf8AsString(const aValue: Utf8String): UnicodeString;
 
   function Enquote(const aValue: String): String;
   function Interpolate(const aString: String; aValues: array of const): String;
@@ -451,8 +449,7 @@ implementation
 {$endif}
 
 
-  function AsString(const aValue: AnsiString): String;
-  {$ifdef UNICODE}
+  function AsString(const aValue: AnsiString): UnicodeString;
   var
     len: Integer;
   begin
@@ -466,40 +463,26 @@ implementation
     SetLength(result, len - 1);
 
     MultiByteToWideChar(CP_ACP, 0, PAnsiChar(aValue), -1, PWideChar(result), len);
-  {$else}
-  begin
-    result := aValue;
-  {$endif}
   end;
 
 
   {-   -   -   -   -   -   -   -   -   - -   -   -   -   -   -   -   -   -   -}
-  function AsString(const aValue: WideString): String;
-  {$ifdef UNICODE}
+  function AsString(const aValue: WideChar): UnicodeString;
   begin
-    result := aValue;
-  {$else}
-  var
-    len: Integer;
-  begin
-    if aValue = '' then
-    begin
-      result := '';
-      EXIT;
-    end;
-
-    len := WideCharToMultiByte(CP_ACP, 0, PWideChar(aValue), -1, NIL, 0, NIL, NIL);
-    SetLength(result, len - 1);
-
-    WideCharToMultiByte(CP_ACP, 0, PWideChar(aValue), -1, PAnsiChar(result), len, NIL, NIL);
-  {$endif}
+    result := Format('U+%.4x', [Ord(aValue)]);
   end;
 
 
   {-   -   -   -   -   -   -   -   -   - -   -   -   -   -   -   -   -   -   -}
-  function Utf8AsString(const aValue: Utf8String): String;
+  function AsString(const aValue: UnicodeString): UnicodeString;
+  begin
+    result := aValue;
+  end;
+
+
+  {-   -   -   -   -   -   -   -   -   - -   -   -   -   -   -   -   -   -   -}
+  function Utf8AsString(const aValue: Utf8String): UnicodeString;
   var
-    ws: WideString;
     len: Integer;
   begin
     if aValue = '' then
@@ -509,34 +492,14 @@ implementation
     end;
 
     len := MultiByteToWideChar(CP_UTF8, 0, PAnsiChar(aValue), -1, NIL, 0);
-    SetLength(ws, len - 1);
-
-    MultiByteToWideChar(CP_UTF8, 0, PAnsiChar(aValue), -1, PWideChar(ws), len);
-
-  {$ifdef UNICODE}
-    result := ws;
-  {$else}
-    len := WideCharToMultiByte(CP_ACP, 0, PWideChar(ws), -1, NIL, 0, NIL, NIL);
     SetLength(result, len - 1);
 
-    WideCharToMultiByte(CP_ACP, 0, PWideChar(ws), -1, PAnsiChar(result), len, NIL, NIL);
-  {$endif}
+    MultiByteToWideChar(CP_UTF8, 0, PAnsiChar(aValue), -1, PWideChar(result), len);
   end;
-
-
-{$ifdef UNICODE}
-
-  {-   -   -   -   -   -   -   -   -   - -   -   -   -   -   -   -   -   -   -}
-  function AsString(const aValue: UnicodeString): String;
-  begin
-    result := aValue;
-  end;
-
-{$endif}
 
 
   function Enquote(const aValue: String): String;
-  begin
+  begin
     result := StringReplace(aValue, '''', '''''', [rfReplaceAll, rfIgnoreCase]);
   end;
 
