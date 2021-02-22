@@ -81,6 +81,11 @@ implementation
 
   uses
     SysUtils,
+  {$ifdef DELPHI2006__}
+    {$ifdef __DELPHI2009}
+      Windows,
+    {$endif}
+  {$endif}
     Deltics.Smoketest.Utils;
 
 

@@ -82,12 +82,12 @@ interface
 implementation
 
   uses
+    SysUtils,
   {$ifdef DELPHI2006__}
-    {$ifNdef DELPHI2010__}
+    {$ifdef __DELPHI2009}
       Windows,
     {$endif}
   {$endif}
-    SysUtils,
     Deltics.Smoketest.Utils;
 
 
