@@ -666,13 +666,13 @@ implementation
     c: Char;
 
   {$ifdef UNICODE}
-    surrogatePair: Boolean;
+    hiSurrogate: WideChar;
     codepoint: Cardinal;
 
     function PairToCodePoint(hi, lo: Char): Cardinal;
     const
-      LEAD_OFFSET       = $D800 - ($10000 shr 10);
-      SURROGATE_OFFSET  = $10000 - ($D800 shl 10) - $DC00;
+      LEAD_OFFSET       = $d800 - ($10000 shr 10);
+      SURROGATE_OFFSET  = $10000 - ($d800 shl 10) - $dC00;
     begin
       result := (Word(hi) shl 10) + Word(lo) + SURROGATE_OFFSET;
     end;
@@ -694,38 +694,60 @@ implementation
 
   begin
   {$ifdef UNICODE}
-    surrogatePair := FALSE;
+    hiSurrogate := #$0000;
   {$endif}
     SetLength(result, Length(aValue) * 2);
 
     j := 0;
     for i := 1 to Length(aValue) do
     begin
-    {$ifdef UNICODE}
-      if surrogatePair then
-      begin
-        surrogatePair := FALSE;
-
-        codepoint := PairToCodePoint(c, aValue[i]);
-        Append('&#x' + BinToHex(@codepoint, 4) + ';');
-
-        CONTINUE;
-      end
-      else
-        c := aValue[i];
-    {$else}
       c := aValue[i];
+
+    {$ifdef UNICODE}
+      if hiSurrogate <> #$0000 then
+      begin
+        codepoint := 0;
+
+        if (Word(c) >= $dc00) and (Word(c) <= $dfff) then
+        begin
+          codepoint := PairToCodePoint(hiSurrogate, c);
+          Append('&#x' + BinToHex(@codepoint, 3) + ';');
+        end
+        else
+          Append('U+' + Uppercase(BinToHex(@hiSurrogate, 2)));
+
+        hiSurrogate := #$0000;
+
+        // If we obtained a codepoint from a surrogate pair then we can
+        //  move on to the next iteration of the loop.
+        //
+        // If not, then we had an orphaned hi-surrogate which was dealt
+        //  with and now "drop thru" to process the following char as usual.
+
+        if codepoint <> 0 then
+          CONTINUE;
+      end;
     {$endif}
 
       if (Ord(c) > 127) then
       begin
       {$ifdef UNICODE}
-        surrogatePair := (Word(c) >= $d800) and (Word(c) <= $dbff);
-        if surrogatePair then
+        // Hi Surrogate?  Stash the char and go around to pick up the lo-surrogate
+        if (Word(c) >= $d800) and (Word(c) <= $dbff) then
+        begin
+          hiSurrogate := c;
           CONTINUE;
+        end;
+
+        // Lo Surrogate?  If we reached it here, it must be an orphan
+        if (Word(c) >= $dc00) and (Word(c) <= $dfff) then
+        begin
+          Append('U+' + Uppercase(BinToHex(@c, 2)));
+          CONTINUE;
+        end;
       {$endif}
 
-        Append('&#x' + BinToHex(@c, sizeof(char)) + ';');
+        Append('&#x' + BinToHex(@c, 2) + ';');
       end
       else case c of
         TAB : Append('&#x9;');
@@ -743,6 +765,9 @@ implementation
         result[j] := c;
       end;
     end;
+
+    if hiSurrogate <> #$0000 then
+      Append('U+' + Uppercase(BinToHex(@hiSurrogate, 2)));
 
     SetLength(result, j);
   end;
