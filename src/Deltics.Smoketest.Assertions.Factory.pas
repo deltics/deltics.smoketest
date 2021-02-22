@@ -63,6 +63,7 @@ interface
     Deltics.Smoketest.Assertions.UnicodeString,
   {$endif}
     Deltics.Smoketest.Assertions.Utf8String,
+    Deltics.Smoketest.Assertions.WideChar,
     Deltics.Smoketest.Assertions.WideString;
 
 
@@ -104,6 +105,7 @@ interface
       function Assert(const aValue: Integer): IntegerAssertions; overload;
       function Assert(const aValue: IUnknown): InterfaceAssertions; overload;
       function Assert(const aValue: AnsiString): AnsiStringAssertions; overload;
+      function Assert(const aValue: WideChar): WideCharAssertions; overload;
       function Assert(const aValue: WideString): WideStringAssertions; overload;
     {$ifdef UNICODE}
       function Assert(const aValue: UnicodeString): UnicodeStringAssertions; overload;
@@ -142,6 +144,7 @@ interface
       function Assert(const aValue: Integer): IntegerAssertions; overload;
       function Assert(const aValue: IUnknown): InterfaceAssertions; overload;
       function Assert(const aValue: AnsiString): AnsiStringAssertions; overload;
+      function Assert(const aValue: WideChar): WideCharAssertions; overload;
       function Assert(const aValue: WideString): WideStringAssertions; overload;
     {$ifdef EnhancedOverloads}
       function Assert(const aValue: Utf8String): Utf8StringAssertions; overload;
@@ -345,6 +348,13 @@ implementation
   function TAssertFactory.Assert(const aValue: AnsiString): AnsiStringAssertions;
   begin
     result := TAnsiStringAssertions.Create(ValueName, aValue);
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TAssertFactory.Assert(const aValue: WideChar): WideCharAssertions;
+  begin
+    result := TWideCharAssertions.Create(ValueName, aValue);
   end;
 
 
