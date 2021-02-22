@@ -766,8 +766,10 @@ implementation
       end;
     end;
 
+  {$ifdef UNICODE}
     if hiSurrogate <> #$0000 then
       Append('U+' + Uppercase(BinToHex(@hiSurrogate, 2)));
+  {$endif}
 
     SetLength(result, j);
   end;
