@@ -21,6 +21,7 @@ uses
   Deltics.Smoketest.Assertions.Pointer in '..\src\Deltics.Smoketest.Assertions.Pointer.pas',
   Deltics.Smoketest.Assertions.UnicodeString in '..\src\Deltics.Smoketest.Assertions.UnicodeString.pas',
   Deltics.Smoketest.Assertions.Utf8String in '..\src\Deltics.Smoketest.Assertions.Utf8String.pas',
+  Deltics.Smoketest.Assertions.WideChar in '..\src\Deltics.Smoketest.Assertions.WideChar.pas',
   Deltics.Smoketest.Assertions.WideString in '..\src\Deltics.Smoketest.Assertions.WideString.pas',
   Deltics.Smoketest.ExpectedException in '..\src\Deltics.Smoketest.ExpectedException.pas',
   Deltics.Smoketest.ResultsWriter in '..\src\Deltics.Smoketest.ResultsWriter.pas',
@@ -44,7 +45,8 @@ uses
   Test.DateAssertions in 'Test.DateAssertions.pas',
   Test.Int64Assertions in 'Test.Int64Assertions.pas',
   Test.Utils in 'Test.Utils.pas',
-  Test.DoubleAssertions in 'Test.DoubleAssertions.pas';
+  Test.DoubleAssertions in 'Test.DoubleAssertions.pas',
+  Test.CharAssertions in 'Test.CharAssertions.pas';
 
 begin
   TestRun.Environment     := DELPHI_VERSION_NAME;
@@ -58,6 +60,7 @@ begin
   TestRun.Test(TDeprecatedAssertTests);
   TestRun.Test(TExceptionHandlingTests);
   TestRun.Test(TStringTests);
+  TestRun.Test(TCharAssertions);
   TestRun.Test(TGuidAssertionTests);
 //  TestRun.Test(TDateAssertionTests);
   TestRun.Test(TDoubleAssertionTests);
