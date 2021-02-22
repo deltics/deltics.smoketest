@@ -61,6 +61,7 @@ interface
     Deltics.Smoketest.Assertions.AnsiString,
     Deltics.Smoketest.Assertions.UnicodeString,
     Deltics.Smoketest.Assertions.Utf8String,
+    Deltics.Smoketest.Assertions.WideChar,
     Deltics.Smoketest.Assertions.WideString;
 
 
@@ -82,6 +83,7 @@ interface
       function Assert(aValue: IUnknown): InterfaceAssertions; overload;
       function Assert(aValue: Pointer): PointerAssertions; overload;
       function Assert(aValue: AnsiString): AnsiStringAssertions; overload;
+      function Assert(aValue: WideChar): WideCharAssertions; overload;
       function Assert(aValue: WideString): WideStringAssertions; overload;
     {$ifdef EnhancedOverloads}
       function Assert(const aValue: Double): DoubleAssertions; overload;
@@ -206,7 +208,15 @@ implementation
   begin
     result := Test('test').Assert(aValue);
   end;
+
 {$endif}
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TSelfTest.Assert(aValue: WideChar): WideCharAssertions;
+  begin
+    result := Test('test').Assert(aValue);
+  end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
