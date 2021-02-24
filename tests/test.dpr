@@ -47,7 +47,8 @@ uses
   Test.Utils in 'Test.Utils.pas',
   Test.DoubleAssertions in 'Test.DoubleAssertions.pas',
   Test.CharAssertions in 'Test.CharAssertions.pas',
-  Deltics.Smoketest.Types in '..\src\Deltics.Smoketest.Types.pas';
+  Deltics.Smoketest.Types in '..\src\Deltics.Smoketest.Types.pas',
+  Deltics.Smoketest.Assertions.Utf8Char in '..\src\Deltics.Smoketest.Assertions.Utf8Char.pas';
 
 begin
   TestRun.Environment     := DELPHI_VERSION_NAME;

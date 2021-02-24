@@ -50,6 +50,8 @@ interface
 
   type
     TCharAssertions = class(TSelfTest)
+      procedure Utf8CharEquals;
+      procedure Utf8CharEqualsText;
       procedure WideCharEqualsIsTrueWhenCharsAreEqual;
       procedure WideCharIsHiSurrogateIsTrueWhenCharIsHiSurrogate;
       procedure WideCharIsLoSurrogateIsTrueWhenCharIsHiSurrogate;
@@ -59,6 +61,57 @@ interface
 
 
 implementation
+
+  uses
+    Deltics.Smoketest.Types;
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TCharAssertions.Utf8CharEquals;
+  begin
+    AssertUtf8('a').Equals('a');
+    AssertUtf8('A').Equals('A');
+
+    AssertUtf8('z').Equals('z');
+    AssertUtf8('Z').Equals('Z');
+
+    AssertUtf8('@').Equals('@');
+    AssertUtf8('[').Equals('[');
+
+    Test.IsExpectedToFail;
+    AssertUtf8('a').Equals('A');
+
+    Test.IsExpectedToFail;
+    AssertUtf8('z').Equals('Z');
+
+    Test.IsExpectedToFail;
+    AssertUtf8('@').Equals('`');
+
+    Test.IsExpectedToFail;
+    AssertUtf8('[').Equals('(');
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TCharAssertions.Utf8CharEqualsText;
+  begin
+    AssertUtf8('a').EqualsText('a');
+    AssertUtf8('a').EqualsText('A');
+    AssertUtf8('A').EqualsText('A');
+
+    AssertUtf8('z').EqualsText('z');
+    AssertUtf8('z').EqualsText('Z');
+    AssertUtf8('Z').EqualsText('Z');
+
+    AssertUtf8('@').EqualsText('@');
+    AssertUtf8('[').EqualsText('[');
+
+    Test.IsExpectedToFail;
+    AssertUtf8('@').EqualsText('`');
+
+    Test.IsExpectedToFail;
+    AssertUtf8('[').EqualsText('(');
+  end;
+
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   procedure TCharAssertions.WideCharEqualsIsTrueWhenCharsAreEqual;
