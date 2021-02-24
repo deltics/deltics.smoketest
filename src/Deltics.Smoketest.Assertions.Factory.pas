@@ -62,9 +62,11 @@ interface
   {$ifdef UNICODE}
     Deltics.Smoketest.Assertions.UnicodeString,
   {$endif}
+    Deltics.Smoketest.Assertions.Utf8Char,
     Deltics.Smoketest.Assertions.Utf8String,
     Deltics.Smoketest.Assertions.WideChar,
-    Deltics.Smoketest.Assertions.WideString;
+    Deltics.Smoketest.Assertions.WideString,
+    Deltics.Smoketest.Types;
 
 
   type
@@ -116,7 +118,8 @@ interface
       function AssertDate(const aValue: TDate): DateAssertions;
       function AssertDatetime(const aValue: TDateTime): DateTimeAssertions;
       function AssertDouble(const aValue: Double): DoubleAssertions;
-      function AssertUtf8(const aValue: Utf8String): Utf8StringAssertions;
+      function AssertUtf8(const aValue: Utf8Char): Utf8CharAssertions; overload;
+      function AssertUtf8(const aValue: Utf8String): Utf8StringAssertions; overload;
     end;
 
 
@@ -155,7 +158,8 @@ interface
       function AssertDate(const aValue: TDate): DateAssertions;
       function AssertDatetime(const aValue: TDateTime): DateTimeAssertions;
       function AssertDouble(const aValue: Double): DoubleAssertions;
-      function AssertUtf8(const aValue: Utf8String): Utf8StringAssertions;
+      function AssertUtf8(const aValue: Utf8Char): Utf8CharAssertions; overload;
+      function AssertUtf8(const aValue: Utf8String): Utf8StringAssertions; overload;
     public // IExceptionAssertions
       procedure FailedToRaiseException;
       procedure RaisedExceptionOf(const aExceptionBaseClass: TClass; const aExceptionMessage: String = ''); overload;
@@ -191,7 +195,6 @@ implementation
     Contnrs,
     TypInfo,
     Deltics.Smoketest.TestRun,
-    Deltics.Smoketest.Types,
     Deltics.Smoketest.Utils;
 
 
@@ -406,6 +409,13 @@ implementation
   function TAssertFactory.AssertDouble(const aValue: Double): DoubleAssertions;
   begin
     result := TDoubleAssertions.Create(ValueName, aValue);
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TAssertFactory.AssertUtf8(const aValue: Utf8Char): Utf8CharAssertions;
+  begin
+    result := TUtf8CharAssertions.Create(ValueName, aValue);
   end;
 
 

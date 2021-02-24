@@ -57,6 +57,7 @@ interface
     TTest         = Deltics.Smoketest.Test.TTest;
     EInvalidTest  = Deltics.Smoketest.Types.EInvalidTest;
     IAccumulator  = Deltics.Smoketest.Accumulators.IAccumulator;
+    Utf8Char      = Deltics.Smoketest.Types.Utf8Char;
 
   const
     METHOD_NAME = Deltics.Smoketest.Test.METHOD_NAME;

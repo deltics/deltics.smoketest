@@ -53,6 +53,8 @@ interface
       UnicodeString = WideString;
     {$endif}
 
+    Utf8Char = AnsiChar;
+
     PClass = ^TClass;   // A pointer to a TClass.
 
     ESmoketest   = class(Exception);

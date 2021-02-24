@@ -223,6 +223,7 @@ interface
 {$endif}
 
   function AsString(const aValue: AnsiString): UnicodeString; overload;
+  function AsString(const aValue: Utf8Char): UnicodeString; overload;
   function AsString(const aValue: WideChar): UnicodeString; overload;
   function AsString(const aValue: WideString): UnicodeString; overload;
 {$ifdef UNICODE}
@@ -456,6 +457,16 @@ implementation
     SetLength(result, len - 1);
 
     MultiByteToWideChar(CP_ACP, 0, PAnsiChar(aValue), -1, PWideChar(result), len);
+  end;
+
+
+  {-   -   -   -   -   -   -   -   -   - -   -   -   -   -   -   -   -   -   -}
+  function AsString(const aValue: Utf8Char): UnicodeString;
+  begin
+    if (Ord(aValue) < 32) or (Ord(aValue) > 127) then
+      result := Format('U+%.2x', [Ord(aValue)])
+    else
+      result := '''' + aValue + '''';
   end;
 
 
