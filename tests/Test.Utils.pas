@@ -50,6 +50,7 @@ interface
   type
     TUtilsTests = class(TTest)
       procedure BinToHexEncodesCorrectly;
+      procedure InterpolateString;
       procedure XmlEncodedAttrEncodesSymbolsCorrectly;
     {$ifdef UNICODE}
       procedure XmlEncodedAttrEncodesOrphanedHiSurrogateAsCodeReferencesNotEntities;
@@ -95,6 +96,15 @@ implementation
 
 
 {$ifdef UNICODE}
+  procedure TUtilsTests.InterpolateString;
+  var
+    s: String;
+  begin
+    s := Interpolate('{c:%d} + {b:%d} = {a:%d} = {b} + {c}', [2, 3, 5]);
+    Test('Interpolate').Assert(s).Equals('2 + 3 = 5 = 3 + 2');
+  end;
+
+
   procedure TUtilsTests.XmlEncodedAttrEncodesOrphanedHiSurrogateAsCodeReferencesNotEntities;
   const
     HI = WideChar($d834);
