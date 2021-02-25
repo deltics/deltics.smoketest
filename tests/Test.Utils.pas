@@ -52,11 +52,9 @@ interface
       procedure BinToHexEncodesCorrectly;
       procedure InterpolateString;
       procedure XmlEncodedAttrEncodesSymbolsCorrectly;
-    {$ifdef UNICODE}
       procedure XmlEncodedAttrEncodesOrphanedHiSurrogateAsCodeReferencesNotEntities;
       procedure XmlEncodedAttrEncodesOrphanedLoSurrogateAsCodeReferencesNotEntities;
       procedure XmlEncodedAttrEncodesSupplementaryCharactersCorrectly;
-    {$endif}
     end;
 
 
@@ -95,7 +93,6 @@ implementation
   end;
 
 
-{$ifdef UNICODE}
   procedure TUtilsTests.InterpolateString;
   var
     s: String;
@@ -130,7 +127,6 @@ implementation
   begin
     Test('XmlEncodedAttr(''' + CLEF + ''')').Assert(XmlEncodedAttr(CLEF)).Equals('&#x' + CODEPOINT + ';');
   end;
-{$endif}
 
 
 end.
