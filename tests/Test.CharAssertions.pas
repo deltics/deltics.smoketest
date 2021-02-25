@@ -52,6 +52,7 @@ interface
     TCharAssertions = class(TSelfTest)
       procedure Utf8CharEquals;
       procedure Utf8CharEqualsText;
+      procedure Utf8CharExpectedContinuationBytes;
       procedure WideCharEqualsIsTrueWhenCharsAreEqual;
       procedure WideCharIsHiSurrogateIsTrueWhenCharIsHiSurrogate;
       procedure WideCharIsLoSurrogateIsTrueWhenCharIsHiSurrogate;
@@ -110,6 +111,23 @@ implementation
 
     Test.IsExpectedToFail;
     AssertUtf8('[').EqualsText('(');
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  procedure TCharAssertions.Utf8CharExpectedContinuationBytes;
+  begin
+    AssertUtf8(#$00).ExpectedContinuationBytes(0);
+    AssertUtf8(#$7f).ExpectedContinuationBytes(0);
+
+    AssertUtf8(#$c0).ExpectedContinuationBytes(1);
+    AssertUtf8(#$df).ExpectedContinuationBytes(1);
+
+    AssertUtf8(#$e0).ExpectedContinuationBytes(2);
+    AssertUtf8(#$ef).ExpectedContinuationBytes(2);
+
+    AssertUtf8(#$f0).ExpectedContinuationBytes(3);
+    AssertUtf8(#$f7).ExpectedContinuationBytes(3);
   end;
 
 
