@@ -543,8 +543,8 @@ implementation
     inPropertyRef: Boolean;
     propertyRef: String;
     refs: TStringList;
-    names: TStringList;
-    firstRef: TStringList;
+    args: TStringList;
+    resolved: TStringList;
     name: String;
     formatSpec: String;
     argIndex: Integer;
@@ -557,10 +557,10 @@ implementation
     propertyRef   := '';
 
     refs  := TStringList.Create;
-    names := TStringList.Create;
-    names.Sorted      := TRUE;
-    names.Duplicates  := dupIgnore;
-    firstRef := TStringList.Create;
+    resolved := TStringList.Create;
+    resolved.Sorted      := TRUE;
+    resolved.Duplicates  := dupIgnore;
+    args := TStringList.Create;
     try
       i       := 1;
       msgLen  := Length(result);
@@ -600,19 +600,25 @@ implementation
         propertyRef := refs[i];
         SplitNameAndFormatSpec(propertyRef, name, formatSpec);
 
-        if (firstRef.IndexOfName(name) = -1) then
+        if (resolved.IndexOfName(name) = -1) then
         begin
+          argIndex := args.Add(name);
+
           if formatSpec = '' then
             formatSpec := '%s';
 
-          firstRef.Add(name + '=' + formatSpec)
+          resolved.Add(name + '=' + formatSpec)
         end
-        else if formatSpec = '' then
-          formatSpec := firstRef.Values[name];
+        else
+        begin
+          argIndex := args.IndexOf(name);
+
+          if formatSpec = '' then
+            formatSpec := resolved.Values[name];
+        end;
 
         Delete(formatSpec, 1, 1);
 
-        argIndex    := names.Add(name);
         formatSpec  := '%' + IntToStr(argIndex) + ':' + formatSpec;
 
         if Pos('s', formatSpec) <> 0 then
@@ -625,8 +631,8 @@ implementation
 
     finally
       refs.Free;
-      names.Free;
-      firstRef.Free;
+      args.Free;
+      resolved.Free;
     end;
   end;
 
