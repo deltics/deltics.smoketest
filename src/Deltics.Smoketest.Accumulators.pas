@@ -123,7 +123,7 @@ implementation
   uses
     SysUtils,
     Deltics.Smoketest.Accumulators.ActualStateAccumulator,
-    Deltics.Smoketest.Utils;
+    Deltics.Smoketest.Types;
 
 
   var

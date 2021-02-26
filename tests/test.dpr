@@ -12,6 +12,7 @@ uses
   Deltics.Smoketest.Assertions.Factory in '..\src\Deltics.Smoketest.Assertions.Factory.pas',
   Deltics.Smoketest.Assertions.Boolean in '..\src\Deltics.Smoketest.Assertions.Boolean.pas',
   Deltics.Smoketest.Assertions.Date in '..\src\Deltics.Smoketest.Assertions.Date.pas',
+  Deltics.Smoketest.Assertions.DateTime in '..\src\Deltics.Smoketest.Assertions.DateTime.pas',
   Deltics.Smoketest.Assertions.Double in '..\src\Deltics.Smoketest.Assertions.Double.pas',
   Deltics.Smoketest.Assertions.AnsiString in '..\src\Deltics.Smoketest.Assertions.AnsiString.pas',
   Deltics.Smoketest.Assertions.Guid in '..\src\Deltics.Smoketest.Assertions.Guid.pas',
@@ -20,7 +21,9 @@ uses
   Deltics.Smoketest.Assertions.Interface_ in '..\src\Deltics.Smoketest.Assertions.Interface_.pas',
   Deltics.Smoketest.Assertions.Pointer in '..\src\Deltics.Smoketest.Assertions.Pointer.pas',
   Deltics.Smoketest.Assertions.UnicodeString in '..\src\Deltics.Smoketest.Assertions.UnicodeString.pas',
+  Deltics.Smoketest.Assertions.Utf8Char in '..\src\Deltics.Smoketest.Assertions.Utf8Char.pas',
   Deltics.Smoketest.Assertions.Utf8String in '..\src\Deltics.Smoketest.Assertions.Utf8String.pas',
+  Deltics.Smoketest.Assertions.WideChar in '..\src\Deltics.Smoketest.Assertions.WideChar.pas',
   Deltics.Smoketest.Assertions.WideString in '..\src\Deltics.Smoketest.Assertions.WideString.pas',
   Deltics.Smoketest.ExpectedException in '..\src\Deltics.Smoketest.ExpectedException.pas',
   Deltics.Smoketest.ResultsWriter in '..\src\Deltics.Smoketest.ResultsWriter.pas',
@@ -29,6 +32,7 @@ uses
   Deltics.Smoketest.Test in '..\src\Deltics.Smoketest.Test.pas',
   Deltics.Smoketest.TestResult in '..\src\Deltics.Smoketest.TestResult.pas',
   Deltics.Smoketest.TestRun in '..\src\Deltics.Smoketest.TestRun.pas',
+  Deltics.Smoketest.Types in '..\src\Deltics.Smoketest.Types.pas',
   Deltics.Smoketest.Utils in '..\src\Deltics.Smoketest.Utils.pas',
   SelfTest in 'SelfTest.pas',
   Test.CommandLineHandling in 'Test.CommandLineHandling.pas',
@@ -44,7 +48,8 @@ uses
   Test.DateAssertions in 'Test.DateAssertions.pas',
   Test.Int64Assertions in 'Test.Int64Assertions.pas',
   Test.Utils in 'Test.Utils.pas',
-  Test.DoubleAssertions in 'Test.DoubleAssertions.pas';
+  Test.DoubleAssertions in 'Test.DoubleAssertions.pas',
+  Test.CharAssertions in 'Test.CharAssertions.pas';
 
 begin
   TestRun.Environment     := DELPHI_VERSION_NAME;
@@ -58,6 +63,7 @@ begin
   TestRun.Test(TDeprecatedAssertTests);
   TestRun.Test(TExceptionHandlingTests);
   TestRun.Test(TStringTests);
+  TestRun.Test(TCharAssertions);
   TestRun.Test(TGuidAssertionTests);
 //  TestRun.Test(TDateAssertionTests);
   TestRun.Test(TDoubleAssertionTests);

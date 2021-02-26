@@ -62,8 +62,11 @@ interface
   {$ifdef UNICODE}
     Deltics.Smoketest.Assertions.UnicodeString,
   {$endif}
+    Deltics.Smoketest.Assertions.Utf8Char,
     Deltics.Smoketest.Assertions.Utf8String,
-    Deltics.Smoketest.Assertions.WideString;
+    Deltics.Smoketest.Assertions.WideChar,
+    Deltics.Smoketest.Assertions.WideString,
+    Deltics.Smoketest.Types;
 
 
   type
@@ -104,6 +107,7 @@ interface
       function Assert(const aValue: Integer): IntegerAssertions; overload;
       function Assert(const aValue: IUnknown): InterfaceAssertions; overload;
       function Assert(const aValue: AnsiString): AnsiStringAssertions; overload;
+      function Assert(const aValue: WideChar): WideCharAssertions; overload;
       function Assert(const aValue: WideString): WideStringAssertions; overload;
     {$ifdef UNICODE}
       function Assert(const aValue: UnicodeString): UnicodeStringAssertions; overload;
@@ -114,7 +118,8 @@ interface
       function AssertDate(const aValue: TDate): DateAssertions;
       function AssertDatetime(const aValue: TDateTime): DateTimeAssertions;
       function AssertDouble(const aValue: Double): DoubleAssertions;
-      function AssertUtf8(const aValue: Utf8String): Utf8StringAssertions;
+      function AssertUtf8(const aValue: Utf8Char): Utf8CharAssertions; overload;
+      function AssertUtf8(const aValue: Utf8String): Utf8StringAssertions; overload;
     end;
 
 
@@ -142,6 +147,7 @@ interface
       function Assert(const aValue: Integer): IntegerAssertions; overload;
       function Assert(const aValue: IUnknown): InterfaceAssertions; overload;
       function Assert(const aValue: AnsiString): AnsiStringAssertions; overload;
+      function Assert(const aValue: WideChar): WideCharAssertions; overload;
       function Assert(const aValue: WideString): WideStringAssertions; overload;
     {$ifdef EnhancedOverloads}
       function Assert(const aValue: Utf8String): Utf8StringAssertions; overload;
@@ -152,7 +158,8 @@ interface
       function AssertDate(const aValue: TDate): DateAssertions;
       function AssertDatetime(const aValue: TDateTime): DateTimeAssertions;
       function AssertDouble(const aValue: Double): DoubleAssertions;
-      function AssertUtf8(const aValue: Utf8String): Utf8StringAssertions;
+      function AssertUtf8(const aValue: Utf8Char): Utf8CharAssertions; overload;
+      function AssertUtf8(const aValue: Utf8String): Utf8StringAssertions; overload;
     public // IExceptionAssertions
       procedure FailedToRaiseException;
       procedure RaisedExceptionOf(const aExceptionBaseClass: TClass; const aExceptionMessage: String = ''); overload;
@@ -230,6 +237,7 @@ implementation
 
 
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   function TAssertFactory.QueryInterface(const aIID: TGUID;
                                          out   aIntf): HRESULT;
   var
@@ -262,6 +270,7 @@ implementation
   end;
 
 
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   class procedure TAssertFactory.Register(const aIID: TGUID);
   var
     reg: TAssertFactoryRegistration;
@@ -349,6 +358,13 @@ implementation
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TAssertFactory.Assert(const aValue: WideChar): WideCharAssertions;
+  begin
+    result := TWideCharAssertions.Create(ValueName, aValue);
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   function TAssertFactory.Assert(const aValue: WideString): WideStringAssertions;
   begin
     result := TWideStringAssertions.Create(ValueName, aValue);
@@ -393,6 +409,13 @@ implementation
   function TAssertFactory.AssertDouble(const aValue: Double): DoubleAssertions;
   begin
     result := TDoubleAssertions.Create(ValueName, aValue);
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TAssertFactory.AssertUtf8(const aValue: Utf8Char): Utf8CharAssertions;
+  begin
+    result := TUtf8CharAssertions.Create(ValueName, aValue);
   end;
 
 

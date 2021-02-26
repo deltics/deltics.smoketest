@@ -49,28 +49,28 @@ interface
   {$endif}
     Classes,
     Deltics.Smoketest.Assertions.Factory,
-    Deltics.Smoketest.Utils;
+    Deltics.Smoketest.Types;
 
   type
     {$M+}
     TTest = class
     private
-      fAssertValueName: String;
-      fAssertValueNameTemplate: String;
+      fAssertValueName: UnicodeString;
+      fAssertValueNameTemplate: UnicodeString;
       fAssertValueNameArgs: array of TVarRec;
     protected
       procedure AbortTestRun;
 
-      function Assert(const aTest: String; const aResult: Boolean; const aReason: String = ''): Boolean; overload; deprecated;
-      function AssertBaseException(const aExceptionBaseClass: TClass; const aTestName: String = ''): Boolean; deprecated;
-      function AssertException(const aExceptionClass: TClass; const aTestName: String = ''): Boolean; deprecated;
-      function AssertNoException(const aTestName: String = ''): Boolean; deprecated;
+      function Assert(const aTest: UnicodeString; const aResult: Boolean; const aReason: UnicodeString = ''): Boolean; overload; deprecated;
+      function AssertBaseException(const aExceptionBaseClass: TClass; const aTestName: UnicodeString = ''): Boolean; deprecated;
+      function AssertException(const aExceptionClass: TClass; const aTestName: UnicodeString = ''): Boolean; deprecated;
+      function AssertNoException(const aTestName: UnicodeString = ''): Boolean; deprecated;
 
       function Test: IExceptionAssertions; overload;
-      function Test(const aValueName: String): AssertFactory; overload;
-      function Test(const aValueName: String; aValueNameArgs: array of const): AssertFactory; overload;
+      function Test(const aValueName: UnicodeString): AssertFactory; overload;
+      function Test(const aValueName: UnicodeString; aValueNameArgs: array of const): AssertFactory; overload;
       procedure GetTestMethods(var aList: TStringList);
-      property AssertValueName: String read fAssertValueName;
+      property AssertValueName: UnicodeString read fAssertValueName;
     end;
     {$M-}
     TTestClass = class of TTest;
@@ -93,7 +93,8 @@ implementation
     SysUtils,
     TypInfo,
     Deltics.Smoketest.TestResult,
-    Deltics.Smoketest.TestRun;
+    Deltics.Smoketest.TestRun,
+    Deltics.Smoketest.Utils;
 
 
   // Test classes have privileged access to protected members of the TestRun
@@ -115,9 +116,9 @@ implementation
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   {$ifdef DELPHI7} {$WARNINGS OFF} {$endif}
-  function TTest.Assert(const aTest: String;
+  function TTest.Assert(const aTest: UnicodeString;
                         const aResult: Boolean;
-                        const aReason: String): Boolean;
+                        const aReason: UnicodeString): Boolean;
   {$ifdef DELPHI7} {$WARNINGS ON} {$endif}
   begin
     result := aResult;
@@ -131,11 +132,11 @@ implementation
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   {$ifdef DELPHI7} {$WARNINGS OFF} {$endif}
   function TTest.AssertBaseException(const aExceptionBaseClass: TClass;
-                                     const aTestName: String): Boolean;
+                                     const aTestName: UnicodeString): Boolean;
   {$ifdef DELPHI7} {$WARNINGS ON} {$endif}
   var
     e: TObject;
-    testName: String;
+    testName: UnicodeString;
   begin
     result   := FALSE;
     testName := aTestName;
@@ -161,11 +162,11 @@ implementation
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   {$ifdef DELPHI7} {$WARNINGS OFF} {$endif}
   function TTest.AssertException(const aExceptionClass: TClass;
-                                 const aTestName: String): Boolean;
+                                 const aTestName: UnicodeString): Boolean;
   {$ifdef DELPHI7} {$WARNINGS ON} {$endif}
   var
     e: TObject;
-    testName: String;
+    testName: UnicodeString;
   begin
     result := FALSE;
 
@@ -191,13 +192,13 @@ implementation
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   {$ifdef DELPHI7} {$WARNINGS OFF} {$endif}
-  function TTest.AssertNoException(const aTestName: String): Boolean;
+  function TTest.AssertNoException(const aTestName: UnicodeString): Boolean;
   {$ifdef DELPHI7} {$WARNINGS ON} {$endif}
   var
     eo: TObject;
     e: Exception absolute eo;
-    testName: String;
-    msg: String;
+    testName: UnicodeString;
+    msg: UnicodeString;
   begin
     eo := ExceptObject;
 
@@ -227,18 +228,18 @@ implementation
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TTest.Test(const aValueName: String): AssertFactory;
+  function TTest.Test(const aValueName: UnicodeString): AssertFactory;
   begin
     result := Test(aValueName, []);
   end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
-  function TTest.Test(const aValueName: String;
+  function TTest.Test(const aValueName: UnicodeString;
                             aValueNameArgs: array of const): AssertFactory;
   var
     i: Integer;
-    templateWithValueTokenObfuscated: String;
+    templateWithValueTokenObfuscated: UnicodeString;
   begin
     fAssertValueNameTemplate := aValueName;
 
@@ -311,13 +312,13 @@ implementation
 
     // Get the first method name into the 0'th element of the array
     method := GetFirstPublishedMethod(self.ClassType);
-    aList.Add(String(method.Name));
+    aList.Add(UnicodeString(method.Name));
 
     // Now get any more method names and place them in the array in turn
     for i := 1 to Pred(methodCount) do
     begin
       method := GetNextPublishedMethod(method);
-      aList.Add(String(method.Name));
+      aList.Add(UnicodeString(method.Name));
     end;
   end;
 {$endif}

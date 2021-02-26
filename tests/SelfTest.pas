@@ -60,8 +60,11 @@ interface
     Deltics.Smoketest.Assertions.Double,
     Deltics.Smoketest.Assertions.AnsiString,
     Deltics.Smoketest.Assertions.UnicodeString,
+    Deltics.Smoketest.Assertions.Utf8Char,
     Deltics.Smoketest.Assertions.Utf8String,
-    Deltics.Smoketest.Assertions.WideString;
+    Deltics.Smoketest.Assertions.WideChar,
+    Deltics.Smoketest.Assertions.WideString,
+    Deltics.Smoketest.Types;
 
 
   type
@@ -82,6 +85,7 @@ interface
       function Assert(aValue: IUnknown): InterfaceAssertions; overload;
       function Assert(aValue: Pointer): PointerAssertions; overload;
       function Assert(aValue: AnsiString): AnsiStringAssertions; overload;
+      function Assert(aValue: WideChar): WideCharAssertions; overload;
       function Assert(aValue: WideString): WideStringAssertions; overload;
     {$ifdef EnhancedOverloads}
       function Assert(const aValue: Double): DoubleAssertions; overload;
@@ -95,7 +99,8 @@ interface
       function AssertDate(const aValue: TDate): DateAssertions;
       function AssertDatetime(const aValue: TDateTime): DateTimeAssertions;
       function AssertDouble(const aValue: Double): DoubleAssertions;
-      function AssertUtf8(const aValue: Utf8String): Utf8StringAssertions;
+      function AssertUtf8(aValue: Utf8Char): Utf8CharAssertions; overload;
+      function AssertUtf8(const aValue: Utf8String): Utf8StringAssertions; overload;
     {$ifdef DELPHI7} {$WARNINGS ON} {$endif}
     end;
 
@@ -206,7 +211,15 @@ implementation
   begin
     result := Test('test').Assert(aValue);
   end;
+
 {$endif}
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TSelfTest.Assert(aValue: WideChar): WideCharAssertions;
+  begin
+    result := Test('test').Assert(aValue);
+  end;
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
@@ -238,6 +251,7 @@ implementation
     result := Test('test').Assert(aValue);
   end;
 
+
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function TSelfTest.Assert(const aValue: Utf8String): Utf8StringAssertions;
   begin
@@ -264,6 +278,13 @@ implementation
   function TSelfTest.AssertDouble(const aValue: Double): DoubleAssertions;
   begin
     result := Test('test').AssertDouble(aValue);
+  end;
+
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function TSelfTest.AssertUtf8(aValue: Utf8Char): Utf8CharAssertions;
+  begin
+    result := Test('test').AssertUtf8(aValue);
   end;
 
 
