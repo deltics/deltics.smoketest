@@ -104,27 +104,43 @@ implementation
 
   procedure TUtilsTests.XmlEncodedAttrEncodesOrphanedHiSurrogateAsCodeReferencesNotEntities;
   const
-    HI = WideChar($d834);
+    HI = #$d834;
+  var
+    HIHI: WideString;
   begin
     Test('XmlEncodedAttr(''' + HI + ''')').Assert(XmlEncodedAttr(HI)).Equals('U+D834');
-    Test('XmlEncodedAttr(''' + HI + HI + ''')').Assert(XmlEncodedAttr(HI + HI)).Equals('U+D834U+D834');
+
+    SetLength(HIHI, 2);
+    HIHI[1] := HI;
+    HIHI[2] := HI;
+    Test('XmlEncodedAttr(''' + HIHI + ''')').Assert(XmlEncodedAttr(HIHI)).Equals('U+D834U+D834');
   end;
 
 
   procedure TUtilsTests.XmlEncodedAttrEncodesOrphanedLoSurrogateAsCodeReferencesNotEntities;
   const
-    LO = WideChar($dd1e);
+    LO = #$dd1e;
+  var
+    LOLO: WideString;
   begin
     Test('XmlEncodedAttr(''' + LO + ''')').Assert(XmlEncodedAttr(LO)).Equals('U+DD1E');
-    Test('XmlEncodedAttr(''' + LO + LO + ''')').Assert(XmlEncodedAttr(LO + LO)).Equals('U+DD1EU+DD1E');
+
+    SetLength(LOLO, 2);
+    LOLO[1] := LO;
+    LOLO[2] := LO;
+    Test('XmlEncodedAttr(''' + LOLO + ''')').Assert(XmlEncodedAttr(LOLO)).Equals('U+DD1EU+DD1E');
   end;
 
 
   procedure TUtilsTests.XmlEncodedAttrEncodesSupplementaryCharactersCorrectly;
   const
     CODEPOINT = '01d11e';
-    CLEF      = WideChar($d834) + WideChar($dd1e);
+  var
+    CLEF: WideString;
   begin
+    SetLength(CLEF, 2);
+    CLEF[1] := #$d834;
+    CLEF[2] := #$dd1e;
     Test('XmlEncodedAttr(''' + CLEF + ''')').Assert(XmlEncodedAttr(CLEF)).Equals('&#x' + CODEPOINT + ';');
   end;
 

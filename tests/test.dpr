@@ -20,6 +20,7 @@ uses
   Deltics.Smoketest.Assertions.Interface_ in '..\src\Deltics.Smoketest.Assertions.Interface_.pas',
   Deltics.Smoketest.Assertions.Pointer in '..\src\Deltics.Smoketest.Assertions.Pointer.pas',
   Deltics.Smoketest.Assertions.UnicodeString in '..\src\Deltics.Smoketest.Assertions.UnicodeString.pas',
+  Deltics.Smoketest.Assertions.Utf8Char in '..\src\Deltics.Smoketest.Assertions.Utf8Char.pas',
   Deltics.Smoketest.Assertions.Utf8String in '..\src\Deltics.Smoketest.Assertions.Utf8String.pas',
   Deltics.Smoketest.Assertions.WideChar in '..\src\Deltics.Smoketest.Assertions.WideChar.pas',
   Deltics.Smoketest.Assertions.WideString in '..\src\Deltics.Smoketest.Assertions.WideString.pas',
@@ -30,6 +31,7 @@ uses
   Deltics.Smoketest.Test in '..\src\Deltics.Smoketest.Test.pas',
   Deltics.Smoketest.TestResult in '..\src\Deltics.Smoketest.TestResult.pas',
   Deltics.Smoketest.TestRun in '..\src\Deltics.Smoketest.TestRun.pas',
+  Deltics.Smoketest.Types in '..\src\Deltics.Smoketest.Types.pas',
   Deltics.Smoketest.Utils in '..\src\Deltics.Smoketest.Utils.pas',
   SelfTest in 'SelfTest.pas',
   Test.CommandLineHandling in 'Test.CommandLineHandling.pas',
@@ -46,9 +48,7 @@ uses
   Test.Int64Assertions in 'Test.Int64Assertions.pas',
   Test.Utils in 'Test.Utils.pas',
   Test.DoubleAssertions in 'Test.DoubleAssertions.pas',
-  Test.CharAssertions in 'Test.CharAssertions.pas',
-  Deltics.Smoketest.Types in '..\src\Deltics.Smoketest.Types.pas',
-  Deltics.Smoketest.Assertions.Utf8Char in '..\src\Deltics.Smoketest.Assertions.Utf8Char.pas';
+  Test.CharAssertions in 'Test.CharAssertions.pas';
 
 begin
   TestRun.Environment     := DELPHI_VERSION_NAME;

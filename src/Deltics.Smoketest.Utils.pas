@@ -216,11 +216,8 @@ interface
 
   function HasCmdLineOption(const aArgs: TStringList; const aOption: String; var aValue: String): Boolean;
 
-  function AsQuotedString(const aValue: AnsiString): String; overload;
-  function AsQuotedString(const aValue: WideString): String; overload;
-{$ifdef UNICODE}
-  function AsQuotedString(const aValue: UnicodeString): String; overload;
-{$endif}
+  function AsQuotedString(const aValue: AnsiString): UnicodeString; overload;
+  function AsQuotedString(const aValue: UnicodeString): UnicodeString; overload;
 
   function AsString(const aValue: AnsiString): UnicodeString; overload;
   function AsString(const aValue: Utf8Char): UnicodeString; overload;
@@ -231,19 +228,20 @@ interface
 {$endif}
   function Utf8AsString(const aValue: Utf8String): UnicodeString;
 
-  function Enquote(const aValue: String): String;
-  function Interpolate(const aString: String; aValues: array of const): String;
-  function XmlEncodedAttr(const aValue: String): String;
+  function Enquote(const aValue: UnicodeString): UnicodeString;
+  function Interpolate(const aString: UnicodeString; aValues: array of const): UnicodeString;
+  function XmlEncodedAttr(const aValue: UnicodeString): UnicodeString;
 
   function GuidsAreEqual(const a, b: TGUID): Boolean;
 
-  function BinToHex(const aBuf: Pointer; const aSize: Integer): String;
+  function BinToHex(const aBuf: Pointer; const aSize: Integer): UnicodeString;
 
 
 
 implementation
 
   uses
+    Math,
     Windows;
 
 
@@ -409,10 +407,10 @@ implementation
     // These AsString() utilities are provided to ensure hint/warning free
     //  'casts' of Ansi/Unicode/WideString values to whatever the native
     //  'String' type is at time of compilation.
-  function AsQuotedString(const aValue: AnsiString): String;
+  function AsQuotedString(const aValue: AnsiString): UnicodeString;
   begin
   {$ifdef UNICODE}
-    result := UnicodeString(aValue);
+    result := AsString(aValue);
   {$else}
     result := aValue;
   {$endif}
@@ -421,30 +419,15 @@ implementation
   end;
 
   {-   -   -   -   -   -   -   -   -   - -   -   -   -   -   -   -   -   -   -}
-  function AsQuotedString(const aValue: WideString): String;
+  function AsQuotedString(const aValue: UnicodeString): UnicodeString;
   begin
-  {$ifdef UNICODE}
-    result := aValue;
-  {$else}
-    result := AnsiString(aValue);
-  {$endif}
-
     result := Enquote(result);
   end;
 
-{$ifdef UNICODE}
 
-  {-   -   -   -   -   -   -   -   -   - -   -   -   -   -   -   -   -   -   -}
-  function AsQuotedString(const aValue: UnicodeString): String;
-  begin
-    result := Enquote(aValue);
-  end;
-
-{$endif}
-
-
-  function AsString(const aValue: AnsiString): UnicodeString;
-  var
+  {-   -   -   -   -   -   -   -   -   - -   -   -   -   -   -   -   -   -   -}
+  function AsString(const aValue: AnsiString): UnicodeString;
+  var
     len: Integer;
   begin
     if aValue = '' then
@@ -510,19 +493,131 @@ implementation
   end;
 
 
-  function Enquote(const aValue: String): String;
+  function Enquote(const aValue: UnicodeString): UnicodeString;
+  var
+    ii: Integer;
+    io: Integer;
   begin
-    result := StringReplace(aValue, '''', '''''', [rfReplaceAll, rfIgnoreCase]);
+    SetLength(result, Length(aValue) * 2);
+
+    io := 0;
+    for ii := 1 to Length(aValue) do
+    begin
+      Inc(io);
+      result[io] := aValue[ii];
+
+      if aValue[ii] = '''' then
+      begin
+        Inc(io);
+        result[io] := '''';
+      end;
+    end;
+
+    SetLength(result, io);
   end;
 
 
 
-  function Interpolate(const aString: String;
-                             aValues: array of const): String;
+  function Interpolate(const aString: UnicodeString;
+                             aValues: array of const): UnicodeString;
+  type
+  {$ifdef UNICODE}
+    TStringArray = TStringList;
+  {$else}
+    TStringArray = array of UnicodeString;
+  {$endif}
+  var
+    resolved: TStringArray;
 
-    procedure SplitNameAndFormatSpec(const aString: String;
-                                     var   aName: String;
-                                     var   aFormatSpec: String);
+    function AddString({$ifdef UNICODE}const{$else}var{$endif} aList: TStringArray; const aString: UnicodeString): Integer;
+    begin
+    {$ifdef UNICODE}
+      result := aList.Add(aString);
+    {$else}
+      SetLength(aList, Length(aList) + 1);
+      aList[Length(aList) - 1] := aString;
+
+      result := Length(aList) - 1;
+    {$endif}
+    end;
+
+    function IndexOf(const aList: TStringArray; const aName: UnicodeString): Integer;
+    begin
+    {$ifdef UNICODE}
+      result := aList.IndexOf(aName);
+    {$else}
+      for result := 0 to Pred(Length(aList)) do
+      begin
+        if aList[result] = aName then
+          EXIT;
+      end;
+      result := -1;
+    {$endif}
+    end;
+
+    function ValueForName(const aList: TStringArray; const aName: UnicodeString): UnicodeString;
+    {$ifNdef UNICODE}
+    var
+      i: Integer;
+      item: UnicodeString;
+      ep: Integer;
+      name: UnicodeString;
+    {$endif}
+    begin
+    {$ifdef UNICODE}
+      result := aList.Values[aName];
+    {$else}
+      result := '';
+
+      for i := 0 to Pred(Length(aList)) do
+      begin
+        item := aList[i];
+        ep := Pos('=', item);
+        if ep > 0 then
+          name := Copy(item, 1, ep - 1)
+        else
+          name := item;
+
+        if name = aName then
+        begin
+          if (ep > 0) then
+            result := Copy(item, ep + 1, Length(item) - ep);
+
+          EXIT;
+        end;
+      end;
+    {$endif}
+    end;
+
+    function IsResolved(const aRef: UnicodeString): Boolean;
+    {$ifNdef UNICODE}
+    var
+      i: Integer;
+      name: WideString;
+      ep: Integer;
+    {$endif}
+    begin
+    {$ifdef UNICODE}
+      result := resolved.IndexOfName(aRef) <> -1;
+    {$else}
+      result := TRUE;
+      for i := 0 to Pred(Length(resolved)) do
+      begin
+        name  := resolved[i];
+        ep    := Pos('=', name);
+        if ep > 0 then
+          name := Copy(name, 1, ep - 1);
+
+        if name = aRef then
+          EXIT;
+      end;
+      result := FALSE;
+    {$endif}
+    end;
+
+    procedure SplitNameAndFormatSpec(const aString: UnicodeString;
+                                     var   aName: UnicodeString;
+                                     var   aFormatSpec: UnicodeString);
     var
       cp: Integer;
     begin
@@ -533,7 +628,7 @@ implementation
       if cp = 0 then
         EXIT;
 
-      aName       := Copy(aString, 1, cp - 1);
+      aName       := WideLowercase(Copy(aString, 1, cp - 1));
       aFormatSpec := Copy(aString, cp + 1, Length(aString) - cp);
     end;
 
@@ -541,12 +636,12 @@ implementation
     i: Integer;
     msgLen: Integer;
     inPropertyRef: Boolean;
-    propertyRef: String;
-    refs: TStringList;
-    args: TStringList;
-    resolved: TStringList;
-    name: String;
-    formatSpec: String;
+    propertyRef: UnicodeString;
+    numRefs: Integer;
+    refs: TStringArray;
+    args: TStringArray;
+    name: UnicodeString;
+    formatSpec: UnicodeString;
     argIndex: Integer;
   begin
     result := aString;
@@ -556,11 +651,14 @@ implementation
     inPropertyRef := FALSE;
     propertyRef   := '';
 
+  {$ifdef UNICODE}
     refs  := TStringList.Create;
     resolved := TStringList.Create;
     resolved.Sorted      := TRUE;
     resolved.Duplicates  := dupIgnore;
+
     args := TStringList.Create;
+  {$endif}
     try
       i       := 1;
       msgLen  := Length(result);
@@ -570,7 +668,13 @@ implementation
         begin
           inPropertyRef := FALSE;
 
-          refs.Add(AnsiLowercase(propertyRef));
+        {$ifdef UNICODE}
+          propertyRef := Lowercase(propertyRef);
+        {$else}
+          propertyRef := WideLowercase(propertyRef);
+        {$endif}
+
+          AddString(refs, propertyRef);
         end
         else if (result[i] = '{') then
         begin
@@ -595,26 +699,32 @@ implementation
         Inc(i);
       end;
 
-      for i := 0 to Pred(refs.Count) do
+    {$ifdef UNICODE}
+      numRefs := refs.Count;
+    {$else}
+      numRefs := Length(refs);
+    {$endif}
+
+      for i := 0 to Pred(numRefs) do
       begin
         propertyRef := refs[i];
         SplitNameAndFormatSpec(propertyRef, name, formatSpec);
 
-        if (resolved.IndexOfName(name) = -1) then
+        if NOT IsResolved(name) then
         begin
-          argIndex := args.Add(name);
+          argIndex := AddString(args, name);
 
           if formatSpec = '' then
             formatSpec := '%s';
 
-          resolved.Add(name + '=' + formatSpec)
+          AddString(resolved, name + '=' + formatSpec)
         end
         else
         begin
-          argIndex := args.IndexOf(name);
+          argIndex := IndexOf(args, name);
 
           if formatSpec = '' then
-            formatSpec := resolved.Values[name];
+            formatSpec := ValueForName(resolved, name);
         end;
 
         Delete(formatSpec, 1, 1);
@@ -630,41 +740,41 @@ implementation
       result := Format(result, aValues);
 
     finally
+    {$ifdef UNICODE}
       refs.Free;
       args.Free;
       resolved.Free;
+    {$endif}
     end;
   end;
 
 
-  function XmlEncodedAttr(const aValue: String): String;
+  function XmlEncodedAttr(const aValue: UnicodeString): UnicodeString;
   const
     TAB = #9;
     LF  = #10;
     CR  = #13;
   var
     i, j: Integer;
-    c: Char;
+    c: WideChar;
 
-  {$ifdef UNICODE}
     hiSurrogate: WideChar;
     codepoint: Cardinal;
 
-    function PairToCodePoint(hi, lo: Char): Cardinal;
+    function PairToCodePoint(hi, lo: WideChar): Cardinal;
     const
       LEAD_OFFSET       = $d800 - ($10000 shr 10);
       SURROGATE_OFFSET  = $10000 - ($d800 shl 10) - $dC00;
     begin
       result := (Word(hi) shl 10) + Word(lo) + SURROGATE_OFFSET;
     end;
-  {$endif}
 
-    procedure Append(const aString: String);
+    procedure Append(const aString: UnicodeString);
     var
       ai: Integer;
     begin
       if (j + Length(aString)) >= Length(result) then
-        SetLength(result, 2 * Length(result));
+        SetLength(result, Max(j + Length(aString), 2 * Length(result)));
 
       for ai := 1 to Length(aString) do
       begin
@@ -674,9 +784,7 @@ implementation
     end;
 
   begin
-  {$ifdef UNICODE}
     hiSurrogate := #$0000;
-  {$endif}
     SetLength(result, Length(aValue) * 2);
 
     j := 0;
@@ -684,7 +792,6 @@ implementation
     begin
       c := aValue[i];
 
-    {$ifdef UNICODE}
       if hiSurrogate <> #$0000 then
       begin
         codepoint := 0;
@@ -708,11 +815,9 @@ implementation
         if codepoint <> 0 then
           CONTINUE;
       end;
-    {$endif}
 
       if (Ord(c) > 127) then
       begin
-      {$ifdef UNICODE}
         // Hi Surrogate?  Stash the char and go around to pick up the lo-surrogate
         if (Word(c) >= $d800) and (Word(c) <= $dbff) then
         begin
@@ -726,7 +831,6 @@ implementation
           Append('U+' + Uppercase(BinToHex(@c, 2)));
           CONTINUE;
         end;
-      {$endif}
 
         Append('&#x' + BinToHex(@c, sizeof(Char)) + ';');
       end
@@ -747,10 +851,8 @@ implementation
       end;
     end;
 
-  {$ifdef UNICODE}
     if hiSurrogate <> #$0000 then
       Append('U+' + Uppercase(BinToHex(@hiSurrogate, 2)));
-  {$endif}
 
     SetLength(result, j);
   end;
@@ -764,9 +866,9 @@ implementation
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  function BinToHex(const aBuf: Pointer; const aSize: Integer): String;
+  function BinToHex(const aBuf: Pointer; const aSize: Integer): UnicodeString;
   const
-    DIGITS: String = '0123456789abcdef';
+    DIGITS: WideString = '0123456789abcdef';
   var
     i: Integer;
     c: PByte;
