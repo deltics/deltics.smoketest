@@ -12,6 +12,7 @@ uses
   Deltics.Smoketest.Assertions.Factory in '..\src\Deltics.Smoketest.Assertions.Factory.pas',
   Deltics.Smoketest.Assertions.Boolean in '..\src\Deltics.Smoketest.Assertions.Boolean.pas',
   Deltics.Smoketest.Assertions.Date in '..\src\Deltics.Smoketest.Assertions.Date.pas',
+  Deltics.Smoketest.Assertions.DateTime in '..\src\Deltics.Smoketest.Assertions.DateTime.pas',
   Deltics.Smoketest.Assertions.Double in '..\src\Deltics.Smoketest.Assertions.Double.pas',
   Deltics.Smoketest.Assertions.AnsiString in '..\src\Deltics.Smoketest.Assertions.AnsiString.pas',
   Deltics.Smoketest.Assertions.Guid in '..\src\Deltics.Smoketest.Assertions.Guid.pas',
