@@ -832,7 +832,7 @@ implementation
           CONTINUE;
         end;
 
-        Append('&#x' + BinToHex(@c, sizeof(Char)) + ';');
+        Append('&#x' + BinToHex(@c, 2) + ';');
       end
       else case c of
         TAB : Append('&#x9;');
