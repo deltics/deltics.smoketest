@@ -832,7 +832,10 @@ implementation
           CONTINUE;
         end;
 
-        Append('&#x' + BinToHex(@c, 2) + ';');
+        if Ord(c) < 256 then
+          Append('&#x' + BinToHex(@c, 1) + ';')
+        else
+          Append('&#x' + BinToHex(@c, 2) + ';');
       end
       else case c of
         TAB : Append('&#x9;');
