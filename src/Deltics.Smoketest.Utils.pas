@@ -229,6 +229,7 @@ interface
   function Utf8AsString(const aValue: Utf8String): UnicodeString;
 
   function Enquote(const aValue: UnicodeString): UnicodeString;
+  function Format(const aString: UnicodeString; const aArgs: array of const): UnicodeString;
   function Interpolate(const aString: UnicodeString; aValues: array of const): UnicodeString;
   function XmlEncodedAttr(const aValue: UnicodeString): UnicodeString;
 
@@ -248,6 +249,7 @@ implementation
   resourcestring
     rsfENoPublishedMethods  = '%s has no published methods';
     rsfEMethodIndex         = 'Invalid published method index (%d) for %s';
+
 
 
   {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
@@ -493,7 +495,8 @@ implementation
   end;
 
 
-  function Enquote(const aValue: UnicodeString): UnicodeString;
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function Enquote(const aValue: UnicodeString): UnicodeString;
   var
     ii: Integer;
     io: Integer;
@@ -517,7 +520,18 @@ implementation
   end;
 
 
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
+  function Format(const aString: UnicodeString; const aArgs: array of const): UnicodeString;
+  begin
+  {$ifdef UNICODE}
+    result := SysUtils.Format(aString, aArgs);
+  {$else}
+    result := SysUtils.WideFormat(aString, aArgs);
+  {$endif}
+  end;
 
+
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function Interpolate(const aString: UnicodeString;
                              aValues: array of const): UnicodeString;
   type
@@ -749,6 +763,7 @@ implementation
   end;
 
 
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function XmlEncodedAttr(const aValue: UnicodeString): UnicodeString;
   const
     TAB = #9;
@@ -861,6 +876,7 @@ implementation
   end;
 
 
+  {-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --}
   function GuidsAreEqual(const a, b: TGUID): Boolean;
   begin
     result := CompareMem(@a, @b, sizeof(a));
