@@ -50,6 +50,7 @@ interface
   type
     TUtilsTests = class(TTest)
       procedure BinToHexEncodesCorrectly;
+      procedure FormatInterposerHandlesWideChars;
       procedure InterpolateString;
       procedure XmlEncodedAttrEncodesSymbolsCorrectly;
       procedure XmlEncodedAttrEncodesOrphanedHiSurrogateAsCodeReferencesNotEntities;
@@ -61,6 +62,7 @@ interface
 implementation
 
   uses
+    SysUtils,
     Deltics.Smoketest.Utils;
 
 
@@ -91,6 +93,34 @@ implementation
     Test('XmlEncodedAttr(''a "quoted" value'')').Assert(XmlEncodedAttr('a "quoted" value')).Equals('a &quot;quoted&quot; value');
     Test('XmlEncodedAttr(''Line 1[LF]Line 2'')').Assert(XmlEncodedAttr('Line 1'#10'Line 2')).Equals('Line 1&#xA;Line 2');
     Test('XmlEncodedAttr(''Line 1[CRLF]Line 2'')').Assert(XmlEncodedAttr('Line 1'#13#10'Line 2')).Equals('Line 1&#xD;&#xA;Line 2');
+  end;
+
+
+  procedure TUtilsTests.FormatInterposerHandlesWideChars;
+  const
+    L_STROKE: WideChar = #$0141;
+  begin
+    // On UNICODE supported versions, the RTL Format routine handles international WideChars
+    //
+    // On pre-UNICODE versions, Format() will raise an EConvertError for international WideChars
+    //  and WideFormat should be used instead.
+    //
+    // The Format() interposer in Smoketest Utils takes care of using the Format() appropriate
+    //  to the state of UNICODE support.
+  {$ifdef UNICODE}
+    Test.RaisesNoException;
+
+    SysUtils.Format('%s', [L_STROKE]);
+  {$else}
+    try
+      SysUtils.Format('%s', [L_STROKE]);
+      Test.FailedToRaiseException;
+    except
+      Test.RaisedException(EConvertError);
+    end;
+  {$endif}
+
+    Deltics.Smoketest.Utils.Format('%s', [L_STROKE]);
   end;
 
 
