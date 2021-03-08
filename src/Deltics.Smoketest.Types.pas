@@ -53,7 +53,10 @@ interface
       UnicodeString = WideString;
     {$endif}
 
-    Utf8Char = AnsiChar;
+    Utf8Char  = AnsiChar; // We are not using Deltics.StringTypes (no dependencies rule!) so
+                          //  this typedef is purely for expressing intent.  It does not
+                          //  increase type safety.  All Utf8 operations must be provided
+                          //  in explicit Utf8 versions of functions.  e.g. Assert() / AssertUtf8()
 
     PClass = ^TClass;   // A pointer to a TClass.
 
