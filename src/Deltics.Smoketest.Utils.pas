@@ -219,14 +219,15 @@ interface
   function AsQuotedString(const aValue: AnsiString): UnicodeString; overload;
   function AsQuotedString(const aValue: UnicodeString): UnicodeString; overload;
 
+  function AsString(const aValue: AnsiChar): UnicodeString; overload;
   function AsString(const aValue: AnsiString): UnicodeString; overload;
-  function AsString(const aValue: Utf8Char): UnicodeString; overload;
   function AsString(const aValue: WideChar): UnicodeString; overload;
   function AsString(const aValue: WideString): UnicodeString; overload;
 {$ifdef UNICODE}
   function AsString(const aValue: UnicodeString): UnicodeString; overload;
 {$endif}
-  function Utf8AsString(const aValue: Utf8String): UnicodeString;
+  function Utf8AsString(const aValue: Utf8Char): UnicodeString; overload;
+  function Utf8AsString(const aValue: Utf8String): UnicodeString; overload;
 
   function Enquote(const aValue: UnicodeString): UnicodeString;
   function Format(const aString: UnicodeString; const aArgs: array of const): UnicodeString;
@@ -428,6 +429,16 @@ implementation
 
 
   {-   -   -   -   -   -   -   -   -   - -   -   -   -   -   -   -   -   -   -}
+  function AsString(const aValue: AnsiChar): UnicodeString;
+  begin
+    if (Ord(aValue) < 32) or (Ord(aValue) > 127) then
+      result := Format('$%.2x', [Ord(aValue)])
+    else
+      result := '''' + aValue + '''';
+  end;
+
+
+  {-   -   -   -   -   -   -   -   -   - -   -   -   -   -   -   -   -   -   -}
   function AsString(const aValue: AnsiString): UnicodeString;
   var
     len: Integer;
@@ -442,16 +453,6 @@ implementation
     SetLength(result, len - 1);
 
     MultiByteToWideChar(CP_ACP, 0, PAnsiChar(aValue), -1, PWideChar(result), len);
-  end;
-
-
-  {-   -   -   -   -   -   -   -   -   - -   -   -   -   -   -   -   -   -   -}
-  function AsString(const aValue: Utf8Char): UnicodeString;
-  begin
-    if (Ord(aValue) < 32) or (Ord(aValue) > 127) then
-      result := Format('U+%.2x', [Ord(aValue)])
-    else
-      result := '''' + aValue + '''';
   end;
 
 
@@ -476,6 +477,17 @@ implementation
     result := aValue;
   end;
 {$endif}
+
+
+  {-   -   -   -   -   -   -   -   -   - -   -   -   -   -   -   -   -   -   -}
+  function Utf8AsString(const aValue: Utf8Char): UnicodeString;
+  begin
+    if (Ord(aValue) < 32) or (Ord(aValue) > 127) then
+      result := Format('U+%.2x', [Ord(aValue)])
+    else
+      result := '''' + aValue + '''';
+  end;
+
 
   {-   -   -   -   -   -   -   -   -   - -   -   -   -   -   -   -   -   -   -}
   function Utf8AsString(const aValue: Utf8String): UnicodeString;

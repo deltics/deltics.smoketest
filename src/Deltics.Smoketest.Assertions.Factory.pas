@@ -58,6 +58,7 @@ interface
     Deltics.Smoketest.Assertions.Integer,
     Deltics.Smoketest.Assertions.Interface_,
     Deltics.Smoketest.Assertions.Pointer,
+    Deltics.Smoketest.Assertions.AnsiChar,
     Deltics.Smoketest.Assertions.AnsiString,
   {$ifdef UNICODE}
     Deltics.Smoketest.Assertions.UnicodeString,
@@ -106,6 +107,7 @@ interface
       function Assert(const aValue: Int64): Int64Assertions; overload;
       function Assert(const aValue: Integer): IntegerAssertions; overload;
       function Assert(const aValue: IUnknown): InterfaceAssertions; overload;
+      function Assert(const aValue: AnsiChar): AnsiCharAssertions; overload;
       function Assert(const aValue: AnsiString): AnsiStringAssertions; overload;
       function Assert(const aValue: WideChar): WideCharAssertions; overload;
       function Assert(const aValue: WideString): WideStringAssertions; overload;
@@ -146,12 +148,10 @@ interface
       function Assert(const aValue: Int64): Int64Assertions; overload;
       function Assert(const aValue: Integer): IntegerAssertions; overload;
       function Assert(const aValue: IUnknown): InterfaceAssertions; overload;
+      function Assert(const aValue: AnsiChar): AnsiCharAssertions; overload;
       function Assert(const aValue: AnsiString): AnsiStringAssertions; overload;
       function Assert(const aValue: WideChar): WideCharAssertions; overload;
       function Assert(const aValue: WideString): WideStringAssertions; overload;
-    {$ifdef EnhancedOverloads}
-      function Assert(const aValue: Utf8String): Utf8StringAssertions; overload;
-    {$endif}
     {$ifdef UNICODE}
       function Assert(const aValue: UnicodeString): UnicodeStringAssertions; overload;
     {$endif}
@@ -351,6 +351,13 @@ implementation
 
 
   { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
+  function TAssertFactory.Assert(const aValue: AnsiChar): AnsiCharAssertions;
+  begin
+    result := TAnsiCharAssertions.Create(ValueName, aValue);
+  end;
+
+
+  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
   function TAssertFactory.Assert(const aValue: AnsiString): AnsiStringAssertions;
   begin
     result := TAnsiStringAssertions.Create(ValueName, aValue);
@@ -370,15 +377,6 @@ implementation
     result := TWideStringAssertions.Create(ValueName, aValue);
   end;
 
-{$ifdef EnhancedOverloads}
-
-  { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - }
-  function TAssertFactory.Assert(const aValue: Utf8String): Utf8StringAssertions;
-  begin
-    result := TUtf8StringAssertions.Create(ValueName, aValue);
-  end;
-
-{$endif}
 
 {$ifdef UNICODE}
 
