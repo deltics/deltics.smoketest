@@ -261,8 +261,11 @@ implementation
       if GuidsAreEqual(reg.IID, aIID) then
       begin
         factory := reg.FactoryClass.Create(ValueName);
-        factory.GetInterface(aIID, aIntf);
-        EXIT;
+        if factory.GetInterface(aIID, aIntf) then
+        begin
+          result := S_OK;
+          EXIT;
+        end;
       end;
     end;
 
